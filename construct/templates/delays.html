@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+
+{% block title%}
+Delays
+{%endblock%}
+
+
+{% block content%}
+{% include 'includes/delayModal.html' %}
+
+<div class="row" style="margin-top:20px;margin-left:20px">
+    <div class="col-11">
+        <h3>Delay Records</h3>
+        <p>View and Create Delays</p>
+        <br>
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal" data-whatever="@mdo">Create New Record</button>
+        <br><br><br>
+        
+
+        <table class="table table-hover table-dark">
+            <thead>
+                <tr>
+                    <!-- Your Columns HERE -->
+                    <th scope="col">ID</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Severity</th>
+                    <th scope="col">Phase</th>
+                    <th scope="col">Acknowledged?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Your rows inside the table HERE: -->
+                {% for item in items %}
+             
+                <tr>
+                    <td>{{delay.id}}</td>
+                    <td>{{delay.name}}</td>
+                    <td>{{delay.barcode}}</td>
+                    <td>{{delay.price}}$</td>
+                    <td>{{delay.id}}</td>
+                    <td>{{delay.ack_status}}</td>
+                    <td>
+                        <button class=" btn btn-outline btn-info" data-toggle="modal"
+                            data-target="#Modal-MoreInfo-{{item.id}}">More Info</button>
+                        <button class=" btn btn-outline btn-success" data-toggle="modal"
+                            data-target="#Modal-PurchaseConfirm-{{item.id}}">Purchase This Item</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+
+    </div>
+    
+
+</div>
+
+</div>
+
+{% endblock %}
