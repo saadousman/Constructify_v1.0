@@ -40,3 +40,26 @@ class PurchaseItemForm(FlaskForm):
 
 class SellItemForm(FlaskForm):
     submit = SubmitField(label='sell item!')
+
+
+class DelayForm(FlaskForm):
+
+    type = StringField(label='Delay Type', validators=[
+                           Length(min=2, max=30), DataRequired()])
+
+    description = StringField(label='Description', validators=[
+                                DataRequired()])
+
+    severity = StringField(label='Description', validators=[
+                                DataRequired()])
+
+    phase = StringField(label='Phase', validators=[
+                                DataRequired()])
+
+    delayedDays = StringField(label='Description', validators=[
+                                DataRequired()])
+
+    status = StringField(label='Description', validators=[
+                                DataRequired()])
+    
+    submit = SubmitField(label='Create Account!')

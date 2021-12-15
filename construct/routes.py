@@ -1,5 +1,5 @@
 from flask import render_template, redirect, url_for, flash, get_flashed_messages, request
-from construct.models import User
+from construct.models import User, Delay
 from construct import app
 from construct.forms import RegisterForm, LoginForm, PurchaseItemForm
 from construct import db
@@ -18,36 +18,36 @@ def delaypage():
 
     delays = Delay.query.all()
 
-    purchase_form = PurchaseItemForm()
-    if request.method == "POST":
-        purchased_item = request.form.get('purchased_item')
-        purch_item_obj = Item.query.filter_by(name=purchased_item).first()
+ #   purchase_form = PurchaseItemForm()
+  #  if request.method == "POST":
+  #      purchased_item = request.form.get('purchased_item')
+  #      purch_item_obj = Item.query.filter_by(name=purchased_item).first()
+#
+#        if purch_item_obj:
+#            if current_user.can_purchase(purch_item_obj):
+#                purch_item_obj.buy(current_user.id)
+#              #  purch_item_obj.owner = current_user.id
+#                current_user.update_budget(purch_item_obj.price)
+#
+#                flash(
+#                    f'You have purchased the {purch_item_obj.name} for {purch_item_obj.price}')
+#            else:
+#                flash(
+#                    f'you dont have enough money. Piss off')
 
-        if purch_item_obj:
-            if current_user.can_purchase(purch_item_obj):
-                purch_item_obj.buy(current_user.id)
-              #  purch_item_obj.owner = current_user.id
-                current_user.update_budget(purch_item_obj.price)
-
-                flash(
-                    f'You have purchased the {purch_item_obj.name} for {purch_item_obj.price}')
-            else:
-                flash(
-                    f'you dont have enough money. Piss off')
-
-        return render_template('construct.html', delays=delays)
+ #       return render_template('delays.html', delays=delays)
 
     if request.method == "GET":
-        owned_items = Item.query.filter_by(owner=current_user.id).first()
+        
 
-        return render_template('construct.html', delays=delays)
-
-
+        return render_template('delays.html', delays=delays)
 
 
 
 
-    return render_template('delays.html')
+
+
+   
 
 
 

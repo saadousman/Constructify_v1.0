@@ -18,7 +18,7 @@ Delays
         <br><br><br>
         
 
-        <table class="table table-hover table-dark">
+        <table class="table table-striped table-dark">
             <thead>
                 <tr>
                     <!-- Your Columns HERE -->
@@ -27,25 +27,28 @@ Delays
                     <th scope="col">Description</th>
                     <th scope="col">Severity</th>
                     <th scope="col">Phase</th>
-                    <th scope="col">Acknowledged?</th>
+                    <th scope="col">Days Delayed</th>
+                    <th scope="col">Reported Date?</th>
                 </tr>
             </thead>
             <tbody>
                 <!-- Your rows inside the table HERE: -->
-                {% for item in items %}
+                {% for delay in delays %}
              
                 <tr>
                     <td>{{delay.id}}</td>
-                    <td>{{delay.name}}</td>
-                    <td>{{delay.barcode}}</td>
-                    <td>{{delay.price}}$</td>
-                    <td>{{delay.id}}</td>
-                    <td>{{delay.ack_status}}</td>
+                    <td>{{delay.type}}</td>
+                    <td>{{delay.description}}</td>
+                    <td>{{delay.severity}}$</td>
+                    <td>{{delay.phase}}</td>
+                    <td>{{delay.delayed_days}}</td>
+                    <td>{{delay.status}}</td>
+                    
                     <td>
                         <button class=" btn btn-outline btn-info" data-toggle="modal"
-                            data-target="#Modal-MoreInfo-{{item.id}}">More Info</button>
+                            data-target="#">something</button>
                         <button class=" btn btn-outline btn-success" data-toggle="modal"
-                            data-target="#Modal-PurchaseConfirm-{{item.id}}">Purchase This Item</button>
+                            data-target="#">Acknowledge delay</button>
                     </td>
                 </tr>
                 {% endfor %}
