@@ -1,88 +1,73 @@
-
-
-
-
-<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+  aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="exampleModalLabel">New message</h5>
+        <h5 class="modal-title" id="exampleModalLabel">Add New Delay</h5>
         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
           <span aria-hidden="true">&times;</span>
         </button>
       </div>
       <div class="modal-body">
-        <form>
+
+
+        <form method="POST" class="form-register">
+          {{ delayForm.hidden_tag() }}
+
+          <div class="form-group">
+            {{ delayForm.type.label() }}
+            {{ delayForm.type(class="form-control", placeholder="Enter the Delay Type") }}
+          </div>
+
+          <div class="form-group">
+            {{ delayForm.description.label() }}
+            {{ delayForm.description(class="form-control", placeholder="Enter the Description") }}
+          </div>
+
+
+          <div class="form-group">
+            {{ delayForm.severity.label() }}
+            {{ delayForm.severity(class="form-control", placeholder="Enter the severity") }}
+          </div>
 
 
 
           <div class="form-group">
-            <label for="recipient-name" class="col-form-label">Reason:</label>
-            <select class="form-select" aria-label="Default select example">
-              <option selected>Weather</option>
-              <option value="1">Finance</option>
-              <option value="2">Workforce</option>
-              <option value="3">Misc</option>
-            </select>
+            {{ delayForm.phase.label() }}
+            {{ delayForm.phase(class="form-control", placeholder="Enter the phase") }}
+          </div>
+
+
+
+
+          <div class="form-group">
+            {{ delayForm.delayedDays.label() }}
+            {{ delayForm.delayedDays(class="form-control", placeholder="Enter the Days of Delay") }}
           </div>
 
           <div class="form-group">
-            <label for="message-text" class="col-form-label">Severity:</label>
-            <select class="form-select" aria-label="Default select example">
-              <option selected>low</option>
-              <option value="1">Medium</option>
-              <option value="2">High</option>
-              <option value="3">Critical</option>
-            </select>
+            {{ delayForm.date.label() }}
+            {{ delayForm.date(class="form-control", placeholder="Enter the date") }}
           </div>
 
-          <div class="form-group">
-            <label for="message-text" class="col-form-label">phase:</label>
-            <select class="form-select" aria-label="Default select example">
-              <option selected>Foundation</option>
-              <option value="1">Steel Work</option>
-              <option value="2">Electrical</option>
-              <option value="3">Finishing</option>
-            </select>
+          <br>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            {{ delayForm.submit(class="btn btn-primary") }}
           </div>
-
-          
-
-          <div class="form-group">
-            <label for="message-text" class="col-form-label">Description:</label>
-            <textarea class="form-control" id="message-text"></textarea>
-          </div>
-
-          <div class="form-group">
-            <label for="exampleFormControlSelect2">Delay in Days</label>
-               <select multiple class="form-control" id="exampleFormControlSelect2">
-                     <option>1</option>
-                     <option>2</option>
-                     <option>3</option>
-                     <option>4</option>
-                     <option>5</option>
-                     <option>6</option>
-                     <option>7</option>
-                     <option>8</option>
-                     <option>9</option>
-                     <option>10</option>
-               </select>
-          </div>
-
-
-          
         </form>
+
+        
+
       </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-        <button type="button" class="btn btn-primary">Submit Delay</button>
-      </div>
+
     </div>
   </div>
   <style>
     .modal-content {
-        background-color: #212121
+      background-color: #212121
     }
-</style>
+  </style>
 
 </div>
