@@ -39,16 +39,14 @@ Delays
                     <td>{{delay.id}}</td>
                     <td>{{delay.type}}</td>
                     <td>{{delay.description}}</td>
-                    <td>{{delay.severity}}$</td>
+                    <td>{{delay.severity}}</td>
                     <td>{{delay.phase}}</td>
                     <td>{{delay.delayed_days}}</td>
-                    <td>{{delay.status}}</td>
+                    <td>{{delay.date}}</td>
                     
                     <td>
-                        <button class=" btn btn-outline btn-info" data-toggle="modal"
-                            data-target="#">something</button>
-                        <button class=" btn btn-outline btn-success" data-toggle="modal"
-                            data-target="#">Acknowledge delay</button>
+                        <a class="btn btn-outline-danger" href="{{url_for('delete',id=delay.id)}}" role="button">Delete</a>
+                        <button type="button" class="btn btn-outline-success">Acknowledge</button>
                     </td>
                 </tr>
                 {% endfor %}

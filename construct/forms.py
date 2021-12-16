@@ -2,7 +2,7 @@ from construct import FlaskForm
 from construct import StringField, PasswordField, SubmitField
 from wtforms.validators import Length, EqualTo, Email, DataRequired, ValidationError
 from construct.models import User
-
+from wtforms import IntegerField, DateField
 
 class RegisterForm(FlaskForm):
     def validate_username(self, username_to_check):
@@ -50,16 +50,18 @@ class DelayForm(FlaskForm):
     description = StringField(label='Description', validators=[
                                 DataRequired()])
 
-    severity = StringField(label='Description', validators=[
+    severity = StringField(label='Severity', validators=[
                                 DataRequired()])
 
     phase = StringField(label='Phase', validators=[
                                 DataRequired()])
 
-    delayedDays = StringField(label='Description', validators=[
+    delayedDays = IntegerField(label='Days Delayed', validators=[
                                 DataRequired()])
 
-    status = StringField(label='Description', validators=[
+    date = StringField(label='Date', validators=[
                                 DataRequired()])
     
-    submit = SubmitField(label='Create Account!')
+    submit = SubmitField(label='Submit Delay!')
+
+    

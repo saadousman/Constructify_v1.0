@@ -1,9 +1,22 @@
 from flask import render_template, redirect, url_for, flash, get_flashed_messages, request
 from construct.models import User, Delay
 from construct import app
-from construct.forms import RegisterForm, LoginForm, PurchaseItemForm
+from construct.forms import RegisterForm, LoginForm, PurchaseItemForm, DelayForm
 from construct import db
 from flask_login import login_user, logout_user, login_required, current_user
+
+
+@app.route("/deletedelay/<int:id>")
+def delete(id):
+    delay_to_delete = Delay.query.get_or_404(id)
+    
+#    try:
+    db.session.delete(delay_to_delete)
+    db.session.commit()
+    return redirect(url_for('delaypage'))
+    flash(f'record deleted!')
+#    except:
+
 
 
 @app.route("/")
@@ -17,12 +30,36 @@ def homepage():
 def delaypage():
 
     delays = Delay.query.all()
+    delayForm = DelayForm()
+    
+    if request.method == "GET":
+                    return render_template('delays.html', delays=delays, delayForm=delayForm)
 
- #   purchase_form = PurchaseItemForm()
-  #  if request.method == "POST":
-  #      purchased_item = request.form.get('purchased_item')
-  #      purch_item_obj = Item.query.filter_by(name=purchased_item).first()
-#
+    if request.method == "POST":
+#Creating new Delays
+            delay_to_create = Delay(type=delayForm.type.data,
+                              description=delayForm.description.data,
+                              severity=delayForm.severity.data,
+                              phase=delayForm.phase.data,
+                              delayed_days=delayForm.delayedDays.data,
+                              date= delayForm.date.data)
+            db.session.add(delay_to_create)
+            db.session.commit()
+            flash(f'Delay Record Created!')
+
+#Deleting Delays Delays
+            Delay.query.filter(Delay.id == 123).delete()
+
+
+    return redirect(url_for('delaypage'))
+
+    if form.errors != {}:  # if the errors in the form error dictionary is not empty
+        for err_msg in delayForm.errors.values():
+            flash(f'There has been an exception thrown ==> {err_msg}  <==')
+
+
+
+
 #        if purch_item_obj:
 #            if current_user.can_purchase(purch_item_obj):
 #                purch_item_obj.buy(current_user.id)
@@ -37,10 +74,7 @@ def delaypage():
 
  #       return render_template('delays.html', delays=delays)
 
-    if request.method == "GET":
-        
-
-        return render_template('delays.html', delays=delays)
+       
 
 
 
