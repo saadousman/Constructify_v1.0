@@ -2,7 +2,7 @@ from construct import FlaskForm
 from construct import StringField, PasswordField, SubmitField
 from wtforms.validators import Length, EqualTo, Email, DataRequired, ValidationError
 from construct.models import User
-from wtforms import IntegerField, DateField
+from wtforms import IntegerField, DateField, SelectField
 
 class RegisterForm(FlaskForm):
     def validate_username(self, username_to_check):
@@ -44,17 +44,14 @@ class SellItemForm(FlaskForm):
 
 class DelayForm(FlaskForm):
 
-    type = StringField(label='Delay Type', validators=[
-                           Length(min=2, max=30), DataRequired()])
+    type = SelectField(u'Category', choices=[('Workforce', 'Workforce'), ('Financial', 'Financial'), ('Weather', 'Weather'), ('Logistics', 'Logistics'), (' Miscellaneous', ' Miscellaneous')])
 
     description = StringField(label='Description', validators=[
                                 DataRequired()])
 
-    severity = StringField(label='Severity', validators=[
-                                DataRequired()])
+    severity = SelectField(u'Severity', choices=[('Minor', 'Minor'), ('Medium', 'Medium'), ('Major', 'Major')])
 
-    phase = StringField(label='Phase', validators=[
-                                DataRequired()])
+    phase = SelectField(u'Phase', choices=[('Foundation', 'Foundation'), ('Interior', 'Interior'), ('Electrical', 'Electrical'), ('Plumbing', 'Plumbing'), ('Safety', 'Safety')])
 
     delayedDays = IntegerField(label='Days Delayed', validators=[
                                 DataRequired()])
@@ -65,3 +62,6 @@ class DelayForm(FlaskForm):
     submit = SubmitField(label='Submit Delay!')
 
     
+
+   
+ 
