@@ -25,6 +25,9 @@ def delete(id):
 def homepage():
     return render_template('home.html')
 
+
+
+
 @app.route("/delays", methods=['GET', 'POST'])
 @login_required
 def delaypage():
@@ -33,9 +36,10 @@ def delaypage():
     delayForm = DelayForm()
     
     if request.method == "GET":
-                    return render_template('delays.html', delays=delays, delayForm=delayForm)
+        return render_template('delays.html', delays=delays, delayForm=delayForm)
 
     if request.method == "POST":
+
 #Creating new Delays
             delay_to_create = Delay(type=delayForm.type.data,
                               description=delayForm.description.data,
@@ -47,13 +51,12 @@ def delaypage():
             db.session.commit()
             flash(f'Delay Record Created!')
 
-#Deleting Delays Delays
-            Delay.query.filter(Delay.id == 123).delete()
-
-
     return redirect(url_for('delaypage'))
 
-    if form.errors != {}:  # if the errors in the form error dictionary is not empty
+
+# if the errors in the form error dictionary is not empty
+
+    if form.errors != {}:  
         for err_msg in delayForm.errors.values():
             flash(f'There has been an exception thrown ==> {err_msg}  <==')
 
