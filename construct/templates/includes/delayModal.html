@@ -32,11 +32,14 @@
             {{ delayForm.phase(class="form-control", placeholder="Enter the phase") }}
           </div>
 
+          <div class="form-group">
+            {{ delayForm.extended_days.label() }}
+            {{ delayForm.extended_days(class="form-control", placeholder="Select The amount of days") }}
+          </div>
+
           
-   <!----    <div class="form-group"> --->
-     <!----         {{ delayForm.delayedDays.label() }} --->
-     <!----         {{ delayForm.delayedDays(class="form-control", placeholder="Enter the Days of Delay") }} --->
-  <!----           </div>  --->
+
+    
 
           <div class="form-group">
             {{ delayForm.date.label() }}

@@ -1,7 +1,7 @@
 from flask import render_template, redirect, url_for, flash, get_flashed_messages, request
-from construct.models import User, Delay, TimeExtension
+from construct.models import User, Delay
 from construct import app
-from construct.forms import RegisterForm, LoginForm, PurchaseItemForm, DelayForm, EOTForm
+from construct.forms import RegisterForm, LoginForm, PurchaseItemForm, DelayForm
 from construct import db
 from flask_login import login_user, logout_user, login_required, current_user
 
@@ -19,6 +19,7 @@ def delete(id):
 
 
 
+
 @app.route("/")
 @app.route("/home")
 @login_required
@@ -31,10 +32,11 @@ def homepage():
 @app.route("/delays", methods=['GET', 'POST'])
 @login_required
 def delaypage():
-
+    
+    delayForm = DelayForm()
     delays = Delay.query.all()
  #   extensions = TimeExtension.query.all()
-    delayForm = DelayForm()
+    
  #   eotform = EOTForm()
     
     if request.method == "GET":
@@ -47,18 +49,13 @@ def delaypage():
                               description=delayForm.description.data,
                               severity=delayForm.severity.data,
                               phase=delayForm.phase.data,
-                              
+                              delayed_days=delayForm.extended_days.data,
                               date= delayForm.date.data)
             db.session.add(delay_to_create)
             db.session.commit()
             flash(f'Delay Record Created!')
-#Requesting Extension of time
 
-
-        #    EOT_to_create = TimeExtension(days=EOTForm.extension_requested.data)
-        #    db.session.add(EOT_to_create)
-        #    db.session.commit()
-         #   flash(f'Extension of time Requested!')
+                      
 
 
     return redirect(url_for('delaypage'))

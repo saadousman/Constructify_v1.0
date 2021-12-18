@@ -53,7 +53,7 @@ class DelayForm(FlaskForm):
 
     phase = SelectField(u'Phase', choices=[('Foundation', 'Foundation'), ('Interior', 'Interior'), ('Electrical', 'Electrical'), ('Plumbing', 'Plumbing'), ('Safety', 'Safety')])
 
-    delayedDays = IntegerField(label='Days Delayed', validators=[
+    extended_days = IntegerField(label='Request for EOT in Days', validators=[
                              DataRequired()])
 
     date = DateField('Date', format='%Y-%m-%d') 
@@ -61,9 +61,7 @@ class DelayForm(FlaskForm):
     submit = SubmitField(label='Submit Delay!')
 
 
-class EOTForm(FlaskForm):
-    extension_requested = IntegerField(label='Days Requested for Extension', validators=[
-                                DataRequired()])
+
 
     
 

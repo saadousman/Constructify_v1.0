@@ -60,7 +60,5 @@ class Delay(db.Model):
     delayed_days = db.Column(db.Integer(), nullable=True)
     date = db.Column(db.String(length=30), nullable=False)
     
-class TimeExtension(db.Model):
-    id = db.Column(db.Integer(), nullable=False, primary_key=True)
-    days = db.Column(db.Integer(), nullable=False)
+
     

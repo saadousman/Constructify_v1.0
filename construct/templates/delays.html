@@ -34,7 +34,7 @@ Delays
                     <th scope="col">Description</th>
                     <th scope="col">Severity</th>
                     <th scope="col">Phase</th>
-                    <th scope="col">EOT Requested (Days)</th>
+                    <th scope="col">EOT</th>
                     <th scope="col">Reported Date?</th>
                 </tr>
             </thead>
@@ -42,14 +42,14 @@ Delays
                 <!-- Your rows inside the table HERE: -->
                 {% for delay in delays %}
                 {% include 'includes/newdeletemodal.html'  %}
-                {% include 'includes/extensionModal.html' %}
+              
                 <tr>
                     <td>{{delay.id}}</td>
                     <td>{{delay.type}}</td>
-                    <td>{{delay.description}}</td>
+                    <td width="30%">{{delay.description}}</td>
                     <td><span class="badge badge-pill badge-warning">{{delay.severity}}</span></td>
                     <td>{{delay.phase}}</td>
-                    <td>{{delay.delayed_days}}</td>
+                    <td width="9%">{{delay.delayed_days}} days</td>
                     <td>{{delay.date}}</td>
                    
                     <td>
@@ -57,7 +57,7 @@ Delays
                       
                         
                         <button type="button" class="btn btn-outline-danger" data-toggle="modal" data-target="#deletedelaymodal" data-whatever="@mdo">Delete Record</button>
-                        <button type="button" class="btn btn-outline-primary" data-toggle="modal" data-target="#extensionModal" data-whatever="@mdo">Request EOT</button>
+                        
                         
                     </td>
                 </tr>
