@@ -57,8 +57,10 @@ class Delay(db.Model):
     description = db.Column(db.String(length=30), nullable=False)
     severity = db.Column(db.String(length=30), nullable=False)
     phase = db.Column(db.String(length=30), nullable=False)
-    delayed_days = db.Column(db.Integer(), nullable=False)
+    delayed_days = db.Column(db.Integer(), nullable=True)
     date = db.Column(db.String(length=30), nullable=False)
     
-
+class TimeExtension(db.Model):
+    id = db.Column(db.Integer(), nullable=False, primary_key=True)
+    days = db.Column(db.Integer(), nullable=False)
     
