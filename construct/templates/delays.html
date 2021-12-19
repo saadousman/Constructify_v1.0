@@ -47,7 +47,18 @@ Delays
                     <td>{{delay.id}}</td>
                     <td>{{delay.type}}</td>
                     <td width="30%">{{delay.description}}</td>
+
+                <!-- Change Badge color based on Delay Deverity -->
+                    {% if 'Major' in delay.severity %}
+                    <td><span class="badge badge-pill badge-danger">{{delay.severity}}</span></td>
+                    {% endif %}
+                    {% if 'Medium' in delay.severity %}
                     <td><span class="badge badge-pill badge-warning">{{delay.severity}}</span></td>
+                    {% endif %}
+                    {% if 'Minor' in delay.severity %}
+                    <td><span class="badge badge-pill badge-info">{{delay.severity}}</span></td>
+                    {% endif %}
+                    
                     <td>{{delay.phase}}</td>
                     <td width="9%">{{delay.delayed_days}} days</td>
                     <td>{{delay.date}}</td>
