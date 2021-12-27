@@ -59,6 +59,8 @@ class Delay(db.Model):
     phase = db.Column(db.String(length=30), nullable=False)
     delayed_days = db.Column(db.Integer(), nullable=True)
     date = db.Column(db.String(length=30), nullable=False)
+    status = db.Column(db.String(length=30), nullable=True, default='pending')
+    
     
 
     

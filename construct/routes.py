@@ -40,6 +40,11 @@ def homepage():
 def eotrecord():
     return render_template('EOTRecords.html')
 
+@app.route("/eotapprovals")
+@login_required
+def eotapprovals():
+    return render_template('EOTApproved.html')
+
 
 
 
@@ -64,7 +69,8 @@ def delaypage():
                               severity=delayForm.severity.data,
                               phase=delayForm.phase.data,
                               delayed_days=delayForm.extended_days.data,
-                              date= delayForm.date.data)
+                              date= delayForm.date.data,
+                              status=delayForm.status.data)
             db.session.add(delay_to_create)
             db.session.commit()
             flash(f'Delay Record Created!')

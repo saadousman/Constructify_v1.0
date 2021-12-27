@@ -20,42 +20,13 @@
           </div>
 
           
-          <div class="form-group">
-            {{ delayForm.severity.label() }}
-            {{ delayForm.severity(class="form-control", placeholder="Enter the severity") }}
-          </div>
-
-          
-          <div class="form-group">
-            {{ delayForm.phase.label() }}
-            {{ delayForm.phase(class="form-control", placeholder="Enter the phase") }}
-          </div>
-
-          <div class="form-group">
-            {{ delayForm.extended_days.label() }}
-            {{ delayForm.extended_days(class="form-control", placeholder="Select The amount of days") }}
-          </div>
-
-          
-
-    
-
-          <div class="form-group">
-            {{ delayForm.date.label() }}
-            {{delayForm.date(class= "form-control")}}
-          </div>
-
-          <div class="form-group">
-            {{ delayForm.description.label() }}
-            {{ delayForm.description(class="form-control", placeholder="Enter the Description") }}
-          </div>
-
-          <br>
-
+        
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             {{ delayForm.submit(class="btn btn-primary") }}
           </div>
+
+          
         </form>
 
         
