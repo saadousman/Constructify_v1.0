@@ -6,6 +6,15 @@ from construct import db
 from flask_login import login_user, logout_user, login_required, current_user
 
 
+@app.route('/uploader', methods = ['GET', 'POST'])
+def upload_file():
+   if request.method == 'POST':
+      f = request.files['file']
+      f.save(secure_filename(f.filename))
+      flash(f'file uploaded successfully')
+      
+
+
 @app.route("/deletedelay/<int:id>")
 def delete(id):
     delay_to_delete = Delay.query.get_or_404(id)
@@ -25,6 +34,11 @@ def delete(id):
 @login_required
 def homepage():
     return render_template('home.html')
+
+@app.route("/eotrecords")
+@login_required
+def eotrecord():
+    return render_template('EOTRecords.html')
 
 
 
