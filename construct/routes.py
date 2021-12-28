@@ -6,13 +6,7 @@ from construct import db
 from flask_login import login_user, logout_user, login_required, current_user
 
 
-@app.route('/uploader', methods = ['GET', 'POST'])
-def upload_file():
-   if request.method == 'POST':
-      f = request.files['file']
-      f.save(secure_filename(f.filename))
-      flash(f'file uploaded successfully')
-      
+     
 
 
 @app.route("/deletedelay/<int:id>")
@@ -25,6 +19,17 @@ def delete(id):
     return redirect(url_for('delaypage'))
     flash(f'record deleted!')
 #    except:
+
+@app.route("/approveeot/<int:id>")
+def approveEOT(id):
+    eot_to_approve = Delay.query.get_or_404(id)
+    eot_to_approve.status = "Approved"
+    
+#    try:
+   
+    db.session.commit()
+    return redirect(url_for('delaypage'))
+    flash(f'EOT Approved!')
 
 
 
@@ -51,7 +56,8 @@ def eotapprovals():
 @app.route("/delays", methods=['GET', 'POST'])
 @login_required
 def delaypage():
-    
+    pending_delays= Delay.query.filter(Delay.status == "pending").count()
+    approved_delays= Delay.query.filter(Delay.status == "Approved").count()
     delayForm = DelayForm()
     delays = Delay.query.all()
  #   extensions = TimeExtension.query.all()
@@ -59,7 +65,7 @@ def delaypage():
  #   eotform = EOTForm()
     
     if request.method == "GET":
-        return render_template('delays.html', delays=delays, delayForm=delayForm)
+        return render_template('delays.html', delays=delays, delayForm=delayForm, pending_delays=pending_delays, approved_delays=approved_delays)
 
     if request.method == "POST":
 
@@ -69,8 +75,7 @@ def delaypage():
                               severity=delayForm.severity.data,
                               phase=delayForm.phase.data,
                               delayed_days=delayForm.extended_days.data,
-                              date= delayForm.date.data,
-                              status=delayForm.status.data)
+                              date= delayForm.date.data)
             db.session.add(delay_to_create)
             db.session.commit()
             flash(f'Delay Record Created!')

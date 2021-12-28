@@ -58,7 +58,7 @@ class DelayForm(FlaskForm):
 
     date = DateField('Date', format='%Y-%m-%d') 
 
-    status = SelectField(u'Phase', choices=[('Approved', 'Approved'), ('Pending', 'Pending')])
+    
 
     submit = SubmitField(label='Submit Delay!')
 
