@@ -4,11 +4,9 @@ from construct import app
 from construct.forms import RegisterForm, LoginForm, PurchaseItemForm, DelayForm
 from construct import db
 from flask_login import login_user, logout_user, login_required, current_user
+import time
 
-
-     
-
-
+#Deleting Delays
 @app.route("/deletedelay/<int:id>")
 def delete(id):
     delay_to_delete = Delay.query.get_or_404(id)
@@ -16,10 +14,15 @@ def delete(id):
 #    try:
     db.session.delete(delay_to_delete)
     db.session.commit()
+    time.sleep(1)
     return redirect(url_for('delaypage'))
+    time.sleep(3)
+    return redirect(url_for('homepage'))
     flash(f'record deleted!')
 #    except:
 
+
+#Approving EOT's
 @app.route("/approveeot/<int:id>")
 def approveEOT(id):
     eot_to_approve = Delay.query.get_or_404(id)
@@ -28,23 +31,27 @@ def approveEOT(id):
 #    try:
    
     db.session.commit()
+    time.sleep(1)
     return redirect(url_for('delaypage'))
     flash(f'EOT Approved!')
 
 
 
-
+#homepage route
 @app.route("/")
 @app.route("/home")
 @login_required
 def homepage():
     return render_template('home.html')
 
+
+#page to display Submmited EOTS
 @app.route("/eotrecords")
 @login_required
 def eotrecord():
     return render_template('EOTRecords.html')
 
+#page to display Approved EOTS
 @app.route("/eotapprovals")
 @login_required
 def eotapprovals():
@@ -52,17 +59,14 @@ def eotapprovals():
 
 
 
-
+#Path to the Delays Module
 @app.route("/delays", methods=['GET', 'POST'])
 @login_required
 def delaypage():
-    pending_delays= Delay.query.filter(Delay.status == "pending").count()
+    pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
     approved_delays= Delay.query.filter(Delay.status == "Approved").count()
     delayForm = DelayForm()
     delays = Delay.query.all()
- #   extensions = TimeExtension.query.all()
-    
- #   eotform = EOTForm()
     
     if request.method == "GET":
         return render_template('delays.html', delays=delays, delayForm=delayForm, pending_delays=pending_delays, approved_delays=approved_delays)
@@ -84,7 +88,6 @@ def delaypage():
 
 
     return redirect(url_for('delaypage'))
-
 
 # if the errors in the form error dictionary is not empty
 
