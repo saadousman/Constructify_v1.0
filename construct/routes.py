@@ -42,7 +42,10 @@ def approveEOT(id):
 @app.route("/home")
 @login_required
 def homepage():
-    return render_template('home.html')
+    pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
+    approved_delays= Delay.query.filter(Delay.status == "Approved").count()
+    delay_count = pending_delays+approved_delays
+    return render_template('home.html', pending_delays=pending_delays, approved_delays=approved_delays, delay_count=delay_count)
 
 
 #page to display Submmited EOTS
@@ -65,11 +68,12 @@ def eotapprovals():
 def delaypage():
     pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
     approved_delays= Delay.query.filter(Delay.status == "Approved").count()
+    delay_count = pending_delays+approved_delays
     delayForm = DelayForm()
     delays = Delay.query.all()
     
     if request.method == "GET":
-        return render_template('delays.html', delays=delays, delayForm=delayForm, pending_delays=pending_delays, approved_delays=approved_delays)
+        return render_template('delays.html', delays=delays, delayForm=delayForm, pending_delays=pending_delays, approved_delays=approved_delays, delay_count=delay_count)
 
     if request.method == "POST":
 
@@ -82,10 +86,7 @@ def delaypage():
                               date= delayForm.date.data)
             db.session.add(delay_to_create)
             db.session.commit()
-            flash(f'Delay Record Created!')
-
-                      
-
+            flash(f'Delay Record Created!')                
 
     return redirect(url_for('delaypage'))
 
