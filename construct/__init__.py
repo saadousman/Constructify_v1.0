@@ -5,6 +5,10 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from flask_login import LoginManager
 
+
+
+
+
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///construct.db'
 app.secret_key = 'df068fc9da4421a70764842f'

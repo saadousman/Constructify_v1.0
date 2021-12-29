@@ -12,27 +12,32 @@
           Please Create your Account
       </h1>
   
-  <br>
+  
     <body class = "text-center">
-<div class="container">
+<div class="container" style="width:350px;margin-top:70px">
 <form method="POST" class="form-register" style=" ">
     {{ form.hidden_tag() }}
     {{ form.username.label() }}
+    <br>
     {{ form.username(class="form-control", placeholder="Enter Your Username") }}
 
      {{ form.email_address.label() }}
+     <br>
     {{ form.email_address(class="form-control", placeholder="Enter Your Email Address") }}
 
      {{ form.password1.label() }}
+     <br>
     {{ form.password1(class="form-control", placeholder="Enter Your Password") }}
 
      {{ form.password2.label() }}
+     <br>
     {{ form.password2(class="form-control", placeholder="Confirm Password") }}
     <br>
 
     {{ form.submit(class="btn btn-lg btn-block btn-primary")}}
+    <br>
 
-      <div class="checkbox mb-3">
+      <div class="checkbox mb-3" >
                <h6>Already have an account?</h6>
                <a class="btn btn-sm btn-secondary" href="{{ url_for('login_page') }}">Login</a>
             </div>

@@ -53,12 +53,14 @@ class User(db.Model, UserMixin):
 
 class Delay(db.Model):
     id = db.Column(db.Integer(), nullable=False, primary_key=True)
-    type = db.Column(db.String(length=30), nullable=False, unique=False)
-    description = db.Column(db.String(length=30), nullable=False, unique=False)
-    severity = db.Column(db.String(length=30), nullable=False, unique=False)
-    phase = db.Column(db.String(length=30), nullable=False, unique=False)
-    delayed_days = db.Column(db.Integer(), nullable=False)
+    type = db.Column(db.String(length=30), nullable=False)
+    description = db.Column(db.String(length=30), nullable=False)
+    severity = db.Column(db.String(length=30), nullable=False)
+    phase = db.Column(db.String(length=30), nullable=False)
+    delayed_days = db.Column(db.Integer(), nullable=True)
     date = db.Column(db.String(length=30), nullable=False)
+    status = db.Column(db.String(length=30), nullable=True, default="Submitted")
+    
     
 
     

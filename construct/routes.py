@@ -4,8 +4,9 @@ from construct import app
 from construct.forms import RegisterForm, LoginForm, PurchaseItemForm, DelayForm
 from construct import db
 from flask_login import login_user, logout_user, login_required, current_user
+import time
 
-
+#Deleting Delays
 @app.route("/deletedelay/<int:id>")
 def delete(id):
     delay_to_delete = Delay.query.get_or_404(id)
@@ -13,30 +14,66 @@ def delete(id):
 #    try:
     db.session.delete(delay_to_delete)
     db.session.commit()
+    time.sleep(1)
     return redirect(url_for('delaypage'))
+    time.sleep(3)
+    return redirect(url_for('homepage'))
     flash(f'record deleted!')
 #    except:
 
 
+#Approving EOT's
+@app.route("/approveeot/<int:id>")
+def approveEOT(id):
+    eot_to_approve = Delay.query.get_or_404(id)
+    eot_to_approve.status = "Approved"
+    
+#    try:
+   
+    db.session.commit()
+    time.sleep(1)
+    return redirect(url_for('delaypage'))
+    flash(f'EOT Approved!')
 
+
+
+#homepage route
 @app.route("/")
 @app.route("/home")
 @login_required
 def homepage():
-    return render_template('home.html')
+    pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
+    approved_delays= Delay.query.filter(Delay.status == "Approved").count()
+    delay_count = pending_delays+approved_delays
+    return render_template('home.html', pending_delays=pending_delays, approved_delays=approved_delays, delay_count=delay_count)
+
+
+#page to display Submmited EOTS
+@app.route("/eotrecords")
+@login_required
+def eotrecord():
+    return render_template('EOTRecords.html')
+
+#page to display Approved EOTS
+@app.route("/eotapprovals")
+@login_required
+def eotapprovals():
+    return render_template('EOTApproved.html')
 
 
 
-
+#Path to the Delays Module
 @app.route("/delays", methods=['GET', 'POST'])
 @login_required
 def delaypage():
-
-    delays = Delay.query.all()
+    pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
+    approved_delays= Delay.query.filter(Delay.status == "Approved").count()
+    delay_count = pending_delays+approved_delays
     delayForm = DelayForm()
+    delays = Delay.query.all()
     
     if request.method == "GET":
-        return render_template('delays.html', delays=delays, delayForm=delayForm)
+        return render_template('delays.html', delays=delays, delayForm=delayForm, pending_delays=pending_delays, approved_delays=approved_delays, delay_count=delay_count)
 
     if request.method == "POST":
 
@@ -45,14 +82,13 @@ def delaypage():
                               description=delayForm.description.data,
                               severity=delayForm.severity.data,
                               phase=delayForm.phase.data,
-                              delayed_days=delayForm.delayedDays.data,
+                              delayed_days=delayForm.extended_days.data,
                               date= delayForm.date.data)
             db.session.add(delay_to_create)
             db.session.commit()
-            flash(f'Delay Record Created!')
+            flash(f'Delay Record Created!')                
 
     return redirect(url_for('delaypage'))
-
 
 # if the errors in the form error dictionary is not empty
 
