@@ -1,0 +1,75 @@
+
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Add New Delay</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+
+
+        <form method="POST" class="form-register">
+          {{ delayForm.hidden_tag() }}
+
+          <div class="form-group">
+            {{ delayForm.type.label() }}
+            {{ delayForm.type(class="form-control", placeholder="Enter the Delay Type") }}
+          </div>
+
+          
+          <div class="form-group">
+            {{ delayForm.severity.label() }}
+            {{ delayForm.severity(class="form-control", placeholder="Enter the severity") }}
+          </div>
+
+          
+          <div class="form-group">
+            {{ delayForm.phase.label() }}
+            {{ delayForm.phase(class="form-control", placeholder="Enter the phase") }}
+          </div>
+
+          <div class="form-group">
+            {{ delayForm.extended_days.label() }}
+            {{ delayForm.extended_days(class="form-control", placeholder="Select The amount of days") }}
+          </div>
+
+
+        
+
+    
+          
+          <div class="form-group">
+            {{ delayForm.date.label() }}
+            {{delayForm.date(class= "form-control")}}
+          </div>
+
+          <div class="form-group">
+            {{ delayForm.description.label() }}
+            {{ delayForm.description(class="form-control", placeholder="Enter the Description") }}
+          </div>
+
+          <br>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+            {{ delayForm.submit(class="btn btn-primary") }}
+          </div>
+        </form>
+
+        
+
+      </div>
+
+    </div>
+  </div>
+  <style>
+    .modal-content {
+      background-color: #212121
+    }
+  </style>
+
+</div>

@@ -2,7 +2,7 @@
 
 
 {% block title%}
-Delays
+Task Management
 {%endblock%}
 
 
@@ -50,8 +50,8 @@ Delays
 
 <div class="row" style="margin-top:20px;margin-left:30px">
     <div class="col-11">
-        <h3>Delay Records</h3>
-        <p>Reporting and Managing Delays</p>
+        <h3>Task Management</h3>
+        <p>Managing Project Tasks</p>
         <br>
         <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#exampleModal"
             data-whatever="@mdo">Create a New Record</button>
@@ -66,19 +66,20 @@ Delays
                 <tr>
                     <!-- Your Columns HERE -->
                     <th scope="col">ID</th>
-                    <th scope="col">Type</th>
-                    <th scope="col">Description</th>
-                    <th scope="col">Severity</th>
+                    <th scope="col">Name</th>
+                    <th width="20% scope="col">Description</th>
+                    <th  width="10% scope="col">Percentage</th>
                     <th scope="col">Phase</th>
-                    <th scope="col">EOT</th>
-                    <th scope="col">EOT Status</th>
-                    <th scope="col">Reported Date?</th>
+                    <th scope="col">Start Date</th>
+                    <th scope="col">End Date</th>
+                    <th scope="col">Estimated Cost</th>
+                    <th scope="col">Status</th>
                 </tr>
             </thead>
             <tbody>
                 <!-- Your rows inside the table HERE: -->
 
-                {% for delay in delays %}
+                {% for task in tasks %}
 
                 {% include 'includes/newdeletemodal.html'  %}
                 {% include 'includes/approveeotmodal.html' %}
@@ -88,34 +89,18 @@ Delays
 
 
                 <tr>
-                    <td>{{delay.id}}</td>
-                    <td>{{delay.type}}</td>
-                    <td width="20%">{{delay.description}}</td>
+                    <td>{{task.id}}</td>
+                    <td>{{task.Name}}</td>
+                    <td width="20%">{{task.description}}</td>
+                    <td>{{task.phase}}</td>
+                    <td width="5%">{{task.Percentage}}</td>
+                    <td>{{task.start_date}}</td>
+                    <td>{{task.end_date}}</td>
+                    <td>{{task.status}}</td>
+                    <td>{{task.total_estimated_cost}}</td>
 
                     <!-- Change Badge color based on Delay Deverity -->
-                    {% if 'Major' in delay.severity %}
-                    <td><span class="badge badge-pill badge-danger">{{delay.severity}}</span></td>
-                    {% endif %}
-                    {% if 'Medium' in delay.severity %}
-                    <td><span class="badge badge-pill badge-warning">{{delay.severity}}</span></td>
-                    {% endif %}
-                    {% if 'Minor' in delay.severity %}
-                    <td><span class="badge badge-pill badge-info">{{delay.severity}}</span></td>
-                    {% endif %}
-
-                    <td>{{delay.phase}}</td>
-                    <td width="9%">{{delay.delayed_days}} days</td>
-
-
-                    {% if 'Approved' in delay.status %}
-                    <td><span class="badge badge-pill badge-success">{{delay.status}}</span></td>
-                    {% endif %}
-                    {% if 'Submitted' in delay.status %}
-                    <td><span class="badge badge-pill badge-light">{{delay.status}}</span></td>
-                    {% endif %}
-
-
-                    <td>{{delay.date}}</td>
+                    
 
                     <td>
 

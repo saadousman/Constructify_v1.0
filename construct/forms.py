@@ -34,33 +34,35 @@ class LoginForm(FlaskForm):
     submit = SubmitField(label='Login')
 
 
-class PurchaseItemForm(FlaskForm):
-    submit = SubmitField(label='purchase item!')
-
-
-class SellItemForm(FlaskForm):
-    submit = SubmitField(label='sell item!')
-
-
 class DelayForm(FlaskForm):
 
     type = SelectField(u'Category', choices=[('Workforce', 'Workforce'), ('Financial', 'Financial'), ('Weather', 'Weather'), ('Logistics', 'Logistics'), (' Miscellaneous', ' Miscellaneous')])
-
     description = StringField(label='Description', validators=[
                                 DataRequired()])
 
     severity = SelectField(u'Severity', choices=[('Minor', 'Minor'), ('Medium', 'Medium'), ('Major', 'Major')])
-
     phase = SelectField(u'Phase', choices=[('Foundation', 'Foundation'), ('Interior', 'Interior'), ('Electrical', 'Electrical'), ('Plumbing', 'Plumbing'), ('Safety', 'Safety')])
-
     extended_days = IntegerField(label='Request for EOT in Days', validators=[
                              DataRequired()])
-
     date = DateField('Date', format='%Y-%m-%d') 
+    submit = SubmitField(label='Submit Delay!')
 
+
+class TaskForm(FlaskForm):
+    Name = StringField(label='Name', validators=[
+                                DataRequired()])
+    Description = StringField(label='Description', validators=[
+                                DataRequired()])
+
+    phase = SelectField(u'Phase', choices=[('Foundation', 'Foundation'), ('Interior', 'Interior'), ('Electrical', 'Electrical'), ('Plumbing', 'Plumbing'), ('Safety', 'Safety')])
+    percentage = IntegerField(label='Percentage in weight', validators=[
+                             DataRequired()])
+
+    start_date = DateField('Start Date', format='%Y-%m-%d') 
+    end_date = DateField('End Date', format='%Y-%m-%d') 
     
 
-    submit = SubmitField(label='Submit Delay!')
+
 
 
 
