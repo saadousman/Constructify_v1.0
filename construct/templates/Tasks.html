@@ -9,37 +9,8 @@ Task Management
 {% block content%}
 
 
-{% include 'includes/delayModal.html' %}
-<div class="row" style="margin-top:20px;margin-left:30px">
-    <div class="col-2">
-        <div class="card text-white bg-secondary mb-3" style="max-width: 18rem;">
+{% include 'includes/TaskModal.html' %}
 
-            <div class="card-body">
-                <h5 class="card-title">Pending EOTs</h5>
-                <p class="card-text" style="text-align:center;">{{pending_delays}}</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-2">
-        <div class="card text-white bg-success mb-3" style="max-width: 18rem;">
-
-            <div class="card-body">
-                <h5 class="card-title">Approved EOTs</h5>
-                <p class="card-text" style="text-align:center;">{{approved_delays}}</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-2">
-        <div class="card text-white bg-warning  mb-3" style="max-width: 18rem;">
-
-            <div class="card-body">
-                <h5 class="card-title">Delays Reported</h5>
-                <p class="card-text" style="text-align:center;">{{delay_count}}</p>
-            </div>
-        </div>
-    </div>
 
 
 
@@ -53,7 +24,7 @@ Task Management
         <h3>Task Management</h3>
         <p>Managing Project Tasks</p>
         <br>
-        <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#exampleModal"
+        <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#TaskModal"
             data-whatever="@mdo">Create a New Record</button>
         <br><br><br>
 
@@ -72,8 +43,8 @@ Task Management
                     <th scope="col">Phase</th>
                     <th scope="col">Start Date</th>
                     <th scope="col">End Date</th>
-                    <th scope="col">Estimated Cost</th>
                     <th scope="col">Status</th>
+                    <th scope="col">Estimated Cost</th>
                 </tr>
             </thead>
             <tbody>
@@ -81,19 +52,14 @@ Task Management
 
                 {% for task in tasks %}
 
-                {% include 'includes/newdeletemodal.html'  %}
-                {% include 'includes/approveeotmodal.html' %}
-
-
-
-
-
+            
                 <tr>
                     <td>{{task.id}}</td>
                     <td>{{task.Name}}</td>
                     <td width="20%">{{task.description}}</td>
-                    <td>{{task.phase}}</td>
                     <td width="5%">{{task.Percentage}}</td>
+                    <td>{{task.phase}}</td>
+                  
                     <td>{{task.start_date}}</td>
                     <td>{{task.end_date}}</td>
                     <td>{{task.status}}</td>
@@ -104,11 +70,7 @@ Task Management
 
                     <td>
 
-                        <a class="btn btn-outline-danger" href="{{url_for('delete',id=delay.id)}}" role="button">Delete</a>
-
-                            <a class="btn btn-outline-success" href="{{url_for('approveEOT', id=delay.id)}}" role="button">Approve EOT</a>
-                        <a href="https://drive.google.com/drive/folders/18PSp9SP4vlClrRaxsXw4nqbLmEu5UW7g?usp=sharing"
-                            target="_blank" class="btn btn-outline-primary" role="button" aria-pressed="true">Submit EOT Docs</a>
+         
 
 
                     </td>

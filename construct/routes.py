@@ -1,7 +1,7 @@
 from flask import render_template, redirect, url_for, flash, get_flashed_messages, request
 from construct.models import User, Delay, Tasks
 from construct import app
-from construct.forms import RegisterForm, LoginForm,  DelayForm
+from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm
 from construct import db
 from flask_login import login_user, logout_user, login_required, current_user
 import time
@@ -106,29 +106,28 @@ def delaypage():
 @login_required
 def Taskpage():
     #Query DB for objects to pass to table and cards
-    pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
-    approved_delays= Delay.query.filter(Delay.status == "Approved").count()
-    delay_count = pending_delays+approved_delays
-    delayForm = DelayForm()
+    taskform = TaskForm()
+    
     tasks = Tasks.query.all()
     
     if request.method == "GET":
-        return render_template('Tasks.html', tasks=tasks, delay_count=delay_count, delayForm=delayForm, approved_delays=approved_delays, pending_delays=pending_delays)
+        return render_template('Tasks.html', tasks=tasks, taskform=taskform)
 
     if request.method == "POST":
 
 #Creating new Delays
-            delay_to_create = Delay(type=delayForm.type.data,
-                              description=delayForm.description.data,
-                              severity=delayForm.severity.data,
-                              phase=delayForm.phase.data,
-                              delayed_days=delayForm.extended_days.data,
-                              date= delayForm.date.data)
-            db.session.add(delay_to_create)
+            task_to_create = Tasks(Name=taskform.Name.data,
+                              description=taskform.Description.data,
+                              phase=taskform.phase.data,
+                              Percentage=taskform.percentage.data,
+                              start_date= taskform.start_date.data,
+                              end_date= taskform.end_date.data,
+                              total_estimated_cost= taskform.total_estimated_cost.data,)
+            db.session.add(task_to_create)
             db.session.commit()
-            flash(f'Delay Record Created!')                
+            flash(f'Task Created!')                
 
-    return redirect(url_for('delaypage'))
+    return redirect(url_for('Taskpage'))
 
 # if the errors in the form error dictionary is not empty
 

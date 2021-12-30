@@ -60,6 +60,11 @@ class TaskForm(FlaskForm):
 
     start_date = DateField('Start Date', format='%Y-%m-%d') 
     end_date = DateField('End Date', format='%Y-%m-%d') 
+
+    total_estimated_cost = IntegerField(label='Total estimated cost', validators=[
+                             DataRequired()])
+
+    submit = SubmitField(label='Submit Task')
     
 
 
