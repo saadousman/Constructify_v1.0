@@ -146,8 +146,6 @@ def Taskpage():
 @app.route("/deleteTask/<int:id>")
 def deleteTask(id):
     task_to_delete = Tasks.query.get_or_404(id)
-    
-
     db.session.delete(task_to_delete)
     db.session.commit()
     time.sleep(1)
@@ -186,17 +184,6 @@ def TaskPending(id):
     db.session.commit()
     time.sleep(1)
     return redirect(url_for('Taskpage'))
-
-    
-
-
-
-
-
-
-
-
-
 
 
 ############ All Functions related to Registration and Login ####################
