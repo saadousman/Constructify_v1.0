@@ -6,6 +6,21 @@ from construct import db
 from flask_login import login_user, logout_user, login_required, current_user
 import time
 
+############ The Homepage and Dashboard ####################
+
+#homepage route
+@app.route("/")
+@app.route("/home")
+@login_required
+def homepage():
+    pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
+    approved_delays= Delay.query.filter(Delay.status == "Approved").count()
+    delay_count = pending_delays+approved_delays
+    return render_template('home.html', pending_delays=pending_delays, approved_delays=approved_delays, delay_count=delay_count)
+
+
+############ All Functions related to Delays ####################
+
 #Deleting Delays
 @app.route("/deletedelay/<int:id>")
 def delete(id):
@@ -35,19 +50,6 @@ def approveEOT(id):
     return redirect(url_for('delaypage'))
     flash(f'EOT Approved!')
 
-
-
-#homepage route
-@app.route("/")
-@app.route("/home")
-@login_required
-def homepage():
-    pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
-    approved_delays= Delay.query.filter(Delay.status == "Approved").count()
-    delay_count = pending_delays+approved_delays
-    return render_template('home.html', pending_delays=pending_delays, approved_delays=approved_delays, delay_count=delay_count)
-
-
 #page to display Submmited EOTS
 @app.route("/eotrecords")
 @login_required
@@ -65,6 +67,7 @@ def eotapprovals():
 @app.route("/delays", methods=['GET', 'POST'])
 @login_required
 def delaypage():
+
     #Query DB for objects to pass to table and cards
     pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
     approved_delays= Delay.query.filter(Delay.status == "Approved").count()
@@ -72,6 +75,8 @@ def delaypage():
     delayForm = DelayForm()
     delays = Delay.query.all()
     
+
+
     if request.method == "GET":
         return render_template('delays.html', delays=delays, delayForm=delayForm, pending_delays=pending_delays, approved_delays=approved_delays, delay_count=delay_count)
 
@@ -97,7 +102,7 @@ def delaypage():
             flash(f'There has been an exception thrown ==> {err_msg}  <==')
 
 
-
+############ All Functions related to Task management ####################
 
 
 
@@ -115,7 +120,7 @@ def Taskpage():
 
     if request.method == "POST":
 
-#Creating new Delays
+#Creating new Tasks
             task_to_create = Tasks(Name=taskform.Name.data,
                               description=taskform.Description.data,
                               phase=taskform.phase.data,
@@ -132,12 +137,69 @@ def Taskpage():
 # if the errors in the form error dictionary is not empty
 
     if form.errors != {}:  
-        for err_msg in delayForm.errors.values():
+        for err_msg in taskform.errors.values():
             flash(f'There has been an exception thrown ==> {err_msg}  <==')
 
 
 
+#Delete Task Item
+@app.route("/deleteTask/<int:id>")
+def deleteTask(id):
+    task_to_delete = Tasks.query.get_or_404(id)
+    
 
+    db.session.delete(task_to_delete)
+    db.session.commit()
+    time.sleep(1)
+    return redirect(url_for('Taskpage'))
+    time.sleep(3)
+    
+    flash(f'Task deleted!')
+
+#Mark Task as In Progress
+@app.route("/Taskinprogress/<int:id>")
+def TaskInProgress(id):
+    task_in_progress = Tasks.query.get_or_404(id)
+    task_in_progress.status = "In Progress" 
+    db.session.commit()
+    time.sleep(1)
+    return redirect(url_for('Taskpage'))
+    flash(f'Task Updated!')
+
+#Mark Task as Completed
+@app.route("/TaskCompleted/<int:id>")
+def TaskCompleted(id):
+    task_completed = Tasks.query.get_or_404(id)
+    task_completed.status = "Completed" 
+    db.session.commit()
+
+    time.sleep(1)
+    return redirect(url_for('Taskpage'))
+    
+    flash(f'Task Updated!')
+
+#Mark Task as Pending
+@app.route("/TaskPending/<int:id>")
+def TaskPending(id):
+    task_pending = Tasks.query.get_or_404(id)
+    task_pending.status = "Pending" 
+    db.session.commit()
+    time.sleep(1)
+    return redirect(url_for('Taskpage'))
+
+    
+
+
+
+
+
+
+
+
+
+
+
+############ All Functions related to Registration and Login ####################
 
 @app.route('/register', methods=['GET', 'POST'])
 def register_page():
