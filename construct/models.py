@@ -48,9 +48,6 @@ class User(db.Model, UserMixin):
 #    def buy(self, userid):
 #        self.owner = userid
 #        db.session.commit()
-
-
-
 class Delay(db.Model):
     id = db.Column(db.Integer(), nullable=False, primary_key=True)
     type = db.Column(db.String(length=30), nullable=False)
@@ -60,6 +57,18 @@ class Delay(db.Model):
     delayed_days = db.Column(db.Integer(), nullable=True)
     date = db.Column(db.String(length=30), nullable=False)
     status = db.Column(db.String(length=30), nullable=True, default="Submitted")
+
+
+class Tasks(db.Model):
+    id = db.Column(db.Integer(), nullable=False, primary_key=True)
+    Name = db.Column(db.String(length=30), nullable=False)
+    description = db.Column(db.String(length=30), nullable=False)
+    phase = db.Column(db.String(length=30), nullable=False)
+    Percentage = db.Column(db.Integer(), nullable=False)
+    start_date = db.Column(db.String(length=30), nullable=False)
+    end_date = db.Column(db.String(length=30), nullable=False)
+    status = db.Column(db.String(length=30), nullable=True, default="Pending")
+    total_estimated_cost = db.Column(db.String(length=30), nullable=False)
     
     
 
