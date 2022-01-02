@@ -8,6 +8,25 @@ Delays
 
 {% block content%}
 
+<script type="text/javascript">// <![CDATA[
+    function loading(){
+        $("#loading").show();
+        $("#content").hide();       
+    }
+// ]]></script>
+
+<style>
+div#loading {
+    width: 35px;
+    height: 35px;
+    display: none;
+    background: url(https://c.tenor.com/tEBoZu1ISJ8AAAAC/spinning-loading.gif) no-repeat;
+    cursor: wait;
+    }
+</style>
+
+  
+
 
 {% include 'includes/delayModal.html' %}
 <div class="row" style="margin-top:20px;margin-left:30px">
@@ -40,10 +59,6 @@ Delays
             </div>
         </div>
     </div>
-
-
-
-
 
 </div>
 
@@ -128,7 +143,7 @@ Delays
                                   <a class="dropdown-item" href="https://drive.google.com/drive/folders/18PSp9SP4vlClrRaxsXw4nqbLmEu5UW7g?usp=sharing">Submit EOT Docs</a>
                                   
                                   <div class="dropdown-divider"></div>
-                                  <a class="dropdown-item" href="{{url_for('delete',id=delay.id)}}"><strong>Delete</strong></a>
+                                  <a class="dropdown-item" href="{{url_for('delete',id=delay.id)}}" onclick="loading();"><strong>Delete</strong></a>
                                 </div>
                               </div>
 

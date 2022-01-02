@@ -11,6 +11,34 @@ Task Management
 
 {% include 'includes/TaskModal.html' %}
 <div class="row" style="margin-top:20px;margin-left:30px">
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+      google.charts.load('current', {'packages':['corechart']});
+      google.charts.setOnLoadCallback(drawChart);
+
+      function drawChart() {
+
+        var data = google.visualization.arrayToDataTable([
+          ['Task', 'Hours per Day'],
+          ['Pending',     11],
+          ['In Progress',      2],
+          ['Completed',  2]
+        ]);
+
+        var options = {
+          title: 'Project Tasks'
+        };
+
+        var chart = new google.visualization.PieChart(document.getElementById('piechart'));
+
+        chart.draw(data, options);
+      }
+    </script>
+    <div id="piechart" style="width: 450px; height: 250px;"></div>
+
+</div>
+
+<div class="row" style="margin-top:20px;margin-left:30px">
     <div class="col-2">
         <div class="card text-white bg-secondary mb-3" style="max-width: 18rem;">
 
@@ -69,11 +97,12 @@ Task Management
                     <!-- Your Columns HERE -->
                     <th scope="col">Task ID</th>
                     <th scope="col">Name</th>
-                    <th width="20% scope="col"><center>Description</center></th>
+                    <th width="10% scope="col"><center>Description</center></th>
                     <th  width="10% scope="col">Percentage</th>
                     <th scope="col">Phase</th>
                     <th scope="col">Start Date</th>
                     <th scope="col">End Date</th>
+                    <th scope="col">Total Days</th>
                     <th scope="col">Status</th>
                     <th scope="col">Estimated Cost (Rs.)</th>
                      <th scope="col"></th>
@@ -88,12 +117,13 @@ Task Management
                 <tr>
                     <td>{{task.id}}</td>
                     <td>{{task.Name}}</td>
-                    <td width="20%"><center>{{task.description}}</center></td>
+                    <td width="5%">{{task.description}}</td>
                     <td width="5%">{{task.Percentage}}%</td>
                     <td>{{task.phase}}</td>
                   
                     <td>{{task.start_date}}</td>
                     <td>{{task.end_date}}</td>
+                    <td>{{task.total_days}}</td>
 
                     {% if 'Pending' in task.status %}
                     <td><span class="badge badge-pill badge-info">{{task.status}}</span></td>

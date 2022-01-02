@@ -69,6 +69,7 @@ class Tasks(db.Model):
     end_date = db.Column(db.String(length=30), nullable=False)
     status = db.Column(db.String(length=30), nullable=True, default="Pending")
     total_estimated_cost = db.Column(db.String(length=30), nullable=False)
+    total_days = db.Column(db.Integer(), nullable=False)
     
     
 
