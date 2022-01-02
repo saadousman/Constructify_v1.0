@@ -10,13 +10,44 @@ Task Management
 
 
 {% include 'includes/TaskModal.html' %}
+<div class="row" style="margin-top:20px;margin-left:30px">
+    <div class="col-2">
+        <div class="card text-white bg-secondary mb-3" style="max-width: 18rem;">
 
+            <div class="card-body">
+                <h5 class="card-title">Pending Tasks</h5>
+                <p class="card-text" style="text-align:center;">{{pending_tasks}}</p>
+            </div>
+        </div>
+    </div>
 
+    <div class="col-2">
+        <div class="card text-white bg-success mb-3" style="max-width: 18rem;">
 
+            <div class="card-body">
+                <h5 class="card-title">Tasks Completed</h5>
+                <p class="card-text" style="text-align:center;">{{completed_tasks}}</p>
+            </div>
+        </div>
+    </div>
 
+    <div class="col-2">
+        <div class="card text-white bg-warning  mb-3" style="max-width: 18rem;">
 
+            <div class="card-body">
+                <h5 class="card-title">Tasks in Progress</h5>
+                <p class="card-text" style="text-align:center;">{{inprogress_tasks}}</p>
+            </div>
+        </div>
+    </div>
 
 </div>
+
+
+
+
+
+
 
 
 <div class="row" style="margin-top:20px;margin-left:30px">
@@ -36,7 +67,7 @@ Task Management
             <thead>
                 <tr>
                     <!-- Your Columns HERE -->
-                    <th scope="col">ID</th>
+                    <th scope="col">Task ID</th>
                     <th scope="col">Name</th>
                     <th width="20% scope="col"><center>Description</center></th>
                     <th  width="10% scope="col">Percentage</th>

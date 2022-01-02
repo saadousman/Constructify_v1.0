@@ -15,8 +15,11 @@ import time
 def homepage():
     pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
     approved_delays= Delay.query.filter(Delay.status == "Approved").count()
+    pending_tasks= Tasks.query.filter(Tasks.status == "Pending").count()
+    completed_tasks= Tasks.query.filter(Tasks.status == "Completed").count()
+    inprogress_tasks= Tasks.query.filter(Tasks.status == "In Progress").count()
     delay_count = pending_delays+approved_delays
-    return render_template('home.html', pending_delays=pending_delays, approved_delays=approved_delays, delay_count=delay_count)
+    return render_template('home.html', pending_delays=pending_delays, approved_delays=approved_delays, delay_count=delay_count, inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, pending_tasks=pending_tasks)
 
 
 ############ All Functions related to Delays ####################
@@ -101,6 +104,8 @@ def delaypage():
         for err_msg in delayForm.errors.values():
             flash(f'There has been an exception thrown ==> {err_msg}  <==')
 
+############ All Functions related to Delay management end here ####################
+
 
 ############ All Functions related to Task management ####################
 
@@ -112,11 +117,13 @@ def delaypage():
 def Taskpage():
     #Query DB for objects to pass to table and cards
     taskform = TaskForm()
-    
     tasks = Tasks.query.all()
+    pending_tasks= Tasks.query.filter(Tasks.status == "Pending").count()
+    completed_tasks= Tasks.query.filter(Tasks.status == "Completed").count()
+    inprogress_tasks= Tasks.query.filter(Tasks.status == "In Progress").count()
     
     if request.method == "GET":
-        return render_template('Tasks.html', tasks=tasks, taskform=taskform)
+        return render_template('Tasks.html', tasks=tasks, taskform=taskform, inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, pending_tasks=pending_tasks  )
 
     if request.method == "POST":
 
@@ -184,6 +191,8 @@ def TaskPending(id):
     db.session.commit()
     time.sleep(1)
     return redirect(url_for('Taskpage'))
+
+############ All Functions related to Task management end here ####################
 
 
 ############ All Functions related to Registration and Login ####################
