@@ -1,14 +1,13 @@
 from flask import render_template, redirect, url_for, flash, get_flashed_messages, request
 from construct.models import User, Delay, Tasks
-from construct import app
+from construct import app, db, date, timedelta, mail, Message
 from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm
-from construct import db, date, timedelta, mail, Message
 from flask_login import login_user, logout_user, login_required, current_user
 import time
 
 
 ############ The Homepage and Dashboard ####################
-# Twilio SMS API PAssword wz9-MUhT^i)),U8$p92)7e,Xt7uL^,
+
 #homepage route
 @app.route("/")
 @app.route("/home")
@@ -20,6 +19,7 @@ def homepage():
     completed_tasks= Tasks.query.filter(Tasks.status == "Completed").count()
     inprogress_tasks= Tasks.query.filter(Tasks.status == "In Progress").count()
     delay_count = pending_delays+approved_delays
+    
     return render_template('home.html', pending_delays=pending_delays, approved_delays=approved_delays, delay_count=delay_count, inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, pending_tasks=pending_tasks)
 
 
