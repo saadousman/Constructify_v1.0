@@ -6,6 +6,7 @@ from wtforms import StringField, PasswordField, SubmitField
 from flask_login import LoginManager
 from datetime import date, timedelta
 from flask_mail import Mail, Message
+import plotly
 
 
 

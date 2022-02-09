@@ -4,6 +4,9 @@ from construct import app, db, date, timedelta, mail, Message
 from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm
 from flask_login import login_user, logout_user, login_required, current_user
 import time
+import plotly.express as px
+import pandas as pd
+import plotly, json
 
 
 ############ The Homepage and Dashboard ####################
@@ -19,8 +22,9 @@ def homepage():
     completed_tasks= Tasks.query.filter(Tasks.status == "Completed").count()
     inprogress_tasks= Tasks.query.filter(Tasks.status == "In Progress").count()
     delay_count = pending_delays+approved_delays
+    data = {'Task' : 'Status', 'Pending' : pending_tasks, 'In Progress' : inprogress_tasks, 'Completed' : completed_tasks}
     
-    return render_template('home.html', pending_delays=pending_delays, approved_delays=approved_delays, delay_count=delay_count, inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, pending_tasks=pending_tasks)
+    return render_template('home.html', pending_delays=pending_delays, approved_delays=approved_delays, delay_count=delay_count, inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, pending_tasks=pending_tasks, data=data)
 
 
 ############ All Functions related to Delays ####################
@@ -56,6 +60,9 @@ def approveEOT(id):
 @app.route("/eotrecords")
 @login_required
 def eotrecord():
+ 
+
+
     return render_template('EOTRecords.html')
 
 #page to display Approved EOTS
@@ -76,11 +83,13 @@ def delaypage():
     delay_count = pending_delays+approved_delays
     delayForm = DelayForm()
     delays = Delay.query.all()
-    
+    gannt_data = delays
+   
+   
 
 
     if request.method == "GET":
-        return render_template('delays.html', delays=delays, delayForm=delayForm, pending_delays=pending_delays, approved_delays=approved_delays, delay_count=delay_count)
+        return render_template('delays.html', delays=delays, delayForm=delayForm, pending_delays=pending_delays, approved_delays=approved_delays, delay_count=delay_count, gannt_data=gannt_data)
 
     if request.method == "POST":
 
@@ -91,6 +100,7 @@ def delaypage():
                               phase=delayForm.phase.data,
                               delayed_days=delayForm.extended_days.data,
                               date= delayForm.date.data)
+           
             db.session.add(delay_to_create)
             db.session.commit()
             flash(f'Delay Record Created!')     
@@ -123,18 +133,19 @@ def Taskpage():
     pending_tasks= Tasks.query.filter(Tasks.status == "Pending").count()
     completed_tasks= Tasks.query.filter(Tasks.status == "Completed").count()
     inprogress_tasks= Tasks.query.filter(Tasks.status == "In Progress").count()
-    
-    
+    data = {'Task' : 'Status', 'Pending' : pending_tasks, 'In Progress' : inprogress_tasks, 'Completed' : completed_tasks}
+    ganttdata = [1, 'foo']
+    #Render the Task page if the request is of type GET
     if request.method == "GET":
-        return render_template('Tasks.html', tasks=tasks, taskform=taskform, inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, pending_tasks=pending_tasks  )
+        return render_template('Tasks.html', tasks=tasks, taskform=taskform, inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, pending_tasks=pending_tasks,ganttdata=json.dumps(ganttdata))
 
     if request.method == "POST":
-
+    #Grab the form values and perform the relevant DB queries if the request is of type POST
 #Creating new Tasks
             start_date= taskform.start_date.data      
             end_date= taskform.end_date.data         
             total_days= (end_date-start_date).days  
-
+            
 
             task_to_create = Tasks(Name=taskform.Name.data,
                               description=taskform.Description.data,

@@ -10,66 +10,21 @@ Task Management
 
 
 {% include 'includes/TaskModal.html' %}
-<div class="row" style="margin-top:20px;margin-left:30px">
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-    <script type="text/javascript">
-      google.charts.load('current', {'packages':['corechart']});
-      google.charts.setOnLoadCallback(drawChart);
-
-      function drawChart() {
-
-        var data = google.visualization.arrayToDataTable([
-          ['Task', 'Hours per Day'],
-          ['Pending',     11],
-          ['In Progress',      2],
-          ['Completed',  2]
-        ]);
-
-        var options = {
-          title: 'Project Tasks'
-        };
-
-        var chart = new google.visualization.PieChart(document.getElementById('piechart'));
-
-        chart.draw(data, options);
-      }
-    </script>
-    <div id="piechart" style="width: 450px; height: 250px;"></div>
+<div style="margin-top:20px;margin-left:20px">
+    <h3>Task Management</h3>
+    <p>Managing Project Tasks</p>
 
 </div>
 
 <div class="row" style="margin-top:20px;margin-left:30px">
-    <div class="col-2">
-        <div class="card text-white bg-secondary mb-3" style="max-width: 18rem;">
+    {% include 'includes/javascript/TaskPieChart.html' %}
 
-            <div class="card-body">
-                <h5 class="card-title">Pending Tasks</h5>
-                <p class="card-text" style="text-align:center;">{{pending_tasks}}</p>
-            </div>
-        </div>
-    </div>
 
-    <div class="col-2">
-        <div class="card text-white bg-success mb-3" style="max-width: 18rem;">
+    <div id="piechart_3d" style="width: 350px; height: 250;"></div>
 
-            <div class="card-body">
-                <h5 class="card-title">Tasks Completed</h5>
-                <p class="card-text" style="text-align:center;">{{completed_tasks}}</p>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-2">
-        <div class="card text-white bg-warning  mb-3" style="max-width: 18rem;">
-
-            <div class="card-body">
-                <h5 class="card-title">Tasks in Progress</h5>
-                <p class="card-text" style="text-align:center;">{{inprogress_tasks}}</p>
-            </div>
-        </div>
-    </div>
-
+    
 </div>
+
 
 
 
@@ -80,8 +35,7 @@ Task Management
 
 <div class="row" style="margin-top:20px;margin-left:10px">
     <div class="col-11">
-        <h3>Task Management</h3>
-        <p>Managing Project Tasks</p>
+
         <br>
         <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#TaskModal"
             data-whatever="@mdo">Create a New Record</button>
@@ -97,15 +51,17 @@ Task Management
                     <!-- Your Columns HERE -->
                     <th scope="col">Task ID</th>
                     <th scope="col">Name</th>
-                    <th width="10% scope="col"><center>Description</center></th>
-                    <th  width="10% scope="col">Percentage</th>
+                    <th width="10% scope=" col">
+                        <center>Description</center>
+                    </th>
+                    <th width="10% scope=" col">Percentage</th>
                     <th scope="col">Phase</th>
                     <th scope="col">Start Date</th>
                     <th scope="col">End Date</th>
                     <th scope="col">Total Days</th>
                     <th scope="col">Status</th>
                     <th scope="col">Estimated Cost (Rs.)</th>
-                     <th scope="col"></th>
+                    <th scope="col"></th>
                 </tr>
             </thead>
             <tbody>
@@ -113,14 +69,14 @@ Task Management
 
                 {% for task in tasks %}
 
-            
+
                 <tr>
                     <td>{{task.id}}</td>
                     <td>{{task.Name}}</td>
                     <td width="5%">{{task.description}}</td>
                     <td width="5%">{{task.Percentage}}%</td>
                     <td>{{task.phase}}</td>
-                  
+
                     <td>{{task.start_date}}</td>
                     <td>{{task.end_date}}</td>
                     <td>{{task.total_days}}</td>
@@ -135,34 +91,40 @@ Task Management
                     <td><span class="badge badge-pill badge-warning">{{task.status}}</span></td>
                     {% endif %}
 
-                    
-                  
-                    <td><center>{{task.total_estimated_cost}}</center></td>
 
-                    <!-- Change Badge color based on Delay Deverity -->
-                    
 
                     <td>
-                        
+                        <center>{{task.total_estimated_cost}}</center>
+                    </td>
+
+                    <!-- Change Badge color based on Delay Deverity -->
+
+
+                    <td>
+
                         <div class="btn-group">
-                            <button type="button" class="btn btn-outline-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                              Action
+                            <button type="button" class="btn btn-outline-primary dropdown-toggle" data-toggle="dropdown"
+                                aria-haspopup="true" aria-expanded="false">
+                                Action
                             </button>
                             <div class="dropdown-menu">
-                                <p><center>Mark as</center></p>
-                              <a class="dropdown-item" href="{{url_for('TaskPending',id=task.id)}}">Pending</a>
-                              <a class="dropdown-item" href="{{url_for('TaskInProgress',id=task.id)}}">In Progress</a>
-                              <a class="dropdown-item" href="{{url_for('TaskCompleted',id=task.id)}}">Completed</a>
-                              <div class="dropdown-divider"></div>
-                              <a class="dropdown-item" href="{{url_for('deleteTask',id=task.id)}}"><strong>Delete Task</strong></a>
+                                <p>
+                                    <center>Mark as</center>
+                                </p>
+                                <a class="dropdown-item" href="{{url_for('TaskPending',id=task.id)}}">Pending</a>
+                                <a class="dropdown-item" href="{{url_for('TaskInProgress',id=task.id)}}">In Progress</a>
+                                <a class="dropdown-item" href="{{url_for('TaskCompleted',id=task.id)}}">Completed</a>
+                                <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="{{url_for('deleteTask',id=task.id)}}"><strong>Delete
+                                        Task</strong></a>
                             </div>
-                          </div>
-         
+                        </div>
+
 
 
                     </td>
                 </tr>
-                
+
                 {% endfor %}
             </tbody>
         </table>
@@ -174,5 +136,7 @@ Task Management
 </div>
 
 </div>
+
+
 
 {% endblock %}

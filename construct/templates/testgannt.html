@@ -1,0 +1,212 @@
+{% extends 'base.html' %}
+
+
+{% block title%}
+Delays
+{%endblock%}
+
+
+{% block content%}
+
+
+
+  
+
+
+{% include 'includes/delayModal.html' %}
+<div class="row" style="margin-top:20px;margin-left:30px">
+    <div class="col-2">
+        <div class="card text-white bg-secondary mb-3" style="max-width: 18rem;">
+
+            <div class="card-body">
+                <h5 class="card-title">Pending EOTs</h5>
+                <p class="card-text" style="text-align:center;">{{pending_delays}}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-2">
+        <div class="card text-white bg-success mb-3" style="max-width: 18rem;">
+
+            <div class="card-body">
+                <h5 class="card-title">Approved EOTs</h5>
+                <p class="card-text" style="text-align:center;">{{approved_delays}}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-2">
+        <div class="card text-white bg-warning  mb-3" style="max-width: 18rem;">
+
+            <div class="card-body">
+                <h5 class="card-title">Delays Reported</h5>
+                <p class="card-text" style="text-align:center;">{{delay_count}}</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<div class="row" style="margin-top:20px;margin-left:30px">
+    <div class="col-11">
+        <h3>Delay Records</h3>
+        <p>Reporting and Managing Delays</p>
+        <br>
+        <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#exampleModal"
+            data-whatever="@mdo">Create a New Record</button>
+        <br><br><br>
+
+
+        <table class="table table-striped table-dark">
+
+
+
+            <thead>
+                <tr>
+                    <!-- Your Columns HERE -->
+                    <th scope="col">ID</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Severity</th>
+                    <th scope="col">Phase</th>
+                    <th scope="col">EOT</th>
+                    <th scope="col">EOT Status</th>
+                    <th scope="col">Reported Date?</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Your rows inside the table HERE: -->
+
+                {% for delay in delays %}
+
+                {% include 'includes/newdeletemodal.html'  %}
+                {% include 'includes/approveeotmodal.html' %}
+
+
+
+
+
+                <tr>
+                    <td>{{delay.id}}</td>
+                    <td>{{delay.type}}</td>
+                    <td width="20%">{{delay.description}}</td>
+
+                    <!-- Change Badge color based on Delay Deverity -->
+                    {% if 'Major' in delay.severity %}
+                    <td><span class="badge badge-pill badge-danger">{{delay.severity}}</span></td>
+                    {% endif %}
+                    {% if 'Medium' in delay.severity %}
+                    <td><span class="badge badge-pill badge-warning">{{delay.severity}}</span></td>
+                    {% endif %}
+                    {% if 'Minor' in delay.severity %}
+                    <td><span class="badge badge-pill badge-info">{{delay.severity}}</span></td>
+                    {% endif %}
+
+                    <td>{{delay.phase}}</td>
+                    <td width="9%">{{delay.delayed_days}} days</td>
+
+
+                    {% if 'Approved' in delay.status %}
+                    <td><span class="badge badge-pill badge-success">{{delay.status}}</span></td>
+                    {% endif %}
+                    {% if 'Submitted' in delay.status %}
+                    <td><span class="badge badge-pill badge-light">{{delay.status}}</span></td>
+                    {% endif %}
+
+
+                    <td>{{delay.date}}</td>
+
+                    <td>
+
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-outline-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                  Action
+                                </button>
+                                <div class="dropdown-menu">
+                                  <a class="dropdown-item" href="{{url_for('approveEOT', id=delay.id)}}">Approve EOT</a>
+                                  <a class="dropdown-item" href="https://drive.google.com/drive/folders/18PSp9SP4vlClrRaxsXw4nqbLmEu5UW7g?usp=sharing">Submit EOT Docs</a>
+                                  
+                                  <div class="dropdown-divider"></div>
+                                  <a class="dropdown-item" href="{{url_for('delete',id=delay.id)}}"><strong>Delete</strong></a>
+                                </div>
+                              </div>
+
+                    </td>
+                </tr>
+                
+                {% endfor %}
+            </tbody>
+        </table>
+
+
+    </div>
+
+
+</div>
+
+</div>
+
+
+
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+  google.charts.load('current', {'packages':['gantt']});
+  google.charts.setOnLoadCallback(drawChart);
+
+  function drawChart() {
+
+    var data = new google.visualization.DataTable();
+    data.addColumn('string', 'Task ID');
+    data.addColumn('string', 'Task Name');
+    data.addColumn('string', 'Resource');
+    data.addColumn('date', 'Start Date');
+    data.addColumn('date', 'End Date');
+    data.addColumn('number', 'Duration');
+    data.addColumn('number', 'Percent Complete');
+    data.addColumn('string', 'Dependencies');
+
+    data.addRows([
+      ['2014Spring', 'Spring 2014', 'spring',
+       new Date(2014, 2, 22), new Date(2014, 5, 20), null, 100, null],
+      ['2014Summer', 'Summer 2014', 'summer',
+       new Date(2014, 5, 21), new Date(2014, 8, 20), null, 100, null],
+      ['2014Autumn', 'Autumn 2014', 'autumn',
+       new Date(2014, 8, 21), new Date(2014, 11, 20), null, 100, null],
+      ['2014Winter', 'Winter 2014', 'winter',
+       new Date(2014, 11, 21), new Date(2015, 2, 21), null, 100, null],
+      ['2015Spring', 'Spring 2015', 'spring',
+       new Date(2015, 2, 22), new Date(2015, 5, 20), null, 50, null],
+      ['2015Summer', 'Summer 2015', 'summer',
+       new Date(2015, 5, 21), new Date(2015, 8, 20), null, 0, null],
+      ['2015Autumn', 'Autumn 2015', 'autumn',
+       new Date(2015, 8, 21), new Date(2015, 11, 20), null, 0, null],
+      ['2015Winter', 'Winter 2015', 'winter',
+       new Date(2015, 11, 21), new Date(2016, 2, 21), null, 0, null],
+      ['Football', 'Football Season', 'sports',
+       new Date(2014, 8, 4), new Date(2015, 1, 1), null, 100, null],
+      ['Baseball', 'Baseball Season', 'sports',
+       new Date(2015, 2, 31), new Date(2015, 9, 20), null, 14, null],
+      ['Basketball', 'Basketball Season', 'sports',
+       new Date(2014, 9, 28), new Date(2015, 5, 20), null, 86, null],
+      ['Hockey', 'Hockey Season', 'sports',
+       new Date(2014, 9, 8), new Date(2015, 5, 21), null, 89, null]
+    ]);
+
+    var options = {
+      height: 400,
+      gantt: {
+        trackHeight: 30
+      }
+    };
+
+    var chart = new google.visualization.Gantt(document.getElementById('chart_div'));
+
+    chart.draw(data, options);
+  }
+</script>
+
+<div id="chart_div"></div>
+
+
+{% endblock %}
