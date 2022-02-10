@@ -1,10 +1,13 @@
 from flask import render_template, redirect, url_for, flash, get_flashed_messages, request
 from construct.models import User, Delay, Tasks
-from construct import app
+from construct import app, db, date, timedelta, mail, Message
 from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm
-from construct import db
 from flask_login import login_user, logout_user, login_required, current_user
 import time
+import plotly.express as px
+import pandas as pd
+import plotly, json
+import pytest
 
 ############ The Homepage and Dashboard ####################
 
@@ -14,9 +17,15 @@ import time
 @login_required
 def homepage():
     pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
+   # assert pending_delays== 3,"test failed"
     approved_delays= Delay.query.filter(Delay.status == "Approved").count()
+    pending_tasks= Tasks.query.filter(Tasks.status == "Pending").count()
+    completed_tasks= Tasks.query.filter(Tasks.status == "Completed").count()
+    inprogress_tasks= Tasks.query.filter(Tasks.status == "In Progress").count()
     delay_count = pending_delays+approved_delays
-    return render_template('home.html', pending_delays=pending_delays, approved_delays=approved_delays, delay_count=delay_count)
+    data = {'Task' : 'Status', 'Pending' : pending_tasks, 'In Progress' : inprogress_tasks, 'Completed' : completed_tasks}
+    
+    return render_template('home.html', pending_delays=pending_delays, approved_delays=approved_delays, delay_count=delay_count, inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, pending_tasks=pending_tasks, data=data)
 
 
 ############ All Functions related to Delays ####################
@@ -24,29 +33,27 @@ def homepage():
 #Deleting Delays
 @app.route("/deletedelay/<int:id>")
 def delete(id):
+    #pass delay id and remove the row from the DB
     delay_to_delete = Delay.query.get_or_404(id)
-    
-
     db.session.delete(delay_to_delete)
     db.session.commit()
-    time.sleep(1)
+    #Send Email notification to Clients
+    msg = Message('Project Delay', sender = 'sdousmanflask@gmail.com', recipients = ['sdousman@gmail.com'])
+    msg.body = "A delay record was deleted by the contractor"
+    mail.send(msg)
+    flash(f'Record deleted!')
     return redirect(url_for('delaypage'))
-    time.sleep(3)
     
-    flash(f'record deleted!')
-
-
+    
 
 #Approving EOT's
 @app.route("/approveeot/<int:id>")
 def approveEOT(id):
     eot_to_approve = Delay.query.get_or_404(id)
     eot_to_approve.status = "Approved"
-    
-
-   
+      
     db.session.commit()
-    time.sleep(1)
+   
     return redirect(url_for('delaypage'))
     flash(f'EOT Approved!')
 
@@ -54,6 +61,9 @@ def approveEOT(id):
 @app.route("/eotrecords")
 @login_required
 def eotrecord():
+ 
+
+
     return render_template('EOTRecords.html')
 
 #page to display Approved EOTS
@@ -74,11 +84,13 @@ def delaypage():
     delay_count = pending_delays+approved_delays
     delayForm = DelayForm()
     delays = Delay.query.all()
-    
+    gannt_data = delays
+   
+   
 
 
     if request.method == "GET":
-        return render_template('delays.html', delays=delays, delayForm=delayForm, pending_delays=pending_delays, approved_delays=approved_delays, delay_count=delay_count)
+        return render_template('delays.html', delays=delays, delayForm=delayForm, pending_delays=pending_delays, approved_delays=approved_delays, delay_count=delay_count, gannt_data=gannt_data)
 
     if request.method == "POST":
 
@@ -89,17 +101,23 @@ def delaypage():
                               phase=delayForm.phase.data,
                               delayed_days=delayForm.extended_days.data,
                               date= delayForm.date.data)
+           
             db.session.add(delay_to_create)
             db.session.commit()
-            flash(f'Delay Record Created!')                
+            flash(f'Delay Record Created!')     
+            msg = Message('Project Delay Alert', sender = 'sdousmanflask@gmail.com', recipients = ['sdousman@gmail.com'])
+            msg.body = "A new Delay record was created by the contractor"
+            mail.send(msg)
 
     return redirect(url_for('delaypage'))
-
+   
 # if the errors in the form error dictionary is not empty
 
     if form.errors != {}:  
         for err_msg in delayForm.errors.values():
             flash(f'There has been an exception thrown ==> {err_msg}  <==')
+
+############ All Functions related to Delay management end here ####################
 
 
 ############ All Functions related to Task management ####################
@@ -112,25 +130,38 @@ def delaypage():
 def Taskpage():
     #Query DB for objects to pass to table and cards
     taskform = TaskForm()
-    
     tasks = Tasks.query.all()
-    
+    pending_tasks= Tasks.query.filter(Tasks.status == "Pending").count()
+    completed_tasks= Tasks.query.filter(Tasks.status == "Completed").count()
+    inprogress_tasks= Tasks.query.filter(Tasks.status == "In Progress").count()
+    data = {'Task' : 'Status', 'Pending' : pending_tasks, 'In Progress' : inprogress_tasks, 'Completed' : completed_tasks}
+    ganttdata = [1, 'foo']
+    #Render the Task page if the request is of type GET
     if request.method == "GET":
-        return render_template('Tasks.html', tasks=tasks, taskform=taskform)
+        return render_template('Tasks.html', tasks=tasks, taskform=taskform, inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, pending_tasks=pending_tasks,ganttdata=json.dumps(ganttdata))
 
     if request.method == "POST":
-
+    #Grab the form values and perform the relevant DB queries if the request is of type POST
 #Creating new Tasks
+            start_date= taskform.start_date.data      
+            end_date= taskform.end_date.data         
+            total_days= (end_date-start_date).days  
+            
+
             task_to_create = Tasks(Name=taskform.Name.data,
                               description=taskform.Description.data,
                               phase=taskform.phase.data,
                               Percentage=taskform.percentage.data,
                               start_date= taskform.start_date.data,
                               end_date= taskform.end_date.data,
-                              total_estimated_cost= taskform.total_estimated_cost.data,)
+                              total_estimated_cost= taskform.total_estimated_cost.data,
+                              total_days= total_days )
             db.session.add(task_to_create)
             db.session.commit()
-            flash(f'Task Created!')                
+            flash(f'Task Created!')
+            msg = Message('Project Task Update', sender = 'sdousmanflask@gmail.com', recipients = ['sdousman@gmail.com'])
+            msg.body = "A New Project task was updated by the contractor"
+            mail.send(msg)
 
     return redirect(url_for('Taskpage'))
 
@@ -146,13 +177,11 @@ def Taskpage():
 @app.route("/deleteTask/<int:id>")
 def deleteTask(id):
     task_to_delete = Tasks.query.get_or_404(id)
-    
-
     db.session.delete(task_to_delete)
     db.session.commit()
-    time.sleep(1)
+  
     return redirect(url_for('Taskpage'))
-    time.sleep(3)
+
     
     flash(f'Task deleted!')
 
@@ -162,7 +191,7 @@ def TaskInProgress(id):
     task_in_progress = Tasks.query.get_or_404(id)
     task_in_progress.status = "In Progress" 
     db.session.commit()
-    time.sleep(1)
+  
     return redirect(url_for('Taskpage'))
     flash(f'Task Updated!')
 
@@ -173,7 +202,7 @@ def TaskCompleted(id):
     task_completed.status = "Completed" 
     db.session.commit()
 
-    time.sleep(1)
+ 
     return redirect(url_for('Taskpage'))
     
     flash(f'Task Updated!')
@@ -184,19 +213,10 @@ def TaskPending(id):
     task_pending = Tasks.query.get_or_404(id)
     task_pending.status = "Pending" 
     db.session.commit()
-    time.sleep(1)
+ 
     return redirect(url_for('Taskpage'))
 
-    
-
-
-
-
-
-
-
-
-
+############ All Functions related to Task management end here ####################
 
 
 ############ All Functions related to Registration and Login ####################
