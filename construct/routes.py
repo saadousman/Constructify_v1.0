@@ -7,7 +7,7 @@ import time
 import plotly.express as px
 import pandas as pd
 import plotly, json
-
+import pytest
 
 ############ The Homepage and Dashboard ####################
 
@@ -17,6 +17,7 @@ import plotly, json
 @login_required
 def homepage():
     pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
+   # assert pending_delays== 3,"test failed"
     approved_delays= Delay.query.filter(Delay.status == "Approved").count()
     pending_tasks= Tasks.query.filter(Tasks.status == "Pending").count()
     completed_tasks= Tasks.query.filter(Tasks.status == "Completed").count()
