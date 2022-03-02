@@ -105,6 +105,7 @@ def delaypage():
             db.session.add(delay_to_create)
             db.session.commit()
             flash(f'Delay Record Created!')     
+            flash(f'Email notification sent!')   
             msg = Message('Project Delay Alert', sender = 'sdousmanflask@gmail.com', recipients = ['sdousman@gmail.com'])
             msg.body = "A new Delay record was created by the contractor"
             mail.send(msg)
@@ -138,7 +139,7 @@ def Taskpage():
     ganttdata = [1, 'foo']
     #Render the Task page if the request is of type GET
     if request.method == "GET":
-        return render_template('Tasks.html', tasks=tasks, taskform=taskform, inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, pending_tasks=pending_tasks,ganttdata=json.dumps(ganttdata))
+        return render_template('Tasks.html', tasks=tasks, taskform=taskform, inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, pending_tasks=pending_tasks, data=data)
 
     if request.method == "POST":
     #Grab the form values and perform the relevant DB queries if the request is of type POST
