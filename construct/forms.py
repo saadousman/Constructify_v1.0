@@ -65,6 +65,15 @@ class TaskForm(FlaskForm):
                              DataRequired()])
 
     submit = SubmitField(label='Submit Task')
+
+
+
+class ContactForm(FlaskForm):
+    name = StringField(label='User Name', validators=[DataRequired()])
+    email_address = StringField(label='Email Address', validators=[DataRequired()])
+    contact_no= StringField(label='Contact Number', validators=[DataRequired()])
+    role = SelectField(u'Role', choices=[('Client', 'Client'), ('Consultant', 'Consultant'), ('Contractor', 'Contractor')])
+    submit = SubmitField(label='Create User')
     
 
 

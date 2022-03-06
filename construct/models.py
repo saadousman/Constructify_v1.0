@@ -70,6 +70,13 @@ class Tasks(db.Model):
     total_estimated_cost = db.Column(db.String(length=30), nullable=False)
     total_days = db.Column(db.Integer(), nullable=False)
     
+class Contact_list(db.Model):
+    id = db.Column(db.Integer(), nullable=False, primary_key=True)
+    name = db.Column(db.String(length=30), nullable=False)
+    Role = db.Column(db.String(length=30), nullable=False)
+    email_address = db.Column(db.String(length=30), nullable=False)
+    contact_number = db.Column(db.String(), nullable=False)
+    
     
 
     
