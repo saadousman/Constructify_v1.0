@@ -1,7 +1,8 @@
 from flask import render_template, redirect, url_for, flash, get_flashed_messages, request
-from construct.models import User, Delay, Tasks
+from construct.models import User, Delay, Tasks, Contact_list
 from construct import app, db, date, timedelta, mail, Message
-from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm
+from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm, ContactForm
+from construct.email_send import *
 from flask_login import login_user, logout_user, login_required, current_user
 import time
 import plotly.express as px
@@ -104,11 +105,12 @@ def delaypage():
            
             db.session.add(delay_to_create)
             db.session.commit()
-            flash(f'Delay Record Created!')     
-            flash(f'Email notification sent!')   
-            msg = Message('Project Delay Alert', sender = 'sdousmanflask@gmail.com', recipients = ['sdousman@gmail.com'])
-            msg.body = "A new Delay record was created by the contractor"
-            mail.send(msg)
+            SendNotification(Delay)
+            #flash(f'Delay Record Created!')     
+            #flash(f'Email notification sent!')   
+            #msg = Message('Project Delay Alert', sender = 'sdousmanflask@gmail.com', recipients = ['sdousman@gmail.com'])
+            #msg.body = "A new Delay record was created by the contractor"
+            #mail.send(msg)
 
     return redirect(url_for('delaypage'))
    
@@ -309,3 +311,37 @@ def logout_page():
 #                    f'you dont have enough money. Piss off')
 
  #       return render_template('delays.html', delays=delays)
+
+
+@app.route("/Contacts", methods=['GET', 'POST'])
+@login_required
+def Contactspage():
+    contactform= ContactForm()
+    contacts = Contact_list.query.all()
+
+    
+
+    if request.method == "GET":
+        
+        return render_template('contact_list.html', contacts=contacts, contactform=contactform)
+
+    if request.method == "POST":
+        #Grab the form values and perform the relevant DB queries if the request is of type POST
+#Creating new Tasks
+           
+            
+
+            contact_to_create = Contact_list(name=contactform.name.data,
+                              Role=contactform.role.data,
+                              email_address=contactform.email_address.data,
+                              contact_number=contactform.contact_no.data)
+            db.session.add(contact_to_create)
+            db.session.commit()
+            SendNotification("Contact Creation")
+        #    flash(f'Contact Added!')
+         #   msg = Message('Project Task Update', sender = 'sdousmanflask@gmail.com', recipients = ['sdousman@gmail.com'])
+         #   msg.body = "A New Contact has been added"
+         #  mail.send(msg)
+
+    return redirect(url_for('Contactspage'))
+    
