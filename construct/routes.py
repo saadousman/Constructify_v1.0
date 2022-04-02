@@ -1,4 +1,4 @@
-from flask import render_template, redirect, url_for, flash, get_flashed_messages, request
+from flask import render_template, redirect, url_for, flash, get_flashed_messages, request, make_response
 from construct.models import User, Delay, Tasks, Contact_list
 from construct import app, db, date, timedelta, mail, Message
 from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm, ContactForm
@@ -9,10 +9,15 @@ import plotly.express as px
 import pandas as pd
 import plotly, json
 import pytest
+import pdfkit as pdfkit
+#path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
+#config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
+#pdfkit.from_url("http://google.com", "out.pdf", configuration=config)
+
 
 ############ The Homepage and Dashboard ####################
 
-#homepage route
+#homepage route 
 @app.route("/")
 @app.route("/home")
 @login_required
@@ -105,7 +110,7 @@ def delaypage():
            
             db.session.add(delay_to_create)
             db.session.commit()
-            SendNotification(Delay)
+          #  SendNotification(Delay)
             #flash(f'Delay Record Created!')     
             #flash(f'Email notification sent!')   
             #msg = Message('Project Delay Alert', sender = 'sdousmanflask@gmail.com', recipients = ['sdousman@gmail.com'])
@@ -138,7 +143,7 @@ def Taskpage():
     completed_tasks= Tasks.query.filter(Tasks.status == "Completed").count()
     inprogress_tasks= Tasks.query.filter(Tasks.status == "In Progress").count()
     data = {'Task' : 'Status', 'Pending' : pending_tasks, 'In Progress' : inprogress_tasks, 'Completed' : completed_tasks}
-    ganttdata = [1, 'foo']
+    
     #Render the Task page if the request is of type GET
     if request.method == "GET":
         return render_template('Tasks.html', tasks=tasks, taskform=taskform, inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, pending_tasks=pending_tasks, data=data)
@@ -162,9 +167,9 @@ def Taskpage():
             db.session.add(task_to_create)
             db.session.commit()
             flash(f'Task Created!')
-            msg = Message('Project Task Update', sender = 'sdousmanflask@gmail.com', recipients = ['sdousman@gmail.com'])
-            msg.body = "A New Project task was updated by the contractor"
-            mail.send(msg)
+            #msg = Message('Project Task Update', sender = 'sdousmanflask@gmail.com', recipients = ['sdousman@gmail.com'])
+            #msg.body = "A New Project task was updated by the contractor"
+            #mail.send(msg)
 
     return redirect(url_for('Taskpage'))
 
@@ -344,4 +349,22 @@ def Contactspage():
          #  mail.send(msg)
 
     return redirect(url_for('Contactspage'))
-    
+
+
+@app.route("/PdfGeneration", methods=['GET', 'POST'])
+@login_required
+def PDFPage():
+
+    #Query DB for objects to pass to table and cards
+    pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
+    approved_delays= Delay.query.filter(Delay.status == "Approved").count()
+    delay_count = pending_delays+approved_delays
+
+    rendered= render_template('pdf.html', pending_delays=pending_delays,approved_delays=approved_delays, delay_count=delay_count)
+    pdf = pdfkit.from_string(rendered, False)
+
+    response = make_response(pdf)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=pdfreport.pdf'
+
+    return response

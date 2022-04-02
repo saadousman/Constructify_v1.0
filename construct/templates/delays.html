@@ -8,22 +8,7 @@ Delays
 
 {% block content%}
 
-<script type="text/javascript">// <![CDATA[
-    function loading(){
-        $("#loading").show();
-        $("#content").hide();       
-    }
-// ]]></script>
 
-<style>
-div#loading {
-    width: 35px;
-    height: 35px;
-    display: none;
-    background: url(https://c.tenor.com/tEBoZu1ISJ8AAAAC/spinning-loading.gif) no-repeat;
-    cursor: wait;
-    }
-</style>
 
   
 
@@ -70,6 +55,9 @@ div#loading {
         <br>
         <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#exampleModal"
             data-whatever="@mdo">Create a New Record</button>
+
+            <a class="btn btn-primary" href="{{url_for('PDFPage')}}" role="button" target="_blank">Print Report</a>
+           
         <br><br><br>
 
 
