@@ -9,7 +9,6 @@ Task Management
 {% block content%}
 
 
-{% include 'includes/taskeditmodal.html' %}
 {% include 'includes/taskmodal.html' %}
 <div style="margin-top:20px;margin-left:20px">
     <h3>Task Management</h3>
@@ -25,7 +24,7 @@ Task Management
     {% include 'includes/javascript/TaskGanntChart.html' %}
 
 
-    <div div id="chart_div" style="width: 850px; height: 250;"></div>
+    <div div id="chart_div" style="width: 350px; height: 250;"></div>
     </div>
 </div>
 
@@ -117,7 +116,6 @@ Task Management
                                 <p>
                                     <center>Mark as</center>
                                 </p>
-                                <a class="dropdown-item" data-toggle="modal" data-target="#TaskEditModal" data-whatever="@mdo">Update</a>
                                 <a class="dropdown-item" href="{{url_for('TaskPending',id=task.id)}}">Pending</a>
                                 <a class="dropdown-item" href="{{url_for('TaskInProgress',id=task.id)}}">In Progress</a>
                                 <a class="dropdown-item" href="{{url_for('TaskCompleted',id=task.id)}}">Completed</a>
