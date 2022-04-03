@@ -9,6 +9,11 @@ Task Management
 {% block content%}
 
 
+
+
+
+
+
 {% include 'includes/taskeditmodal.html' %}
 {% include 'includes/taskmodal.html' %}
 <div style="margin-top:20px;margin-left:20px">
@@ -18,15 +23,24 @@ Task Management
 </div>
 
 <div class="row" style="margin-top:20px;margin-left:30px">
-    {% include 'includes/javascript/TaskPieChart.html' %}
-    <div id="piechart_3d" style="width: 350px; height: 250;"></div>
 
-    <div class="col-30">
+    <div class="col-3">
+
+    {% include 'includes/javascript/TaskPieChart.html' %}
+    <div id="piechart_3d" style="width: 350px; height: 700;"></div>
+
+    </div>
+
+
+   <div class="col-5">
     {% include 'includes/javascript/TaskGanntChart.html' %}
 
 
     <div div id="chart_div" style="width: 850px; height: 250;"></div>
     </div>
+
+
+
 </div>
 
 

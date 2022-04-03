@@ -10,7 +10,7 @@ Delays
 
 
 
-  
+
 
 
 {% include 'includes/delayModal.html' %}
@@ -48,6 +48,7 @@ Delays
 </div>
 
 
+
 <div class="row" style="margin-top:20px;margin-left:30px">
     <div class="col-11">
         <h3>Delay Records</h3>
@@ -58,6 +59,7 @@ Delays
 
             
             <a href="{{url_for('PDFPage')}}" class="btn btn-secondary btn-lg active" role="button" aria-pressed="false" target="_blank">Print report</a>
+            <a href="{{url_for('PDFPageEmail')}}" class="btn btn-secondary btn-lg active" role="button" aria-pressed="false" target="_blank">Email report to Stakeholders</a>
            
         <br><br><br>
 
@@ -124,19 +126,27 @@ Delays
                     <td>
 
                             <div class="btn-group">
+                                {% if current_user.role == 'Consultant' %}
                                 <button type="button" class="btn btn-outline-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                   Action
                                 </button>
                                 <div class="dropdown-menu">
-                                    {% if current_user.role == 'Client' %}
+                                    
                                   <a class="dropdown-item" href="{{url_for('approveEOT', id=delay.id)}}">Approve EOT</a>
-                                    {% endif %}
-                                    {% if current_user.role == 'Contractor' %}
-                                  <a class="dropdown-item" href="https://drive.google.com/drive/folders/18PSp9SP4vlClrRaxsXw4nqbLmEu5UW7g?usp=sharing">Submit EOT Docs</a>
-                                  {% endif %}
-                                  
                                   <div class="dropdown-divider"></div>
                                   <a class="dropdown-item" href="{{url_for('delete',id=delay.id)}}" onclick="loading();"><strong>Delete</strong></a>
+                                    {% endif %}
+                                    {% if current_user.role == 'Contractor' %}
+                                    <button type="button" class="btn btn-outline-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                        Action
+                                      </button>
+                                      <div class="dropdown-menu">
+                                  <a class="dropdown-item" href="https://drive.google.com/drive/folders/18PSp9SP4vlClrRaxsXw4nqbLmEu5UW7g?usp=sharing">Submit EOT Docs</a>
+                                  <div class="dropdown-divider"></div>
+                                  <a class="dropdown-item" href="{{url_for('delete',id=delay.id)}}" onclick="loading();"><strong>Delete</strong></a>
+                                  {% endif %}
+                                  
+                                  
                                 </div>
                               </div>
 
