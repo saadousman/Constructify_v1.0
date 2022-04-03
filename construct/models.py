@@ -15,6 +15,8 @@ class User(db.Model, UserMixin):
                               nullable=False, unique=True)
     password_hash = db.Column(db.String(length=50),
                               nullable=False, unique=True)
+    role = db.Column(db.String(length=30), nullable=False, unique=False)
+    contact_number = db.Column(db.String(length=30), nullable=False, unique=False)
    
      
     @property
