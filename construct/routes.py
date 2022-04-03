@@ -109,7 +109,7 @@ def delaypage():
            
             db.session.add(delay_to_create)
             db.session.commit()
-            SendNotificationAsContractor(Delay)
+            SendNotificationAsContractor("Delay")
             #flash(f'Delay Record Created!')     
             #flash(f'Email notification sent!')   
             #msg = Message('Project Delay Alert', sender = 'sdousmanflask@gmail.com', recipients = ['sdousman@gmail.com'])
@@ -391,13 +391,12 @@ def PDFPageEmail():
     approved_delays= Delay.query.filter(Delay.status == "Approved").count()
     delay_count = pending_delays+approved_delays
     today = date.today()
+    #render the html page that will be converted into a pdf
     rendered= render_template('pdf.html', pending_delays=pending_delays,approved_delays=approved_delays, delay_count=delay_count, today=today, delays=delays)
+    #generate the pdf and store it in the appropriate directory
     pdf = pdfkit.from_string(rendered, 'construct/newpdf.pdf')
 
-    
+    #call the imported function to send an email notification to the stakeholders with the attached pdf that is generated
     SendDelayReport()
-    #response = make_response(pdf)
-    #response.headers['Content-Type'] = 'application/pdf'
-    #response.headers['Content-Disposition'] = 'inline; filename=pdfreport.pdf'
-    #SendNotificationAsContractor("PDF Report Generation")
+
     return render_template('delays.html', delays=delays, delayForm=delayForm, pending_delays=pending_delays, approved_delays=approved_delays, delay_count=delay_count, gannt_data=gannt_data)
