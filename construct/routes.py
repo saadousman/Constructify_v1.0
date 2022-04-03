@@ -24,6 +24,7 @@ import pdfkit as pdfkit
 def homepage():
     pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
    # assert pending_delays== 3,"test failed"
+    tasks = Tasks.query.all()
     approved_delays= Delay.query.filter(Delay.status == "Approved").count()
     pending_tasks= Tasks.query.filter(Tasks.status == "Pending").count()
     completed_tasks= Tasks.query.filter(Tasks.status == "Completed").count()
@@ -31,7 +32,7 @@ def homepage():
     delay_count = pending_delays+approved_delays
     data = {'Task' : 'Status', 'Pending' : pending_tasks, 'In Progress' : inprogress_tasks, 'Completed' : completed_tasks}
     
-    return render_template('home.html', pending_delays=pending_delays, approved_delays=approved_delays, delay_count=delay_count, inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, pending_tasks=pending_tasks, data=data)
+    return render_template('home.html', pending_delays=pending_delays, approved_delays=approved_delays, delay_count=delay_count, inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, pending_tasks=pending_tasks, data=data, tasks=tasks)
 
 
 ############ All Functions related to Delays ####################
@@ -44,9 +45,7 @@ def delete(id):
     db.session.delete(delay_to_delete)
     db.session.commit()
     #Send Email notification to Clients
-    msg = Message('Project Delay', sender = 'sdousmanflask@gmail.com', recipients = ['sdousman@gmail.com'])
-    msg.body = "A delay record was deleted by the contractor"
-    mail.send(msg)
+    SendNotificationAsContractor("Delay Deletiion")
     flash(f'Record deleted!')
     return redirect(url_for('delaypage'))
     
@@ -59,7 +58,7 @@ def approveEOT(id):
     eot_to_approve.status = "Approved"
       
     db.session.commit()
-   
+    SendNotificationAsClient("EOT Approval")
     return redirect(url_for('delaypage'))
     flash(f'EOT Approved!')
 
@@ -110,7 +109,7 @@ def delaypage():
            
             db.session.add(delay_to_create)
             db.session.commit()
-          #  SendNotification(Delay)
+            SendNotificationAsContractor(Delay)
             #flash(f'Delay Record Created!')     
             #flash(f'Email notification sent!')   
             #msg = Message('Project Delay Alert', sender = 'sdousmanflask@gmail.com', recipients = ['sdousman@gmail.com'])
@@ -166,6 +165,7 @@ def Taskpage():
                               total_days= total_days )
             db.session.add(task_to_create)
             db.session.commit()
+            SendNotificationAsContractor("Task Record")
             flash(f'Task Created!')
             #msg = Message('Project Task Update', sender = 'sdousmanflask@gmail.com', recipients = ['sdousman@gmail.com'])
             #msg.body = "A New Project task was updated by the contractor"
@@ -187,7 +187,7 @@ def deleteTask(id):
     task_to_delete = Tasks.query.get_or_404(id)
     db.session.delete(task_to_delete)
     db.session.commit()
-  
+    SendNotificationAsContractor("Task Item Deletion")
     return redirect(url_for('Taskpage'))
 
     
@@ -209,7 +209,7 @@ def TaskCompleted(id):
     task_completed = Tasks.query.get_or_404(id)
     task_completed.status = "Completed" 
     db.session.commit()
-
+    SendNotificationAsContractor("Task Completion")
  
     return redirect(url_for('Taskpage'))
     
@@ -371,5 +371,33 @@ def PDFPage():
     response = make_response(pdf)
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = 'inline; filename=pdfreport.pdf'
-
+    #SendNotificationAsContractor("PDF Report Generation")
     return response
+
+@app.route("/PdfEmail", methods=['GET', 'POST'])
+@login_required
+def PDFPageEmail():
+
+      #Query DB for objects to pass to table and cards
+    
+    delayForm = DelayForm()
+   
+    
+
+    #Query DB for objects to pass to table and cards
+    delays = Delay.query.all()
+    gannt_data = delays
+    pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
+    approved_delays= Delay.query.filter(Delay.status == "Approved").count()
+    delay_count = pending_delays+approved_delays
+    today = date.today()
+    rendered= render_template('pdf.html', pending_delays=pending_delays,approved_delays=approved_delays, delay_count=delay_count, today=today, delays=delays)
+    pdf = pdfkit.from_string(rendered, 'construct/newpdf.pdf')
+
+    
+    SendDelayReport()
+    #response = make_response(pdf)
+    #response.headers['Content-Type'] = 'application/pdf'
+    #response.headers['Content-Disposition'] = 'inline; filename=pdfreport.pdf'
+    #SendNotificationAsContractor("PDF Report Generation")
+    return render_template('delays.html', delays=delays, delayForm=delayForm, pending_delays=pending_delays, approved_delays=approved_delays, delay_count=delay_count, gannt_data=gannt_data)
