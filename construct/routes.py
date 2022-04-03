@@ -235,7 +235,9 @@ def register_page():
     if form.validate_on_submit():
         user_to_create = User(username=form.username.data,
                               email_address=form.email_address.data,
-                              password=form.password1.data)
+                              password=form.password1.data,
+                              role=form.role.data,
+                              contact_number=form.contact_no.data)
 
         db.session.add(user_to_create)
         db.session.commit()
@@ -321,14 +323,16 @@ def logout_page():
 @app.route("/Contacts", methods=['GET', 'POST'])
 @login_required
 def Contactspage():
-    contactform= ContactForm()
-    contacts = Contact_list.query.all()
+    #contactform= ContactForm()
+    #contacts = Contact_list.query.all()
+
+    Users= User.query.all()
 
     
 
     if request.method == "GET":
         
-        return render_template('contact_list.html', contacts=contacts, contactform=contactform)
+        return render_template('contact_list.html', Users=Users)
 
     if request.method == "POST":
         #Grab the form values and perform the relevant DB queries if the request is of type POST
@@ -356,11 +360,12 @@ def Contactspage():
 def PDFPage():
 
     #Query DB for objects to pass to table and cards
+    delays = Delay.query.all()
     pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
     approved_delays= Delay.query.filter(Delay.status == "Approved").count()
     delay_count = pending_delays+approved_delays
-
-    rendered= render_template('pdf.html', pending_delays=pending_delays,approved_delays=approved_delays, delay_count=delay_count)
+    today = date.today()
+    rendered= render_template('pdf.html', pending_delays=pending_delays,approved_delays=approved_delays, delay_count=delay_count, today=today, delays=delays)
     pdf = pdfkit.from_string(rendered, False)
 
     response = make_response(pdf)

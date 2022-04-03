@@ -12,15 +12,15 @@ Contact Management
 
 
 <div style="margin-top:20px;margin-left:20px">
-    <h3>Contact List</h3>
-    <p>Manage Project Stakeholder Contacts</p>
+    <h3>User List</h3>
+    <p>Manage Project Stakeholder Notifications</p>
 
 </div>
 
 
 
 
-{% include 'includes/contact_modal.html' %}
+
 <div class="row" style="margin-top:20px;margin-left:200px">
     <div class="col-10">
 
@@ -30,14 +30,14 @@ Contact Management
         <br><br><br>
 
 
-        <table class="table table-striped table-dark">
+        <table class="table table-striped table-dark" width="100">
 
 
 
             <thead>
                 <tr>
                     <!-- Your Columns HERE -->
-                    <th scope="col">Contact ID</th>
+                    <th scope="col">User ID</th>
                     <th scope="col">Name</th>
                     <th scope="col">Email Address</th>
                     <th scope="col">Contact No.</th>
@@ -47,24 +47,24 @@ Contact Management
             <tbody>
                 <!-- Your rows inside the table HERE: -->
 
-                {% for contact in contacts %}
+                {% for Users in Users %}
 
 
                 <tr>
-                    <td>{{contact.id}}</td>
-                    <td>{{contact.name}}</td>
-                    <td>{{contact.email_address}}</td>
-                    <td>{{contact.contact_number}}</td>
+                    <td>{{Users.id}}</td>
+                    <td>{{Users.username}}</td>
+                    <td>{{Users.email_address}}</td>
+                    <td>{{Users.contact_number}}</td>
 
                     
-                    {% if 'Client' in contact.Role %}
-                    <td><span class="badge badge-pill badge-info">{{contact.Role}}</span></td>
+                    {% if 'Client' in Users.role %}
+                    <td><span class="badge badge-pill badge-info">{{Users.role}}</span></td>
                     {% endif %}
-                    {% if 'Consultant' in contact.Role %}
-                    <td><span class="badge badge-pill badge-success">{{contact.Role}}</span></td>
+                    {% if 'Consultant' in Users.role %}
+                    <td><span class="badge badge-pill badge-success">{{Users.role}}</span></td>
                     {% endif %}
-                    {% if 'Contractor' in contact.Role %}
-                    <td><span class="badge badge-pill badge-warning">{{contact.Role}}</span></td>
+                    {% if 'Contractor' in Users.role %}
+                    <td><span class="badge badge-pill badge-warning">{{Users.role}}</span></td>
                     {% endif %}
 
 
