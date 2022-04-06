@@ -410,36 +410,18 @@ def PDFPageEmail():
             user_id="15896"
             api_key= "c977qWgaQfGYfZHoXJc1"
             sender_id="NotifyDEMO"
-            message="This is is another test message"
-          #  r = requests.post('https://app.notify.lk/api/v1/send', data={'user_id': '15896','api_key': 'c977qWgaQfGYfZHoXJc1','sender_id': 'NotifyDEMO','to': '+94774924260', 'message': 'testsms'})
-            #print(r)
+            message="A delay Report has been generated. Check ur fkn email"
+         
             request_string="https://app.notify.lk/api/v1/send?"+"user_id="+user_id+"&api_key="+api_key+"&sender_id="+sender_id+"&to="+user.contact_number+"&message="+message
-            print(request_string)
+            print(request_string) #Test- to inspect the generated URL
             r = requests.get(request_string)
             
-            print(r.text)
+            print(r.text) #Test- to inspect the response from the SMS API
            
 
-     #   account_sid = os.environ['TWILIO_ACCOUNT_SID']
-     #   auth_token = os.environ['TWILIO_AUTH_TOKEN']
-       # account_sid = 'ACf36c7e435da3ee4ae68fd8234f76cfbe'
-       # auth_token = '8265939b6de382dbacdaf238f012822a'
-       # client = Client(account_sid, auth_token)
-
-        #message = client.messages \
-          #      .create(
-            #         body="A Delay report was created. Check your damn email man",
-              #       from_='+18647351763',
-                #     to= user.contact_number
-                # )
-
-        #print(message.sid)
 
     return redirect('/delays', code=302)
 
-#@app.route("/PdfEmail", methods=['GET', 'POST'])
-#@login_required
-#def PDFPageEmail():
 
 @app.route("/UploadPage", methods=['GET', 'POST'])
 @login_required
