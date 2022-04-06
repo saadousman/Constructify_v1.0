@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+
+{% block title%}
+Task Management
+{%endblock%}
+
+
+{% block content%}
+
+
+
+
+{% for image in images %}             
+<li><img src="data:image/png;base64,{{image}}"></li>         
+{%endfor%}
+
+
+
+
+
+
+
+
+
+{% endblock %}

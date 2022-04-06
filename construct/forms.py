@@ -26,7 +26,7 @@ class RegisterForm(FlaskForm):
     password2 = PasswordField(label='Password Confirmation', validators=[
                               EqualTo('password1'), DataRequired()])
     submit = SubmitField(label='Create Account!')
-    role = SelectField(u'Select User Role', choices=[('Client', 'Client'), ('Consultant', 'Consultant'), ('Contractor', 'Contractor'), ('Plumbing', 'Plumbing')])
+    role = SelectField(u'Select User Role', choices=[('Client', 'Client'), ('Consultant', 'Consultant'), ('Contractor', 'Contractor')])
     contact_no= StringField(label='Contact Number', validators=[DataRequired()])
 
 class LoginForm(FlaskForm):
