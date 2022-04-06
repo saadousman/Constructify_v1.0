@@ -370,9 +370,12 @@ def PDFPage():
     approved_delays= Delay.query.filter(Delay.status == "Approved").count()
     delay_count = pending_delays+approved_delays
     today = date.today()
+    # Render the HTML page with the passed information. This will be converted into a PDF
     rendered= render_template('pdf.html', pending_delays=pending_delays,approved_delays=approved_delays, delay_count=delay_count, today=today, delays=delays)
-    pdf = pdfkit.from_string(rendered, False)
 
+    #Converts the saved HTML as a pdf document. Saved in memory
+    pdf = pdfkit.from_string(rendered, False)
+    #Builds the response with the pdf attached in the response content
     response = make_response(pdf)
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = 'inline; filename=pdfreport.pdf'
@@ -403,20 +406,8 @@ def PDFPageEmail():
 
     #call the imported function to send an email notification to the stakeholders with the attached pdf that is generated
     #SendDelayReport()
-    Users=User.query.all()
-    
-    
-    for user in Users:
-            user_id="15896"
-            api_key= "c977qWgaQfGYfZHoXJc1"
-            sender_id="NotifyDEMO"
-            message="A delay Report has been generated. Check ur fkn email"
-         
-            request_string="https://app.notify.lk/api/v1/send?"+"user_id="+user_id+"&api_key="+api_key+"&sender_id="+sender_id+"&to="+user.contact_number+"&message="+message
-            print(request_string) #Test- to inspect the generated URL
-            r = requests.get(request_string)
-            
-            print(r.text) #Test- to inspect the response from the SMS API
+    # calls the send_sms function to send an sms to stakeholders. Message body is passed as a parameter
+    send_sms("Delay Report was printed. Please Check your email")
            
 
 

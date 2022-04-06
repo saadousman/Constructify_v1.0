@@ -1,6 +1,7 @@
 #Module to send email to the list of Contacts 
 from construct.models import Contact_list, User
 from construct import mail, Message, app
+import requests
  
 def SendNotificationAsContractor(Type):
     Users=User.query.all()
@@ -34,5 +35,19 @@ def SendDelayReport():
         msg.attach("newpdf.pdf", "application/pdf", fp.read()) 
         mail.send(msg)
 
+def send_sms(Message):
+    Users=User.query.all()
+
+    for user in Users:
+            user_id="15896"     #credentials are currently hard-coded,should pass them as environmental variables
+            api_key= "c977qWgaQfGYfZHoXJc1"
+            sender_id="NotifyDEMO"
+            message= Message
+         
+            request_string="https://app.notify.lk/api/v1/send?"+"user_id="+user_id+"&api_key="+api_key+"&sender_id="+sender_id+"&to="+user.contact_number+"&message="+message
+            print(request_string) #Test- to inspect the generated URL
+            r = requests.get(request_string) #Gets JSON response from the sms API
+            
+            print(r.text) #Test- to inspect the response from the SMS API
 
      
