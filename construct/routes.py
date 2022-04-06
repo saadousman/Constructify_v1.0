@@ -1,5 +1,5 @@
-from flask import render_template, redirect, url_for, flash, get_flashed_messages, request, make_response
-from construct.models import User, Delay, Tasks, Contact_list
+from flask import render_template, redirect, url_for, flash, get_flashed_messages, request, make_response, jsonify
+from construct.models import User, Delay, Tasks, Contact_list, Img
 from construct import app, db, date, timedelta, mail, Message
 from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm, ContactForm
 from construct.email_send import *
@@ -10,6 +10,11 @@ import pandas as pd
 import plotly, json
 import pytest
 import pdfkit as pdfkit
+from werkzeug.utils import secure_filename
+import base64
+from twilio.rest import Client
+import os
+import requests
 #path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
 #config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
 #pdfkit.from_url("http://google.com", "out.pdf", configuration=config)
@@ -109,7 +114,7 @@ def delaypage():
            
             db.session.add(delay_to_create)
             db.session.commit()
-            SendNotificationAsContractor("Delay")
+        #    SendNotificationAsContractor("Delay")
             #flash(f'Delay Record Created!')     
             #flash(f'Email notification sent!')   
             #msg = Message('Project Delay Alert', sender = 'sdousmanflask@gmail.com', recipients = ['sdousman@gmail.com'])
@@ -397,6 +402,77 @@ def PDFPageEmail():
     pdf = pdfkit.from_string(rendered, 'construct/newpdf.pdf')
 
     #call the imported function to send an email notification to the stakeholders with the attached pdf that is generated
-    SendDelayReport()
+    #SendDelayReport()
+    Users=User.query.all()
+    
+    
+    for user in Users:
+            user_id="15896"
+            api_key= "c977qWgaQfGYfZHoXJc1"
+            sender_id="NotifyDEMO"
+            message="This is is another test message"
+          #  r = requests.post('https://app.notify.lk/api/v1/send', data={'user_id': '15896','api_key': 'c977qWgaQfGYfZHoXJc1','sender_id': 'NotifyDEMO','to': '+94774924260', 'message': 'testsms'})
+            #print(r)
+            request_string="https://app.notify.lk/api/v1/send?"+"user_id="+user_id+"&api_key="+api_key+"&sender_id="+sender_id+"&to="+user.contact_number+"&message="+message
+            print(request_string)
+            r = requests.get(request_string)
+            
+            print(r.text)
+           
 
-    return render_template('delays.html', delays=delays, delayForm=delayForm, pending_delays=pending_delays, approved_delays=approved_delays, delay_count=delay_count, gannt_data=gannt_data)
+     #   account_sid = os.environ['TWILIO_ACCOUNT_SID']
+     #   auth_token = os.environ['TWILIO_AUTH_TOKEN']
+       # account_sid = 'ACf36c7e435da3ee4ae68fd8234f76cfbe'
+       # auth_token = '8265939b6de382dbacdaf238f012822a'
+       # client = Client(account_sid, auth_token)
+
+        #message = client.messages \
+          #      .create(
+            #         body="A Delay report was created. Check your damn email man",
+              #       from_='+18647351763',
+                #     to= user.contact_number
+                # )
+
+        #print(message.sid)
+
+    return redirect('/delays', code=302)
+
+#@app.route("/PdfEmail", methods=['GET', 'POST'])
+#@login_required
+#def PDFPageEmail():
+
+@app.route("/UploadPage", methods=['GET', 'POST'])
+@login_required
+def Uploadpage():
+    
+    db.create_all()
+
+    return render_template('UploadImage.html')
+
+@app.route('/upload', methods=['POST'])
+def upload():
+    pic = request.files['pic']
+    if not pic:
+        return 'No pic uploaded!', 400
+
+    filename = secure_filename(pic.filename)
+    mimetype = pic.mimetype
+    if not filename or not mimetype:
+        return 'Bad upload!', 400
+
+    img = Img(img=pic.read(), name=filename, mimetype=mimetype)
+    db.session.add(img)
+    db.session.commit()
+
+    flash(f'Image Uploaded')
+    return redirect('/Tasks', code=302)
+   
+@app.route("/ImageGallery", methods=['GET', 'POST'])
+@login_required
+def ImageGallery():
+        images = Img.query.all()
+        base64_images = [base64.b64encode(image).decode("utf-8") for images.img in images]
+        
+        return render_template('TaskImagePage.html', images=base64_images)
+
+

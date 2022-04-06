@@ -129,13 +129,14 @@ Task Management
                             </button>
                             <div class="dropdown-menu">
                                 <p>
-                                    <center>Mark as</center>
+                                    <center><strong>Mark as</strong></center>
                                 </p>
                                 <a class="dropdown-item" data-toggle="modal" data-target="#TaskEditModal" data-whatever="@mdo">Update</a>
                                 <a class="dropdown-item" href="{{url_for('TaskPending',id=task.id)}}">Pending</a>
                                 <a class="dropdown-item" href="{{url_for('TaskInProgress',id=task.id)}}">In Progress</a>
                                 <a class="dropdown-item" href="{{url_for('TaskCompleted',id=task.id)}}">Completed</a>
                                 <div class="dropdown-divider"></div>
+                                <a class="dropdown-item" href="{{url_for('Uploadpage')}}"><strong>Upload Task Image</strong></a>
                                 <a class="dropdown-item" href="{{url_for('deleteTask',id=task.id)}}"><strong>Delete
                                         Task</strong></a>
                             </div>
