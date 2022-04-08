@@ -55,13 +55,13 @@ Task Management
 
 
 <div class="row" style="margin-top:20px;margin-left:10px">
-    <div class="col-11">
+    <div class="col-12">
 
         <br>
-        <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#TaskModal"
+        <button type="button" class="btn btn-outline-light" data-toggle="modal" data-target="#TaskModal"
             data-whatever="@mdo">Create a New Record</button>
 
-            <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#ImageUploadModal"
+            <button type="button" class="btn btn-outline-light" data-toggle="modal" data-target="#ImageUploadModal"
             data-whatever="@mdo">Upload Task Image</button> 
         <br><br><br>
         
@@ -75,7 +75,7 @@ Task Management
                     <!-- Your Columns HERE -->
                     <th scope="col">Task ID</th>
                     <th scope="col">Name</th>
-                    <th width="10% scope=" col">
+                    <th width="15% scope=" col">
                         <center>Description</center>
                     </th>
                     <th width="10% scope=" col">Task Weightage</th>
@@ -127,6 +127,7 @@ Task Management
                     <td>
 
                         <div class="btn-group">
+                            
                             <button type="button" class="btn btn-outline-primary dropdown-toggle" data-toggle="dropdown"
                                 aria-haspopup="true" aria-expanded="false">
                                 Action
@@ -141,10 +142,11 @@ Task Management
                                 <a class="dropdown-item" href="{{url_for('TaskCompleted',id=task.id)}}">Completed</a>
                                 <div class="dropdown-divider"></div>
                                 
-                                <a class="dropdown-item" href="{{url_for('ImageGallery',id=task.id)}}"><strong>View Images</strong></a>
-                                <a class="dropdown-item" href="{{url_for('deleteTask',id=task.id)}}"><strong>Delete
-                                        Task</strong></a>
+                               
+                                <a class="dropdown-item" href="{{url_for('deleteTask',id=task.id)}}"><strong>Delete Task</strong></a>
                             </div>
+                            
+                                <a class="btn btn-outline-info" href="{{url_for('ImageGallery',id=task.id)}}" role="button" target="_blank">View Photos</a>
                         </div>
 
 

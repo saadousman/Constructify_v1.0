@@ -15,11 +15,24 @@ Python Flask Upload and display image
     {% if task.task_id == taskid %}
    
    <br>
-   <img src="/static/uploads/{{task.img_name}}" alt="User Image">
-     <br>
+   <img src="/static/uploads/{{task.img_name}}" alt="User Image" width="700" height="500">
+     <br><br><br><br><br><br>
   
-   {% endif %}
-    {% endfor %}
+     
+     {% endif %}
+    {% endfor %}  
+
+    {% with task=taskref %}
+    {% if task.task_id != taskid %}
+    <div class="alert alert-primary alert-dismissible fade show" role="alert">
+      <strong>No image Uploaded for this task!</strong>
+      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+      </button>
+  </div>
+    {% endif %}
+    {% endwith %}
+  
 
 
     
