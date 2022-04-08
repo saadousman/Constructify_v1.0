@@ -1,0 +1,52 @@
+
+<div class="modal fade" id="ImageUploadModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+  aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Upload a Task Image</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+
+
+        <form method="post" action="/UploadImage" enctype="multipart/form-data">
+          <dl>
+              <p>
+                  <input type="file" name="file" class="form-control" autocomplete="off" required>
+              </p>
+          </dl>
+
+
+          <p>
+            
+           <dl>
+            <label for="tasks">Choose a Task ID</label>
+
+            <select name="tasks" id="tasks">
+              {%for task in tasks%}
+              <option value="{{task.id}}">Task ID {{task.id}}</option>
+              {%endfor%}
+            </select>
+          </dl>
+          </p>
+          <p>
+              <input type="submit" value="Submit" class="btn btn-info">
+          </p>
+      </form>
+
+        
+
+      </div>
+
+    </div>
+  </div>
+  <style>
+    .modal-content {
+      background-color: #212121
+    }
+  </style>
+
+</div>

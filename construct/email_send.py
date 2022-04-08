@@ -5,21 +5,28 @@ import requests
  
 def SendNotificationAsContractor(Type):
     Users=User.query.all()
+    contact_list = []
     
     for user in Users:
         if user.role == "Client" or user.role == "Consultant":
-            msg = Message('Project Delay Alert', sender = 'sdousmanflask@gmail.com', recipients = [user.email_address])
-            msg.body = "A new " +  Type + " was created by the contractor"
-            mail.send(msg)
+            contact_list.append(user.email_address)
+    
+    msg = Message('Project Delay Alert', sender = 'sdousmanflask@gmail.com', recipients = contact_list)
+    msg.body = "A new " +  Type + " was created by the contractor"
+    mail.send(msg)
 
 def SendNotificationAsClient(Type):
     Users=User.query.all()
+    contact_list = []
     
     for user in Users:
-        if user.role == "Contractor" or user.role == "Client":
-            msg = Message('Project Delay Alert', sender = 'sdousmanflask@gmail.com', recipients = [user.email_address])
-            msg.body = "A new " +  Type + " was created by the Consultant/Client"
-            mail.send(msg)
+        if user.role == "Contractor" or user.role == "Consultant":
+            contact_list.append(user.email_address)
+    
+    
+    msg = Message('Project Delay Alert', sender = 'sdousmanflask@gmail.com', recipients = [user.email_address])
+    msg.body = "A new " +  Type + " was created by the Consultant/Client"
+    mail.send(msg)
 
 def SendDelayReport():
     Users=User.query.all()
@@ -42,7 +49,7 @@ def send_sms(Message):
             user_id="15896"     #credentials are currently hard-coded,should pass them as environmental variables
             api_key= "c977qWgaQfGYfZHoXJc1"
             sender_id="NotifyDEMO"
-            message= Message
+            message= Message  #Message is passed as a parameter to this function by the caller function
          
             request_string="https://app.notify.lk/api/v1/send?"+"user_id="+user_id+"&api_key="+api_key+"&sender_id="+sender_id+"&to="+user.contact_number+"&message="+message
             print(request_string) #Test- to inspect the generated URL

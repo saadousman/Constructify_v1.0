@@ -1,5 +1,5 @@
-from flask import render_template, redirect, url_for, flash, get_flashed_messages, request, make_response, jsonify
-from construct.models import User, Delay, Tasks, Contact_list, Img
+from flask import render_template, redirect, url_for, flash, get_flashed_messages, request, make_response, jsonify, Response
+from construct.models import User, Delay, Tasks, Contact_list, Img, TaskToImage
 from construct import app, db, date, timedelta, mail, Message
 from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm, ContactForm
 from construct.email_send import *
@@ -15,6 +15,11 @@ import base64
 from twilio.rest import Client
 import os
 import requests
+UPLOAD_FOLDER = 'construct/static/uploads/'
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+ 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 #path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
 #config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
 #pdfkit.from_url("http://google.com", "out.pdf", configuration=config)
@@ -170,11 +175,10 @@ def Taskpage():
                               total_days= total_days )
             db.session.add(task_to_create)
             db.session.commit()
+            send_sms("A Task was Updated. Please Check your email man")
             SendNotificationAsContractor("Task Record")
             flash(f'Task Created!')
-            #msg = Message('Project Task Update', sender = 'sdousmanflask@gmail.com', recipients = ['sdousman@gmail.com'])
-            #msg.body = "A New Project task was updated by the contractor"
-            #mail.send(msg)
+           
 
     return redirect(url_for('Taskpage'))
 
@@ -192,7 +196,7 @@ def deleteTask(id):
     task_to_delete = Tasks.query.get_or_404(id)
     db.session.delete(task_to_delete)
     db.session.commit()
-    SendNotificationAsContractor("Task Item Deletion")
+    #SendNotificationAsContractor("Task Item Deletion")
     return redirect(url_for('Taskpage'))
 
     
@@ -280,84 +284,17 @@ def logout_page():
     return redirect(url_for('homepage'))
 
 
-#@app.route('/construct', methods=['GET', 'POST'])
-#@login_required
-#def constructpage():
-#    items = Item.query.filter_by(owner=None)
-#    owned_items = Item.query.filter_by(owner=current_user.id)
-#    purchase_form = PurchaseItemForm()
-###    if request.method == "POST":
-#        purchased_item = request.form.get('purchased_item')
-#        purch_item_obj = Item.query.filter_by(name=purchased_item).first()
-#
-#        if purch_item_obj:
-#            if current_user.can_purchase(purch_item_obj):
-#                purch_item_obj.buy(current_user.id)
-#              #  purch_item_obj.owner = current_user.id
-#                current_user.update_budget(purch_item_obj.price)
-#
-#                flash(
-#                    f'You have purchased the {purch_item_obj.name} for {purch_item_obj.price}')
-#            else:
-#                flash(
-#                    f'you dont have enough money. Piss off')
-#
-#        return render_template('construct.html', items=items, purchase_form=purchase_form, owned_items=owned_items)
-#
-#    if request.method == "GET":
-#        owned_items = Item.query.filter_by(owner=current_user.id).first()
-#
-#        return render_template('construct.html', items=items, purchase_form=purchase_form, owned_items=owned_items)
 
 
-#        if purch_item_obj:
-#            if current_user.can_purchase(purch_item_obj):
-#                purch_item_obj.buy(current_user.id)
-#              #  purch_item_obj.owner = current_user.id
-#                current_user.update_budget(purch_item_obj.price)
-#
-#                flash(
-#                    f'You have purchased the {purch_item_obj.name} for {purch_item_obj.price}')
-#            else:
-#                flash(
-#                    f'you dont have enough money. Piss off')
-
- #       return render_template('delays.html', delays=delays)
-
-
-@app.route("/Contacts", methods=['GET', 'POST'])
+@app.route("/Contacts", methods=['GET'])
 @login_required
 def Contactspage():
-    #contactform= ContactForm()
-    #contacts = Contact_list.query.all()
 
     Users= User.query.all()
-
-    
-
-    if request.method == "GET":
         
-        return render_template('contact_list.html', Users=Users)
+    return render_template('contact_list.html', Users=Users)
 
-    if request.method == "POST":
-        #Grab the form values and perform the relevant DB queries if the request is of type POST
-#Creating new Tasks
-           
-            
-
-            contact_to_create = Contact_list(name=contactform.name.data,
-                              Role=contactform.role.data,
-                              email_address=contactform.email_address.data,
-                              contact_number=contactform.contact_no.data)
-            db.session.add(contact_to_create)
-            db.session.commit()
-            SendNotification("Contact Creation")
-        #    flash(f'Contact Added!')
-         #   msg = Message('Project Task Update', sender = 'sdousmanflask@gmail.com', recipients = ['sdousman@gmail.com'])
-         #   msg.body = "A New Contact has been added"
-         #  mail.send(msg)
-
-    return redirect(url_for('Contactspage'))
+   
 
 
 @app.route("/PdfGeneration", methods=['GET', 'POST'])
@@ -404,48 +341,81 @@ def PDFPageEmail():
     #generate the pdf and store it in the appropriate directory
     pdf = pdfkit.from_string(rendered, 'construct/newpdf.pdf')
 
-    #call the imported function to send an email notification to the stakeholders with the attached pdf that is generated
-    #SendDelayReport()
-    # calls the send_sms function to send an sms to stakeholders. Message body is passed as a parameter
-    send_sms("Delay Report was printed. Please Check your email")
+    
+    
+    #send_sms()calls the send_sms function to send an sms to stakeholders. Message body is passed as a parameter
+    #SendDelayReport() calls the imported function to send an email notification to the stakeholders with the attached pdf that is generated
+    SendDelayReport()
+    send_sms("Delay Report was printed. Please Check your email man")
            
 
 
     return redirect('/delays', code=302)
 
 
-@app.route("/UploadPage", methods=['GET', 'POST'])
-@login_required
-def Uploadpage():
-    
-    db.create_all()
+def saveimage(taskid,imagename):
+        image_to_save = TaskToImage(task_id=taskid,img_name=imagename)
+        db.session.add(image_to_save)
+        db.session.commit()
+        print("saved db record")
+        print("image id is "+taskid)
+        print("image name is " +imagename)
 
-    return render_template('UploadImage.html')
 
-@app.route('/upload', methods=['POST'])
-def upload():
-    pic = request.files['pic']
-    if not pic:
-        return 'No pic uploaded!', 400
+@app.route('/UploadImage', methods=['POST'])
+def upload_image():
 
-    filename = secure_filename(pic.filename)
-    mimetype = pic.mimetype
-    if not filename or not mimetype:
-        return 'Bad upload!', 400
-
-    img = Img(img=pic.read(), name=filename, mimetype=mimetype)
-    db.session.add(img)
-    db.session.commit()
-
-    flash(f'Image Uploaded')
-    return redirect('/Tasks', code=302)
-   
-@app.route("/ImageGallery", methods=['GET', 'POST'])
-@login_required
-def ImageGallery():
-        images = Img.query.all()
-        base64_images = [base64.b64encode(image).decode("utf-8") for images.img in images]
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+    file = request.files['file']
+    if file.filename == '':
+        flash('No image selected for uploading')
+        return redirect(request.url)
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        taskID= request.form['tasks']
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        print('upload_image filename: ' + filename)
+        flash('The image has been  successfully uploaded ')
         
-        return render_template('TaskImagePage.html', images=base64_images)
+        saveimage(taskID, filename)
+        
+        return redirect('/Tasks', code=302)
+    else:
+        flash('Allowed image types are - png, jpg, jpeg, gif')
+        return redirect(request.url)
 
 
+
+
+
+
+
+@app.route('/display/<filename>')
+def display_image(filename):
+    print('display_image filename: ' + filename)
+    return redirect(url_for('static', filename='uploads/' + filename), code=301)
+
+@app.route('/imguploadpage')
+def imagepage():
+    return render_template('UploadImage.html')
+   
+@app.route("/ImageGallery/<int:id>", methods=['GET', 'POST'])
+
+def ImageGallery(id):
+        tasks= TaskToImage.query.all()
+        
+        print(tasks)
+        ident=str(id)
+      #  return Response(images=images, mimetype=img.mimetype)
+        return render_template('ImageGallery.html', taskref=tasks, taskid=ident)
+
+
+@app.route('/<int:id>')
+def get_img(id):
+    img = Img.query.filter_by(id=id).first()
+    if not img:
+        return 'Img Not Found!', 404
+
+    return Response(img.img, mimetype=img.mimetype)
