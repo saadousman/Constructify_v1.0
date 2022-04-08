@@ -23,6 +23,9 @@ app.config['MAIL_PASSWORD'] = 'Redbull12!123'
 app.config['MAIL_USE_TLS'] = False
 app.config['MAIL_USE_SSL'] = True
 db = SQLAlchemy(app)
+UPLOAD_FOLDER = 'construct/static/uploads/'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
 
 # Function that initializes the db and creates the tables
 def db_init(app):
