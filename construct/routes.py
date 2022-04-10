@@ -1,8 +1,9 @@
-from flask import render_template, redirect, url_for, flash, get_flashed_messages, request, make_response, jsonify, Response
-from construct.models import User, Delay, Tasks, Contact_list, Img, TaskToImage
+from flask import render_template, redirect, url_for, flash, get_flashed_messages, request, make_response, jsonify, Response, send_from_directory
+from construct.models import User, Delay, Tasks, Contact_list, Img, TaskToImage, WorkInspectionRequests, WIRDocument
 from construct import app, db, date, timedelta, mail, Message
-from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm, ContactForm
+from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm, ContactForm,WIRForm
 from construct.email_send import *
+from construct.AzureFileStorage import *
 from flask_login import login_user, logout_user, login_required, current_user
 import time
 import plotly.express as px
@@ -15,8 +16,10 @@ import base64
 from twilio.rest import Client
 import os
 import requests
+
+STORAGE_CONNECTION_STRING = 'BlobEndpoint=https://constructify.blob.core.windows.net/;QueueEndpoint=https://constructify.queue.core.windows.net/;FileEndpoint=https://constructify.file.core.windows.net/;TableEndpoint=https://constructify.table.core.windows.net/;SharedAccessSignature=sv=2020-08-04&ss=f&srt=sco&sp=rwdlc&se=2023-04-10T03:23:17Z&st=2022-04-09T19:23:17Z&spr=https,http&sig=s7GEen6scx0kjjH2GeRCJODr8C59u8jCRv%2FmBcHS%2FaE%3D'
 UPLOAD_FOLDER = 'construct/static/uploads/'
-ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
+ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip'])
  
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -386,6 +389,40 @@ def upload_image():
         flash('Allowed image types are - png, jpg, jpeg, gif')
         return redirect(request.url)
 
+def saveWirDocumentRecord(wir_id,wir_name,status):
+        wir_to_save = WIRDocument(wir_id=wir_id,wir_file_name=wir_name, status=status)
+        db.session.add(wir_to_save)
+        db.session.commit()
+        print("saved db record")
+        print('upload_wir filename: ' + wir_name)
+        print("WIR id is "+wir_id)
+        print("WIR file name is " +wir_name)
+
+@app.route('/UploadWIR', methods=['POST'])
+def upload_wir():
+    status="Submitted"
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+    file = request.files['file']
+    if file.filename == '':
+        flash('No document selected for uploading')
+        return redirect(request.url)
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        wir_ID= request.form['wir']
+        file.save(os.path.join(app.root_path, "static/wir", filename))
+        
+        flash('The document has been  successfully uploaded ')
+        
+        saveWirDocumentRecord(wir_ID,filename,status)
+        
+        return redirect('/WorkInspectionReqs', code=302)
+    else:
+        print("sum shit wrong with the file extensions")
+        flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
+        return redirect(request.url)
+
 
 
 
@@ -402,12 +439,12 @@ def imagepage():
     return render_template('UploadImage.html')
    
 @app.route("/ImageGallery/<int:id>", methods=['GET', 'POST'])
-
 def ImageGallery(id):
         tasks= TaskToImage.query.all()
         
         print(tasks)
         ident=str(id)
+        
       #  return Response(images=images, mimetype=img.mimetype)
         return render_template('ImageGallery.html', taskref=tasks, taskid=ident)
 
@@ -419,3 +456,72 @@ def get_img(id):
         return 'Img Not Found!', 404
 
     return Response(img.img, mimetype=img.mimetype)
+
+#@app.route('/UploadedWIR')
+#def upload_document():
+    # Create a ShareServiceClient from a connection string
+   # service_client = ShareServiceClient.from_connection_string(app.config.STORAGE_CONNECTION_STRING)
+ #   string = STORAGE_CONNECTION_STRING
+ #   today = str(date.today())
+ #   print("The uploaded files are : ")
+ #   itemlist = list_files_and_dirs(string, 'constructify', 'Work_Inspection_Requests/Approved')
+  #  print(itemlist)
+   # url = 'https://api.github.com/some/endpoint'
+   # headers = {'user-agent': 'my-app/0.0.1'}
+
+   # url = 'https://constructify.file.core.windows.net/constructify/Work_Inspection_Requests/Approved/2022-04-07 19_10_55-python flask display image on a html page - Stack Overflow.png'
+   # headers = {'Authorization': 'Shared Key', 'Date': today, 'x-ms-version	': today }
+
+    #r = requests.get(url, headers=headers)
+   # return render_template('SubmittedWorkIR.html', item_list=itemlist)
+
+
+
+@app.route("/WorkInspectionReqs", methods=['GET', 'POST'])
+def wir_page():
+    delays = Delay.query.all()
+    wir_list = WorkInspectionRequests.query.all()
+    wirform= WIRForm()
+    today = date.today()
+    
+    
+    
+
+ #Render the Task page if the request is of type GET
+    if request.method == "GET":
+        return render_template('WorkInspectionRequest.html', delays=delays,wir_list=wir_list, wirform=wirform)
+
+    if request.method == "POST":
+    #Grab the form values and perform the relevant DB queries if the request is of type POST
+#Creating new Tasks
+             
+            
+
+            wir_to_create = WorkInspectionRequests(name=wirform.Name.data,
+                              description=wirform.Description.data,
+                              submitted_date=today)
+            db.session.add(wir_to_create)
+            db.session.commit()
+            
+            
+            flash(f'WIR Created!')
+           
+
+    return redirect(url_for('wir_page'))
+
+@app.route("/WIRSubmitted/<string:passed_id>", methods=['GET', 'POST'])
+def wir_submitted_page(passed_id):
+        wir_list=[]
+        submitted_wir= WIRDocument.query.all()
+        
+        
+        
+      #  return Response(images=images, mimetype=img.mimetype)
+        return render_template('WIRSubmittedPage.html', fileNamelist=submitted_wir, passed_wir=str(passed_id))
+
+@app.route('/downloadwir/<wir_name>,', methods=['GET', 'POST'])
+def downloadwir(wir_name):
+
+    uploads = os.path.join(app.root_path, "static/wir")
+    print(uploads)
+    return send_from_directory(directory=uploads, path=wir_name, as_attachment=True)
