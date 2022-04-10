@@ -78,11 +78,11 @@ class ContactForm(FlaskForm):
     
 
 
-
-
-
-
-    
-
+class WIRForm(FlaskForm):
+    Name = StringField(label='Name', validators=[
+                                DataRequired()])
+    Description = StringField(label='Description', validators=[
+                                DataRequired()])
+    submit = SubmitField(label='Submit WIR')
    
  

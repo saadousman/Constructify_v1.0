@@ -91,5 +91,17 @@ class TaskToImage(db.Model):
     img_name = db.Column(db.String(length=30), nullable=False)
     task_id = db.Column(db.String(length=30), nullable=False)
     
+class WIRDocument(db.Model):
+    id = db.Column(db.Integer(), nullable=False, primary_key=True)
+    wir_file_name = db.Column(db.String(length=30), nullable=False)
+    wir_id = db.Column(db.String(length=30), nullable=False)
+    status = db.Column(db.String(length=30), nullable=False)
 
-    
+class WorkInspectionRequests(db.Model):
+    id = db.Column(db.Integer(), nullable=False, primary_key=True)
+    name = db.Column(db.String(length=30), nullable=False)
+    description = db.Column(db.String(length=30), nullable=False)
+    status = db.Column(db.String(length=30), nullable=True, default="Submitted")
+    submitted_date = db.Column(db.String(length=30), nullable=False)
+
+   #Different types Status: Submitted,Approved, Approved-As-Noted, Revise&ReSubmit, Rejected
