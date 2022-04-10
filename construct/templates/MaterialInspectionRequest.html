@@ -2,7 +2,7 @@
 
 
 {% block title%}
-wirs
+Material Inspections requests
 {%endblock%}
 
 
@@ -14,14 +14,14 @@ wirs
 
 
 
-{% include 'includes/wirmodal.html' %}
-{% include 'includes/wiruploadmodal.html' %}
+{% include 'includes/mirmodal.html' %}
+{% include 'includes/miruploadmodal.html' %}
 <div class="row" style="margin-top:20px;margin-left:30px">
     <div class="col-2">
         <div class="card text-white bg-secondary mb-3" style="max-width: 18rem;">
 
             <div class="card-body">
-                <h5 class="card-title">Submitted WIRs</h5>
+                <h5 class="card-title">Submitted MIRs</h5>
                 <p class="card-text" style="text-align:center;">some number</p>
             </div>
         </div>
@@ -41,7 +41,7 @@ wirs
         <div class="card text-white bg-warning  mb-3" style="max-width: 18rem;">
 
             <div class="card-body">
-                <h5 class="card-title">wirs Reported</h5>
+                <h5 class="card-title">mirs Reported</h5>
                 <p class="card-text" style="text-align:center;">some number</p>
             </div>
         </div>
@@ -53,15 +53,15 @@ wirs
 
 <div class="row" style="margin-top:20px;margin-left:30px">
     <div class="col-11">
-        <h3>Work Inspection Requests</h3>
-        <p>Reporting and Managing WIR</p>
+        <h3>Material Inspection Requests</h3>
+        <p>Reporting and Managing MIR</p>
         <br>
-        <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#WIRCreateModal"
+        <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#MIRCreateModal"
             data-whatever="@mdo">Create a New Record</button>
         
 
-            <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#WIRUploadModal"
-            data-whatever="@mdo">Submit WIR Document</button>
+            <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#MIRUploadModal"
+            data-whatever="@mdo">Submit mir Document</button>
 
             
             <a href="{{url_for('PDFPage')}}" class="btn btn-secondary btn-lg active" role="button" aria-pressed="false" target="_blank">Print report</a>
@@ -80,7 +80,7 @@ wirs
                 <tr>
                     <!-- Your Columns HERE -->
                     <th scope="col">ID</th>
-                    <th scope="col">WIR Name</th>
+                    <th scope="col">MIR Name</th>
                     <th scope="col">Remarks</th>
                     <th scope="col">Status</th>
                     <th scope="col">Submiited Date?</th>
@@ -89,32 +89,32 @@ wirs
             <tbody>
                 <!-- Your rows inside the table HERE: -->
 
-                {% for wir in wir_list %}
+                {% for mir in mir_list %}
      
 
                     <tr>
-                    <td>{{wir.id}}</td>
-                    <td>{{wir.name}}</td>
-                    <td width="20%">{{wir.description}}</td>
+                    <td>{{mir.id}}</td>
+                    <td>{{mir.name}}</td>
+                    <td width="20%">{{mir.description}}</td>
 
-                    <!-- Change Badge color based on wir Deverity -->
-                    {% if 'Submitted' in wir.status %}
-                    <td><span class="badge badge-pill badge-info">{{wir.status}}</span></td>
+                    <!-- Change Badge color based on mir Deverity -->
+                    {% if 'Submitted' in mir.status %}
+                    <td><span class="badge badge-pill badge-info">{{mir.status}}</span></td>
                     {% endif %}
-                    {% if 'Rejected' in wir.status %}
-                    <td><span class="badge badge-pill badge-danger">{{wir.status}}</span></td>
+                    {% if 'Rejected' in mir.status %}
+                    <td><span class="badge badge-pill badge-danger">{{mir.status}}</span></td>
                     {% endif %}
-                    {% if 'Revise&ReSubmit' in wir.status %}
-                    <td><span class="badge badge-pill badge-warning">{{wir.status}}</span></td>
+                    {% if 'Revise-And-ReSubmit' in mir.status %}
+                    <td><span class="badge badge-pill badge-warning">{{mir.status}}</span></td>
                     {% endif %}
-                    {% if 'Approved!' in wir.status %}
-                    <td><span class="badge badge-pill badge-info">{{wir.status}}</span></td>
+                    {% if 'Approved!' in mir.status %}
+                    <td><span class="badge badge-pill badge-info">{{mir.status}}</span></td>
                     {% endif %}
-                    {% if 'Approved-As-Noted' in wir.status %}
-                    <td><span class="badge badge-pill badge-warning">{{wir.status}}</span></td>
+                    {% if 'Approved-As-Noted' in mir.status %}
+                    <td><span class="badge badge-pill badge-warning">{{mir.status}}</span></td>
                     {% endif %}
                  
-                    <td>{{wir.submitted_date}}</td>
+                    <td>{{mir.submitted_date}}</td>
                     
                     <td>
 
@@ -127,7 +127,7 @@ wirs
                             <div class="dropdown-menu">
                                
                                 
-                                <a class="dropdown-item" href="{{url_for('wir_submitted_page',passed_id=wir.id)}}">View Sudmitted Document</a>
+                        
                                 
                         </div>
 

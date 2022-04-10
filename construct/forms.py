@@ -84,5 +84,12 @@ class WIRForm(FlaskForm):
     Description = StringField(label='Description', validators=[
                                 DataRequired()])
     submit = SubmitField(label='Submit WIR')
+
+class MIRForm(FlaskForm):
+    Name = StringField(label='Name', validators=[
+                                DataRequired()])
+    Description = StringField(label='Description', validators=[
+                                DataRequired()])
+    submit = SubmitField(label='Submit MIR')
    
  

@@ -1,7 +1,7 @@
 from flask import render_template, redirect, url_for, flash, get_flashed_messages, request, make_response, jsonify, Response, send_from_directory
-from construct.models import User, Delay, Tasks, Contact_list, Img, TaskToImage, WorkInspectionRequests, WIRDocument
+from construct.models import User, Delay, Tasks, Contact_list, Img, TaskToImage, WorkInspectionRequests, WIRDocument, MaterialInspectionRequests
 from construct import app, db, date, timedelta, mail, Message
-from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm, ContactForm,WIRForm
+from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm, ContactForm,WIRForm, MIRForm
 from construct.email_send import *
 from construct.AzureFileStorage import *
 from flask_login import login_user, logout_user, login_required, current_user
@@ -423,6 +423,31 @@ def upload_wir():
         flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
         return redirect(request.url)
 
+@app.route('/UploadMIR', methods=['POST'])
+def upload_mir():
+    status="Submitted"
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+    file = request.files['file']
+    if file.filename == '':
+        flash('No document selected for uploading')
+        return redirect(request.url)
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        wir_ID= request.form['mir']
+        file.save(os.path.join(app.root_path, "static/mir", filename))
+        
+        flash('The document has been  successfully uploaded ')
+        
+        saveWirDocumentRecord(wir_ID,filename,status)
+        
+        return redirect('/MaterialInspectReqs', code=302)
+    else:
+        print("sum shit wrong with the file extensions")
+        flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
+        return redirect(request.url)
+
 
 
 
@@ -523,5 +548,39 @@ def wir_submitted_page(passed_id):
 def downloadwir(wir_name):
 
     uploads = os.path.join(app.root_path, "static/wir")
-    print(uploads)
+    print("The path to the downloaded file is: "+uploads)
     return send_from_directory(directory=uploads, path=wir_name, as_attachment=True)
+
+
+
+
+@app.route("/MaterialInspectReqs", methods=['GET', 'POST'])
+def material_inspection_page():
+    db.create_all()
+    mirform= MIRForm()
+    mir_list = MaterialInspectionRequests.query.all()
+    today = date.today()
+    print(mirform)
+    print(mir_list)
+#Render the MIR page if the request is of type GET
+    if request.method == "GET":
+        return render_template('MaterialInspectionRequest.html',mirform=mirform,mir_list=mir_list)
+
+    if request.method == "POST":
+    #Grab the form values and perform the relevant DB queries if the request is of type POST
+#Creating new Tasks
+             
+            
+
+            mir_to_create = MaterialInspectionRequests(name=mirform.Name.data,
+                              description=mirform.Description.data,
+                              submitted_date=today)
+            db.session.add(mir_to_create)
+            db.session.commit()
+            
+            
+            flash(f'MIR Created!')
+           
+
+    return redirect(url_for('material_inspection_page'))
+    
