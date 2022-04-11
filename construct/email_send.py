@@ -1,5 +1,5 @@
 #Module to send email to the list of Contacts 
-from construct.models import Contact_list, User
+from construct.models import User
 from construct import mail, Message, app
 import requests
  

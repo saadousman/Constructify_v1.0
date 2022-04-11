@@ -31,25 +31,6 @@ class User(db.Model, UserMixin):
     def check_password_correction(self, attempted_password):
         return bcrypt.check_password_hash(self.password_hash, attempted_password)
 
-   
-
-    
-
-#class Item(db.Model):
-#    id = db.Column(db.Integer(), nullable=False, primary_key=True)
-#    name = db.Column(db.String(length=30), nullable=False, unique=True)
-#    price = db.Column(db.Integer(), nullable=False)
-#    barcode = db.Column(db.String(length=12), nullable=False, unique=True)
-#    description = db.Column(db.String(length=1024),
-#                            nullable=False, unique=True)
-#    owner = db.Column(db.Integer(), db.ForeignKey('user.id'))
-#
-#    def __repr__(self):
-#        return f'Item {self.name}'
-#
-#    def buy(self, userid):
-#        self.owner = userid
-#        db.session.commit()
 class Delay(db.Model):
     id = db.Column(db.Integer(), nullable=False, primary_key=True)
     type = db.Column(db.String(length=30), nullable=False)
@@ -73,18 +54,10 @@ class Tasks(db.Model):
     total_estimated_cost = db.Column(db.String(length=30), nullable=False)
     total_days = db.Column(db.Integer(), nullable=False)
     
-class Contact_list(db.Model):
-    id = db.Column(db.Integer(), nullable=False, primary_key=True)
-    name = db.Column(db.String(length=30), nullable=False)
-    Role = db.Column(db.String(length=30), nullable=False)
-    email_address = db.Column(db.String(length=30), nullable=False)
-    contact_number = db.Column(db.String(), nullable=False)
+
+
     
-class Img(db.Model):
-    id = db.Column(db.Integer(), nullable=False, primary_key=True)
-    img = db.Column(db.Text, unique=False, nullable=False)
-    name = db.Column(db.Text, nullable=False)
-    mimetype = db.Column(db.Text, nullable=False)
+
 
 class TaskToImage(db.Model):
     id = db.Column(db.Integer(), nullable=False, primary_key=True)
@@ -103,5 +76,19 @@ class WorkInspectionRequests(db.Model):
     description = db.Column(db.String(length=30), nullable=False)
     status = db.Column(db.String(length=30), nullable=True, default="Submitted")
     submitted_date = db.Column(db.String(length=30), nullable=False)
+#Use the following status types in forms: Submitted,Approved, Approved-As-Noted, Revise-and-ReSubmit, Rejected
 
-   #Different types Status: Submitted,Approved, Approved-As-Noted, Revise&ReSubmit, Rejected
+class MaterialInspectionRequests(db.Model):
+    id = db.Column(db.Integer(), nullable=False, primary_key=True)
+    name = db.Column(db.String(length=30), nullable=False)
+    description = db.Column(db.String(length=30), nullable=False)
+    status = db.Column(db.String(length=30), nullable=True, default="Submitted")
+    submitted_date = db.Column(db.String(length=30), nullable=False)
+
+class MIRDocument(db.Model):
+    id = db.Column(db.Integer(), nullable=False, primary_key=True)
+    mir_file_name = db.Column(db.String(length=30), nullable=False)
+    mir_id = db.Column(db.String(length=30), nullable=False)
+    status = db.Column(db.String(length=30), nullable=False)
+
+    
