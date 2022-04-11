@@ -83,7 +83,7 @@ wirs
                     <th scope="col">WIR Name</th>
                     <th scope="col">Remarks</th>
                     <th scope="col">Status</th>
-                    <th scope="col">Submiited Date?</th>
+                    <th scope="col">Submitted Date</th>
                 </tr>
             </thead>
             <tbody>
@@ -97,21 +97,21 @@ wirs
                     <td>{{wir.name}}</td>
                     <td width="20%">{{wir.description}}</td>
 
-                    <!-- Change Badge color based on wir Deverity -->
+                    <!-- Change Badge color based on wir Status -->
                     {% if 'Submitted' in wir.status %}
                     <td><span class="badge badge-pill badge-info">{{wir.status}}</span></td>
                     {% endif %}
                     {% if 'Rejected' in wir.status %}
                     <td><span class="badge badge-pill badge-danger">{{wir.status}}</span></td>
                     {% endif %}
-                    {% if 'Revise&ReSubmit' in wir.status %}
+                    {% if 'Revise-and-ReSubmit' in wir.status %}
                     <td><span class="badge badge-pill badge-warning">{{wir.status}}</span></td>
                     {% endif %}
                     {% if 'Approved!' in wir.status %}
-                    <td><span class="badge badge-pill badge-info">{{wir.status}}</span></td>
+                    <td><span class="badge badge-pill badge-success">{{wir.status}}</span></td>
                     {% endif %}
                     {% if 'Approved-As-Noted' in wir.status %}
-                    <td><span class="badge badge-pill badge-warning">{{wir.status}}</span></td>
+                    <td><span class="badge badge-pill badge-success">{{wir.status}}</span></td>
                     {% endif %}
                  
                     <td>{{wir.submitted_date}}</td>
@@ -126,10 +126,20 @@ wirs
                             </button>
                             <div class="dropdown-menu">
                                
-                                
-                                <a class="dropdown-item" href="{{url_for('wir_submitted_page',passed_id=wir.id)}}">View Sudmitted Document</a>
-                                
-                        </div>
+                               
+                                <a class="dropdown-item" href="{{url_for('wir_submitted_page',passed_id=wir.id)}}">View Submitted Document</a>
+                                <p>
+                                    <center><strong>Mark as</strong></center>
+                                </p>
+                                {% with passed_id = wir.id%}
+                                <a class="dropdown-item" href="/WIRStatusUpdate/{{passed_id}}?status=Approved!">Approved</a>
+                                <a class="dropdown-item" href="/WIRStatusUpdate/{{passed_id}}?status=Approved-As-Noted">Approved-As-Noted</a>
+                                <a class="dropdown-item" href="/WIRStatusUpdate/{{passed_id}}?status=Revise-and-ReSubmit">Revise-and-ReSubmit</a>
+                                <a class="dropdown-item" href="/WIRStatusUpdate/{{passed_id}}?status=Rejected">Rejected</a>
+
+                                {% endwith %}
+                        </div>  
+
 
 
 

@@ -1,5 +1,5 @@
 from flask import render_template, redirect, url_for, flash, get_flashed_messages, request, make_response, jsonify, Response, send_from_directory
-from construct.models import User, Delay, Tasks, Contact_list, Img, TaskToImage, WorkInspectionRequests, WIRDocument, MaterialInspectionRequests
+from construct.models import User, Delay, Tasks,  TaskToImage, WorkInspectionRequests, WIRDocument, MaterialInspectionRequests, MIRDocument
 from construct import app, db, date, timedelta, mail, Message
 from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm, ContactForm,WIRForm, MIRForm
 from construct.email_send import *
@@ -357,9 +357,7 @@ def PDFPageEmail():
 
 
 def saveimage(taskid,imagename):
-        image_to_save = TaskToImage(task_id=taskid,img_name=imagename)
-        db.session.add(image_to_save)
-        db.session.commit()
+        
         print("saved db record")
         print("image id is "+taskid)
         print("image name is " +imagename)
@@ -382,21 +380,17 @@ def upload_image():
         print('upload_image filename: ' + filename)
         flash('The image has been  successfully uploaded ')
         
-        saveimage(taskID, filename)
+        #Save image reference
+        image_to_save = TaskToImage(task_id=taskID,img_name=filename)
+        db.session.add(image_to_save)
+        db.session.commit()
+        
         
         return redirect('/Tasks', code=302)
     else:
         flash('Allowed image types are - png, jpg, jpeg, gif')
         return redirect(request.url)
 
-def saveWirDocumentRecord(wir_id,wir_name,status):
-        wir_to_save = WIRDocument(wir_id=wir_id,wir_file_name=wir_name, status=status)
-        db.session.add(wir_to_save)
-        db.session.commit()
-        print("saved db record")
-        print('upload_wir filename: ' + wir_name)
-        print("WIR id is "+wir_id)
-        print("WIR file name is " +wir_name)
 
 @app.route('/UploadWIR', methods=['POST'])
 def upload_wir():
@@ -413,10 +407,13 @@ def upload_wir():
         wir_ID= request.form['wir']
         file.save(os.path.join(app.root_path, "static/wir", filename))
         
-        flash('The document has been  successfully uploaded ')
+        flash('The document has been  successfully uploaded!!!! ')
         
-        saveWirDocumentRecord(wir_ID,filename,status)
-        
+        #Entering the document reference record to the database
+        wir_reference_to_save = WIRDocument(wir_id=wir_ID,wir_file_name=filename, status=status)
+        db.session.add(wir_reference_to_save)
+        db.session.commit()
+
         return redirect('/WorkInspectionReqs', code=302)
     else:
         print("sum shit wrong with the file extensions")
@@ -425,6 +422,7 @@ def upload_wir():
 
 @app.route('/UploadMIR', methods=['POST'])
 def upload_mir():
+
     status="Submitted"
     if 'file' not in request.files:
         flash('No file part')
@@ -435,13 +433,16 @@ def upload_mir():
         return redirect(request.url)
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        wir_ID= request.form['mir']
+        mir_ID= request.form['mir']
         file.save(os.path.join(app.root_path, "static/mir", filename))
         
-        flash('The document has been  successfully uploaded ')
         
-        saveWirDocumentRecord(wir_ID,filename,status)
-        
+        #Entering the document reference record to the database
+        mir_reference_to_save = MIRDocument(mir_id=mir_ID,mir_file_name=filename, status=status)
+        db.session.add(mir_reference_to_save)
+        db.session.commit()
+
+        flash('The document has been  successfully uploaded!!!   ')
         return redirect('/MaterialInspectReqs', code=302)
     else:
         print("sum shit wrong with the file extensions")
@@ -544,12 +545,29 @@ def wir_submitted_page(passed_id):
       #  return Response(images=images, mimetype=img.mimetype)
         return render_template('WIRSubmittedPage.html', fileNamelist=submitted_wir, passed_wir=str(passed_id))
 
+@app.route("/MIRSubmitted/<string:passed_id>", methods=['GET', 'POST'])
+def mir_submitted_page(passed_id):
+        
+        submitted_wir= MIRDocument.query.all()
+        
+        
+        
+      #  return Response(images=images, mimetype=img.mimetype)
+        return render_template('MIRSubmittedPage.html', fileNamelist=submitted_wir, passed_mir_id=str(passed_id))
+
 @app.route('/downloadwir/<wir_name>,', methods=['GET', 'POST'])
 def downloadwir(wir_name):
 
     uploads = os.path.join(app.root_path, "static/wir")
     print("The path to the downloaded file is: "+uploads)
     return send_from_directory(directory=uploads, path=wir_name, as_attachment=True)
+
+@app.route('/downloadmir/<mir_name>,', methods=['GET', 'POST'])
+def downloadmir(mir_name):
+
+    uploads = os.path.join(app.root_path, "static/mir")
+    print("The path to the downloaded file is: "+uploads)
+    return send_from_directory(directory=uploads, path=mir_name, as_attachment=True)
 
 
 
@@ -584,3 +602,45 @@ def material_inspection_page():
 
     return redirect(url_for('material_inspection_page'))
     
+
+#Approving EOT's
+@app.route("/WIRStatusUpdate/<string:passed_id>")
+def WIRStatusUpdate(passed_id):
+    print("The ID passed from the page is: "+ passed_id)
+    print("The WIR Status Query parameter passed from the page is:  "+ request.args.get('status'))
+    #Set Status as Approved
+    wir_Status = request.args.get('status')
+    if wir_Status == 'Approved!':
+        wir_to_approve = WorkInspectionRequests.query.get_or_404(passed_id)
+        wir_to_approve.status = "Approved!"
+        db.session.commit()
+        print("Status set as Approved! in the DB")
+        flash(f'WIR Approved!')
+
+    if wir_Status == 'Approved-As-Noted':
+        wir_to_approved_as_noted = WorkInspectionRequests.query.get_or_404(passed_id)
+        wir_to_approved_as_noted.status = "Approved-As-Noted"
+        db.session.commit()
+        print("Status set as Approved-As-Noted in the DB")
+        flash(f'WIR Approved-As-Noted!')
+    
+    if wir_Status == 'Revise-and-ReSubmit':
+        wir_to_revise_and_resubmit = WorkInspectionRequests.query.get_or_404(passed_id)
+        wir_to_revise_and_resubmit.status = "Revise-and-ReSubmit"
+        db.session.commit()
+        print("Status set as Revise-and-ReSubmit in the DB")
+        flash(f'WIR set as Revise-and-ReSubmit!')
+
+    if wir_Status == 'Rejected':
+        wir_to_revise_and_resubmit = WorkInspectionRequests.query.get_or_404(passed_id)
+        wir_to_revise_and_resubmit.status = "Rejected"
+        db.session.commit()
+        print("Status set as Rejected in the DB")
+        flash(f'WIR set as Rejected!')
+      
+    #db.session.commit()
+    #SendNotificationAsClient("EOT Approval")
+    return redirect(url_for('wir_page'))
+    #flash(f'EOT Approved!')
+
+    #Use the following status types in forms: Submitted,Approved, Approved-As-Noted, Revise-and-ReSubmit, Rejected
