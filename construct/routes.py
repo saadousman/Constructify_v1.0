@@ -200,41 +200,13 @@ def deleteTask(id):
     db.session.delete(task_to_delete)
     db.session.commit()
     #SendNotificationAsContractor("Task Item Deletion")
-    return redirect(url_for('Taskpage'))
-
-    
     flash(f'Task deleted!')
-
-#Mark Task as In Progress
-@app.route("/Taskinprogress/<int:id>")
-def TaskInProgress(id):
-    task_in_progress = Tasks.query.get_or_404(id)
-    task_in_progress.status = "In Progress" 
-    db.session.commit()
-  
     return redirect(url_for('Taskpage'))
-    flash(f'Task Updated!')
 
-#Mark Task as Completed
-@app.route("/TaskCompleted/<int:id>")
-def TaskCompleted(id):
-    task_completed = Tasks.query.get_or_404(id)
-    task_completed.status = "Completed" 
-    db.session.commit()
-    SendNotificationAsContractor("Task Completion")
- 
-    return redirect(url_for('Taskpage'))
     
-    flash(f'Task Updated!')
+    
 
-#Mark Task as Pending
-@app.route("/TaskPending/<int:id>")
-def TaskPending(id):
-    task_pending = Tasks.query.get_or_404(id)
-    task_pending.status = "Pending" 
-    db.session.commit()
- 
-    return redirect(url_for('Taskpage'))
+
 
 ############ All Functions related to Task management end here ####################
 
@@ -603,12 +575,13 @@ def material_inspection_page():
     return redirect(url_for('material_inspection_page'))
     
 
-#Approving EOT's
+#Updating Work Inspection Request Records
 @app.route("/WIRStatusUpdate/<string:passed_id>")
 def WIRStatusUpdate(passed_id):
     print("The ID passed from the page is: "+ passed_id)
     print("The WIR Status Query parameter passed from the page is:  "+ request.args.get('status'))
     #Set Status as Approved
+    #Use the following status types in forms: Submitted,Approved, Approved-As-Noted, Revise-and-ReSubmit, Rejected
     wir_Status = request.args.get('status')
     if wir_Status == 'Approved!':
         wir_to_approve = WorkInspectionRequests.query.get_or_404(passed_id)
@@ -637,10 +610,35 @@ def WIRStatusUpdate(passed_id):
         db.session.commit()
         print("Status set as Rejected in the DB")
         flash(f'WIR set as Rejected!')
-      
-    #db.session.commit()
-    #SendNotificationAsClient("EOT Approval")
-    return redirect(url_for('wir_page'))
-    #flash(f'EOT Approved!')
 
-    #Use the following status types in forms: Submitted,Approved, Approved-As-Noted, Revise-and-ReSubmit, Rejected
+    return redirect(url_for('wir_page'))
+
+#Updating Task Records
+@app.route("/TaskStatusUpdate/<string:passed_id>")
+def TaskStatusUpdate(passed_id):
+    print("The Task ID passed from the page is: "+ passed_id)
+    print("The Task Status Query parameter passed from the page is:  "+ request.args.get('status'))
+
+    task_Status = request.args.get('status')
+    if task_Status == 'Completed':
+        task_to_complete = Tasks.query.get_or_404(passed_id)
+        task_to_complete.status = "Completed"
+        db.session.commit()
+        print("Task Status set as Completed in the DB")
+        flash(f'Task Completed!')
+
+    if task_Status == 'Pending':
+        task_is_pending = Tasks.query.get_or_404(passed_id)
+        task_is_pending.status = "Pending"
+        db.session.commit()
+        print("Task Status set as Pending in the DB")
+        flash(f'Task set as Pending!')
+
+    if task_Status == 'In Progress':
+        task_in_progress = Tasks.query.get_or_404(passed_id)
+        task_in_progress.status = "In Progress"
+        db.session.commit()
+        print("Task Status set as In Progress in the DB")
+        flash(f'Task In Progress!')
+
+    return redirect(url_for('Taskpage'))

@@ -75,7 +75,7 @@ Task Management
                     <!-- Your Columns HERE -->
                     <th scope="col">Task ID</th>
                     <th scope="col">Name</th>
-                    <th width="15% scope=" col">
+                    <th width="10% scope=" col">
                         <center>Description</center>
                     </th>
                     <th width="10% scope=" col">Task Weightage</th>
@@ -137,9 +137,9 @@ Task Management
                                     <center><strong>Mark as</strong></center>
                                 </p>
                                 <a class="dropdown-item" data-toggle="modal" data-target="#TaskEditModal" data-whatever="@mdo">Update</a>
-                                <a class="dropdown-item" href="{{url_for('TaskPending',id=task.id)}}">Pending</a>
-                                <a class="dropdown-item" href="{{url_for('TaskInProgress',id=task.id)}}">In Progress</a>
-                                <a class="dropdown-item" href="{{url_for('TaskCompleted',id=task.id)}}">Completed</a>
+                                <a class="dropdown-item" href="/TaskStatusUpdate/{{task.id}}?status=Completed">Completed</a>
+                                <a class="dropdown-item" href="/TaskStatusUpdate/{{task.id}}?status=In Progress">In Progress</a>
+                                <a class="dropdown-item" href="/TaskStatusUpdate/{{task.id}}?status=Pending">Pending</a>
                                 <div class="dropdown-divider"></div>
                                 
                                
