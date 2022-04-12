@@ -1,14 +1,10 @@
 from flask import render_template, redirect, url_for, flash, get_flashed_messages, request, make_response, jsonify, Response, send_from_directory
-from construct.models import User, Delay, Tasks,  TaskToImage, WorkInspectionRequests, WIRDocument, MaterialInspectionRequests, MIRDocument
+from construct.models import User, Delay, Tasks,  TaskToImage, WorkInspectionRequests, WIRDocument, MaterialInspectionRequests, MIRDocument, MIRConsultantDocument
 from construct import app, db, date, timedelta, mail, Message
 from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm, ContactForm,WIRForm, MIRForm
 from construct.email_send import *
-from construct.AzureFileStorage import *
 from flask_login import login_user, logout_user, login_required, current_user
 import time
-import plotly.express as px
-import pandas as pd
-import plotly, json
 import pytest
 import pdfkit as pdfkit
 from werkzeug.utils import secure_filename
@@ -421,20 +417,6 @@ def upload_mir():
         flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
         return redirect(request.url)
 
-
-
-
-
-
-
-@app.route('/display/<filename>')
-def display_image(filename):
-    print('display_image filename: ' + filename)
-    return redirect(url_for('static', filename='uploads/' + filename), code=301)
-
-@app.route('/imguploadpage')
-def imagepage():
-    return render_template('UploadImage.html')
    
 @app.route("/ImageGallery/<int:id>", methods=['GET', 'POST'])
 def ImageGallery(id):
@@ -445,37 +427,10 @@ def ImageGallery(id):
         
       #  return Response(images=images, mimetype=img.mimetype)
         return render_template('ImageGallery.html', taskref=tasks, taskid=ident)
-
-
-@app.route('/<int:id>')
-def get_img(id):
-    img = Img.query.filter_by(id=id).first()
-    if not img:
-        return 'Img Not Found!', 404
-
-    return Response(img.img, mimetype=img.mimetype)
-
-#@app.route('/UploadedWIR')
-#def upload_document():
-    # Create a ShareServiceClient from a connection string
-   # service_client = ShareServiceClient.from_connection_string(app.config.STORAGE_CONNECTION_STRING)
- #   string = STORAGE_CONNECTION_STRING
- #   today = str(date.today())
- #   print("The uploaded files are : ")
- #   itemlist = list_files_and_dirs(string, 'constructify', 'Work_Inspection_Requests/Approved')
-  #  print(itemlist)
-   # url = 'https://api.github.com/some/endpoint'
-   # headers = {'user-agent': 'my-app/0.0.1'}
-
-   # url = 'https://constructify.file.core.windows.net/constructify/Work_Inspection_Requests/Approved/2022-04-07 19_10_55-python flask display image on a html page - Stack Overflow.png'
-   # headers = {'Authorization': 'Shared Key', 'Date': today, 'x-ms-version	': today }
-
-    #r = requests.get(url, headers=headers)
-   # return render_template('SubmittedWorkIR.html', item_list=itemlist)
-
-
+ 
 
 @app.route("/WorkInspectionReqs", methods=['GET', 'POST'])
+@login_required
 def wir_page():
     delays = Delay.query.all()
     wir_list = WorkInspectionRequests.query.all()
@@ -508,6 +463,7 @@ def wir_page():
     return redirect(url_for('wir_page'))
 
 @app.route("/WIRSubmitted/<string:passed_id>", methods=['GET', 'POST'])
+@login_required
 def wir_submitted_page(passed_id):
         wir_list=[]
         submitted_wir= WIRDocument.query.all()
@@ -518,6 +474,7 @@ def wir_submitted_page(passed_id):
         return render_template('WIRSubmittedPage.html', fileNamelist=submitted_wir, passed_wir=str(passed_id))
 
 @app.route("/MIRSubmitted/<string:passed_id>", methods=['GET', 'POST'])
+@login_required
 def mir_submitted_page(passed_id):
         
         submitted_wir= MIRDocument.query.all()
@@ -526,6 +483,17 @@ def mir_submitted_page(passed_id):
         
       #  return Response(images=images, mimetype=img.mimetype)
         return render_template('MIRSubmittedPage.html', fileNamelist=submitted_wir, passed_mir_id=str(passed_id))
+
+@app.route("/ConsultantMIRSubmitted/<string:passed_id>", methods=['GET', 'POST'])
+@login_required
+def consultant_mir_submitted_page(passed_id):
+        
+        submitted_mir_document= MIRConsultantDocument.query.all()
+        
+        
+        
+      #  return Response(images=images, mimetype=img.mimetype)
+        return render_template('ConsultantMIRSubmittedPage.html', fileNamelist=submitted_mir_document, passed_mir_id=str(passed_id))
 
 @app.route('/downloadwir/<wir_name>,', methods=['GET', 'POST'])
 def downloadwir(wir_name):
@@ -541,10 +509,18 @@ def downloadmir(mir_name):
     print("The path to the downloaded file is: "+uploads)
     return send_from_directory(directory=uploads, path=mir_name, as_attachment=True)
 
+@app.route('/downloadconsultantmir/<mir_name>,', methods=['GET', 'POST'])
+def downloadconsultantmir(mir_name):
+
+    uploads = os.path.join(app.root_path, "static/consultant_mir")
+    print("The path to the downloaded file is: "+uploads)
+    return send_from_directory(directory=uploads, path=mir_name, as_attachment=True)
+
 
 
 
 @app.route("/MaterialInspectReqs", methods=['GET', 'POST'])
+@login_required
 def material_inspection_page():
     db.create_all()
     mirform= MIRForm()
@@ -587,6 +563,9 @@ def WIRStatusUpdate(passed_id):
         wir_to_approve = WorkInspectionRequests.query.get_or_404(passed_id)
         wir_to_approve.status = "Approved!"
         db.session.commit()
+
+
+
         print("Status set as Approved! in the DB")
         flash(f'WIR Approved!')
 
@@ -642,3 +621,80 @@ def TaskStatusUpdate(passed_id):
         flash(f'Task In Progress!')
 
     return redirect(url_for('Taskpage'))
+
+
+
+#
+@app.route("/MIRStatusUpdate/<string:passed_id>")
+def MIRStatusUpdate(passed_id):
+    print("The ID passed from the page is: "+ passed_id)
+    print("The MIR Status Query parameter passed from the page is:  "+ request.args.get('status'))
+    #Set Status as Approved
+    #Use the following status types in forms: Submitted,Approved, Approved-As-Noted, Revise-and-ReSubmit, Rejected
+    mir_Status = request.args.get('status')
+    mir_doc = MIRDocument.query.all()
+
+
+    if mir_Status == 'Approved!':
+        mir_to_approve = MaterialInspectionRequests.query.get_or_404(passed_id)
+        mir_to_approve.status = "Approved!"
+        for mir in mir_doc:
+            if mir.mir_id == str(passed_id):
+                mir.status = "Approved!"
+        db.session.commit()
+        print("Status set as Approved! in the DB")
+        flash(f'MIR Approved!')
+
+    if mir_Status == 'Approved-As-Noted':
+        mir_to_approved_as_noted = MaterialInspectionRequests.query.get_or_404(passed_id)
+        mir_to_approved_as_noted.status = "Approved-As-Noted"
+        db.session.commit()
+        print("Status set as Approved-As-Noted in the DB")
+        flash(f'MIR Approved-As-Noted!')
+    
+    if mir_Status == 'Revise-and-ReSubmit':
+        mir_to_revise_and_resubmit = MaterialInspectionRequests.query.get_or_404(passed_id)
+        mir_to_revise_and_resubmit.status = "Revise-and-ReSubmit"
+        db.session.commit()
+        print("Status set as Revise-and-ReSubmit in the DB")
+        flash(f'MIR set as Revise-and-ReSubmit!')
+
+    if mir_Status == 'Rejected':
+        mir_to_revise_and_resubmit = MaterialInspectionRequests.query.get_or_404(passed_id)
+        mir_to_revise_and_resubmit.status = "Rejected"
+        db.session.commit()
+        print("Status set as Rejected in the DB")
+        flash(f'MIR set as Rejected!')
+
+    return redirect(url_for('material_inspection_page'))
+
+
+
+@app.route('/UploadConsultantMIR', methods=['POST'])
+def upload_mir_consultant():
+    db.create_all()
+    status="Submitted"
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+    file = request.files['file']
+    if file.filename == '':
+        flash('No document selected for uploading')
+        return redirect(request.url)
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        mir_ID= request.form['mir']
+        file.save(os.path.join(app.root_path, "static/consultant_mir", filename))
+        
+        flash('The document has been  successfully uploaded!!!! ')
+        
+        #Entering the document reference record to the database
+        consultant_reference_to_save = MIRConsultantDocument(mir_id=mir_ID,mir_file_name=filename, status=status)
+        db.session.add(consultant_reference_to_save)
+        db.session.commit()
+
+        return redirect('/MaterialInspectReqs', code=302)
+    else:
+        print("sum shit wrong with the file extensions")
+        flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
+        return redirect(request.url)

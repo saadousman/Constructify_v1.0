@@ -91,4 +91,10 @@ class MIRDocument(db.Model):
     mir_id = db.Column(db.String(length=30), nullable=False)
     status = db.Column(db.String(length=30), nullable=False)
 
+class MIRConsultantDocument(db.Model):
+    id = db.Column(db.Integer(), nullable=False, primary_key=True)
+    mir_file_name = db.Column(db.String(length=30), nullable=False)
+    mir_id = db.Column(db.String(length=30), nullable=False)
+    status = db.Column(db.String(length=30), nullable=False)
+
     
