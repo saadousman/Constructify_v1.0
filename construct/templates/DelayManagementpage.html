@@ -331,9 +331,9 @@
                           <div class="dropdown-divider"></div>
                           {% endif %}
                           
-                          
-                          <a class="dropdown-item" href="{{url_for('eot_submitted_page',passed_id=delay.id)}}">View Contractor Submitted Documents</a>
-                          <a class="dropdown-item" href="{{url_for('eot_submitted_page_consultant',passed_id=delay.id)}}">View Consultant Submitted Documents</a>
+                          <p><strong><center> Submitted Documents   </center></strong></p>
+                          <a class="dropdown-item" href="{{url_for('eot_submitted_page',passed_id=delay.id)}}">By The Contractor               </a>
+                          <a class="dropdown-item" href="{{url_for('eot_submitted_page_consultant',passed_id=delay.id)}}">By The Consultant              </a>
                           {% if current_user.role == 'Contractor' %}
                           <div class="dropdown-divider"></div>
                           <a class="dropdown-item" href="{{url_for('deleteDelay',passed_id=delay.id)}}"><strong>Delete Delay</strong></a>

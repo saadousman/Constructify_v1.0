@@ -20,29 +20,47 @@ ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xl
  
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-#path_wkhtmltopdf = r'C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe'
-#config = pdfkit.configuration(wkhtmltopdf=path_wkhtmltopdf)
-#pdfkit.from_url("http://google.com", "out.pdf", configuration=config)
 
 
 ############ The Homepage and Dashboard ####################
 
-#homepage route 
-@app.route("/")
-@app.route("/home")
+#homepage route
+@app.route("/", methods=['GET', 'POST'])
+@app.route("/home", methods=['GET', 'POST'])
+@app.route("/dashboard", methods=['GET', 'POST'])
 @login_required
-def homepage():
+def DashBoard():
     pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
    # assert pending_delays== 3,"test failed"
     tasks = Tasks.query.all()
+    wir_count= len(WorkInspectionRequests.query.all())
+    #Pending MIR and WIR
+    submitted_wir= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Submitted").count()
+    submitted_mir= MaterialInspectionRequests.query.filter(WorkInspectionRequests.status == "Submitted").count()
+    mir_wir_pending_inspection = submitted_wir+submitted_mir
+    #Pending ends
+    approved_wir= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Approved").count()
+    approved_wir_as_noted= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Approved-As-Noted").count()
+    approved_wir_as_rejected= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Rejected").count()
+    approved_wir_as_revise= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Revise-and-ReSubmit").count()
+
+    mir_count= len(MaterialInspectionRequests.query.all())
     approved_delays= Delay.query.filter(Delay.status == "Approved").count()
     pending_tasks= Tasks.query.filter(Tasks.status == "Pending").count()
     completed_tasks= Tasks.query.filter(Tasks.status == "Completed").count()
     inprogress_tasks= Tasks.query.filter(Tasks.status == "In Progress").count()
+    task_count = pending_tasks + completed_tasks + inprogress_tasks
     delay_count = pending_delays+approved_delays
     data = {'Task' : 'Status', 'Pending' : pending_tasks, 'In Progress' : inprogress_tasks, 'Completed' : completed_tasks}
-    
-    return render_template('home.html', pending_delays=pending_delays, approved_delays=approved_delays, delay_count=delay_count, inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, pending_tasks=pending_tasks, data=data, tasks=tasks)
+    page_message="Project Management DashBoard"
+    page_name="Dashboard"
+    return render_template('index.html', pending_delays=pending_delays,
+     approved_delays=approved_delays, delay_count=delay_count, 
+     inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, 
+     pending_tasks=pending_tasks, data=data, tasks=tasks,
+     task_count=task_count,mir_wir_pending_inspection=mir_wir_pending_inspection,
+     submitted_wir=submitted_wir,submitted_mir=submitted_mir,page_message=page_message,page_name=page_name)
+
 
 
 ############ All Functions related to Delays ####################
@@ -60,34 +78,6 @@ def deleteDelay(passed_id):
     return redirect(url_for('delaypage'))
     
     
-
-#Approving EOT's
-@app.route("/approveeot/<int:id>")
-def approveEOT(id):
-    eot_to_approve = Delay.query.get_or_404(id)
-    eot_to_approve.status = "Approved"
-      
-    db.session.commit()
-    SendNotificationAsClient("EOT Approval")
-    return redirect(url_for('delaypage'))
-    flash(f'EOT Approved!')
-
-#page to display Submmited EOTS
-@app.route("/eotrecords")
-@login_required
-def eotrecord():
- 
-
-
-    return render_template('EOTRecords.html')
-
-#page to display Approved EOTS
-@app.route("/eotapprovals")
-@login_required
-def eotapprovals():
-    return render_template('EOTApproved.html')
-
-
 #Path to the Delays Module
 @app.route("/delays", methods=['GET', 'POST'])
 @login_required
@@ -127,57 +117,7 @@ def delaypage():
 
 ############ All Functions related to Task management ####################
 
-
-
-#Path to the Tasks Module
-#@app.route("/Tasks", methods=['GET', 'POST'])
-#@login_required
-#def Taskpage():
-    #Query DB for objects to pass to table and cards
-#    taskform = TaskForm()
-#    tasks = Tasks.query.all()
-#    pending_tasks= Tasks.query.filter(Tasks.status == "Pending").count()
-#    completed_tasks= Tasks.query.filter(Tasks.status == "Completed").count()
-#    inprogress_tasks= Tasks.query.filter(Tasks.status == "In Progress").count()
-#    data = {'Task' : 'Status', 'Pending' : pending_tasks, 'In Progress' : inprogress_tasks, 'Completed' : completed_tasks}
-    
-    #Render the Task page if the request is of type GET
-#    if request.method == "GET":
-#        return render_template('Tasks.html', tasks=tasks, taskform=taskform, inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, pending_tasks=pending_tasks, data=data)
-#
-#    if request.method == "POST":
-    #Grab the form values and perform the relevant DB queries if the request is of type POST
-#Creating new Tasks
-#            start_date= taskform.start_date.data      
-##            end_date= taskform.end_date.data         
- #           total_days= (end_date-start_date).days  
- #           #
-
-#            task_to_create = Tasks(Name=taskform.Name.data,
-#                              description=taskform.Description.data,
-#                              phase=taskform.phase.data,
-#                              Percentage=taskform.percentage.data,
-#                              start_date= taskform.start_date.data,
-#                              end_date= taskform.end_date.data,
-#                              total_estimated_cost= taskform.total_estimated_cost.data,
-#                              total_days= total_days )
-#            db.session.add(task_to_create)
-#            db.session.commit()
-#            send_sms("A Task was Updated. Please Check your email man")
-#            SendNotificationAsContractor("Task Record")
-#            flash(f'Task Created!')
-#
-#
-#    return redirect(url_for('Taskpage'))
-
-# if the errors in the form error dictionary is not empty
-
-#    if form.errors != {}:  
-#        for err_msg in taskform.errors.values():
-#            flash(f'There has been an exception thrown ==> {err_msg}  <==')
-
-
-#Path to the Tasks Module  TEST TEST
+#Path to the Tasks Module  
 @app.route("/Tasks", methods=['GET', 'POST'])
 @login_required
 def Taskpage():
@@ -244,11 +184,15 @@ def deleteTask(id):
     return redirect(url_for('Taskpage'))
 
     
-    
-
-
-
 ############ All Functions related to Task management end here ####################
+
+
+
+
+
+
+
+
 
 
 ############ All Functions related to Registration and Login ####################
@@ -302,19 +246,17 @@ def logout_page():
     flash("you have been logged out")
     return redirect(url_for('login_page'))
 
+############ All Functions related to Registration and Login END HERE ####################
 
 
 
-@app.route("/Contacts", methods=['GET'])
-@login_required
-def Contactspage():
 
-    Users= User.query.all()
-        
-    return render_template('contact_list.html', Users=Users)
+
+
+
 
    
-
+# PDF GENERATION MODULES START HERE
 
 @app.route("/DelayPdfGeneration", methods=['GET', 'POST'])
 @login_required
@@ -366,6 +308,28 @@ def TaskPDFPage():
     response.headers['Content-Disposition'] = 'inline; filename=taskpdfreport.pdf'
     #SendNotificationAsContractor("PDF Report Generation")
     return response
+
+# PDF GENERATION MODULES END HERE
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#EMAIL NOTIFICATION MODULES START HERE
 
 @app.route("/TaskPdfEmail", methods=['GET', 'POST'])
 @login_required
@@ -424,6 +388,12 @@ def DelayPDFPageEmail():
 
 
     return redirect('/delays', code=302)
+
+
+#EMAIL NOTIFICATION MODULES END HERE
+
+
+#ALL IMAGE AND DOCUMENT UPLOADING MODULES START HERE
 
 
 @app.route('/UploadImage', methods=['POST'])
@@ -542,6 +512,104 @@ def upload_eot():
         flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
         return redirect(request.url)
 
+#ALL UPLOADS AS CONSULTANT START HERE
+
+@app.route('/UploadConsultantMIR', methods=['POST'])
+def upload_mir_consultant():
+    db.create_all()
+    status="Submitted"
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+    file = request.files['file']
+    if file.filename == '':
+        flash('No document selected for uploading')
+        return redirect(request.url)
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        mir_ID= request.form['mir']
+        file.save(os.path.join(app.root_path, "static/consultant_mir", filename))
+        
+        flash('The document has been  successfully uploaded!!!! ')
+        
+        #Entering the document reference record to the database
+        today = date.today()
+        consultant_reference_to_save = MIRConsultantDocument(mir_id=mir_ID,mir_file_name=filename, status=status,submitted_date=today)
+        db.session.add(consultant_reference_to_save)
+        db.session.commit()
+
+        return redirect('/MaterialInspectReqs', code=302)
+    else:
+        print("sum shit wrong with the file extensions")
+        flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
+        return redirect(request.url)
+
+
+@app.route('/UploadConsultantWIR', methods=['POST'])
+def upload_wir_consultant():
+    db.create_all()
+    status="Submitted"
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+    file = request.files['file']
+    if file.filename == '':
+        flash('No document selected for uploading')
+        return redirect(request.url)
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        mir_ID= request.form['wir']
+        file.save(os.path.join(app.root_path, "static/consultant_wir", filename))
+        
+        flash('The document has been  successfully uploaded!!!! ')
+        
+        #Entering the document reference record to the database
+        today = date.today()
+        consultant_reference_to_save = WIRConsultantDocument(wir_id=mir_ID,wir_file_name=filename, status=status,submitted_date=today)
+        db.session.add(consultant_reference_to_save)
+        db.session.commit()
+
+        return redirect('/WorkInspectionReqs', code=302)
+    else:
+        print("sum shit wrong with the file extensions")
+        flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
+        return redirect(request.url)
+
+@app.route('/UploadConsultantEOT', methods=['POST'])
+def upload_eot_consultant():
+    db.create_all()
+    status="Submitted"
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+    file = request.files['file']
+    if file.filename == '':
+        flash('No document selected for uploading')
+        return redirect(request.url)
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        mir_ID= request.form['delay']
+        file.save(os.path.join(app.root_path, "static/consultant_eot", filename))
+        
+        flash('The document has been  successfully uploaded!!!! ')
+        submitted_user= current_user.username
+        #Entering the document reference record to the database
+        today = date.today()
+        consultant_reference_to_save = EOTConsultantDocument(eot_id=mir_ID,eot_file_name=filename, status=status,submitted_date=today,submitted_by=submitted_user)
+        db.session.add(consultant_reference_to_save)
+        db.session.commit()
+
+        return redirect('/delays', code=302)
+    else:
+        print("sum shit wrong with the file extensions")
+        flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
+        return redirect(request.url)
+
+
+#ALL UPLOADS AS CONSULTANT END HERE
+
+
+#ALL GALLERIES FOR IMAGES AND DOCUMENTS START HERE
    
 @app.route("/ImageGallery/<int:id>", methods=['GET', 'POST'])
 def ImageGallery(id):
@@ -552,40 +620,6 @@ def ImageGallery(id):
         page_message="Image Gallery for Task"
       #  return Response(images=images, mimetype=img.mimetype)
         return render_template('ImageGallery.html', taskref=tasks, taskid=ident, page_message=page_message)
- 
-
-@app.route("/WorkInspectionReqs", methods=['GET', 'POST'])
-@login_required
-def wir_page():
-    delays = Delay.query.all()
-    wir_list = WorkInspectionRequests.query.all()
-    wirform= WIRForm()
-    today = date.today()
-    
-    
-    
-
- #Render the Task page if the request is of type GET
-    if request.method == "GET":
-        return render_template('WorkInspectionRequest.html', delays=delays,wir_list=wir_list, wirform=wirform)
-
-    if request.method == "POST":
-    #Grab the form values and perform the relevant DB queries if the request is of type POST
-#Creating new Tasks
-             
-            
-
-            wir_to_create = WorkInspectionRequests(name=wirform.Name.data,
-                              description=wirform.Description.data,
-                              submitted_date=today)
-            db.session.add(wir_to_create)
-            db.session.commit()
-            
-            
-            flash(f'WIR Created!')
-           
-
-    return redirect(url_for('wir_page'))
 
 @app.route("/WIRSubmitted/<string:passed_id>", methods=['GET', 'POST'])
 @login_required
@@ -608,6 +642,7 @@ def mir_submitted_page(passed_id):
         
       #  return Response(images=images, mimetype=img.mimetype)
         return render_template('MIRSubmittedPage.html', fileNamelist=submitted_mir, passed_mir_id=str(passed_id))
+
 
 @app.route("/EOTSubmitted/<string:passed_id>", methods=['GET', 'POST'])
 @login_required
@@ -652,6 +687,46 @@ def consultant_Wir_submitted_page(passed_id):
         
       #  return Response(images=images, mimetype=img.mimetype)
         return render_template('ConsultantWIRSubmittedPage.html', fileNamelist=submitted_Wir_document, passed_wir_id=str(passed_id))
+ 
+#ALL IMAGE GALLERY AND SUBMITTED DOCUMENT DISPLAY PAGES END HERE
+
+
+@app.route("/WorkInspectionReqs", methods=['GET', 'POST'])
+@login_required
+def wir_page():
+    delays = Delay.query.all()
+    wir_list = WorkInspectionRequests.query.all()
+    wirform= WIRForm()
+    today = date.today()
+    
+    
+    
+
+ #Render the Task page if the request is of type GET
+    if request.method == "GET":
+        return render_template('WorkInspectionRequest.html', delays=delays,wir_list=wir_list, wirform=wirform)
+
+    if request.method == "POST":
+    #Grab the form values and perform the relevant DB queries if the request is of type POST
+#Creating new Tasks
+             
+            
+
+            wir_to_create = WorkInspectionRequests(name=wirform.Name.data,
+                              description=wirform.Description.data,
+                              submitted_date=today)
+            db.session.add(wir_to_create)
+            db.session.commit()
+            
+            
+            flash(f'WIR Created!')
+           
+
+    return redirect(url_for('wir_page'))
+
+
+
+#ALL ENDPOINTS FOR IMAGE AND DOCUMENT DOWNLOADS START HERE
 
 @app.route('/downloadwir/<wir_name>,', methods=['GET', 'POST'])
 def downloadwir(wir_name):
@@ -674,6 +749,10 @@ def downloadeot(eot_name):
     print("The path to the downloaded file is: "+uploads)
     return send_from_directory(directory=uploads, path=eot_name, as_attachment=True)
 
+
+#ENDPOINTS FOR CONSULTANT DOWNLOADS
+
+
 @app.route('/downloadconsultantmir/<mir_name>,', methods=['GET', 'POST'])
 def downloadconsultantmir(mir_name):
 
@@ -695,7 +774,7 @@ def downloadconsultanteot(eot_name):
     print("The path to the downloaded file is: "+uploads)
     return send_from_directory(directory=uploads, path=eot_name, as_attachment=True)
 
-
+#ALL ENDPOINTS FOR DOCUMENT AND IMAGE DOWNLOADS END HERE
 
 
 @app.route("/MaterialInspectReqs", methods=['GET', 'POST'])
@@ -729,6 +808,9 @@ def material_inspection_page():
 
     return redirect(url_for('material_inspection_page'))
     
+
+
+#ENDPOINTS FOR UPDATING THE STATUS OF RECORDS START HERE
 
 #Updating Work Inspection Request Records
 @app.route("/WIRStatusUpdate/<string:passed_id>")
@@ -890,137 +972,12 @@ def EOTStatusUpdate(passed_id):
 
     return redirect(url_for('delaypage'))
 
+#ENDPOINTS FOR UPDATING THE STATUS OF RECORDS END HERE
+
+  
 
 
-
-@app.route('/UploadConsultantMIR', methods=['POST'])
-def upload_mir_consultant():
-    db.create_all()
-    status="Submitted"
-    if 'file' not in request.files:
-        flash('No file part')
-        return redirect(request.url)
-    file = request.files['file']
-    if file.filename == '':
-        flash('No document selected for uploading')
-        return redirect(request.url)
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        mir_ID= request.form['mir']
-        file.save(os.path.join(app.root_path, "static/consultant_mir", filename))
-        
-        flash('The document has been  successfully uploaded!!!! ')
-        
-        #Entering the document reference record to the database
-        today = date.today()
-        consultant_reference_to_save = MIRConsultantDocument(mir_id=mir_ID,mir_file_name=filename, status=status,submitted_date=today)
-        db.session.add(consultant_reference_to_save)
-        db.session.commit()
-
-        return redirect('/MaterialInspectReqs', code=302)
-    else:
-        print("sum shit wrong with the file extensions")
-        flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
-        return redirect(request.url)
-
-
-@app.route('/UploadConsultantWIR', methods=['POST'])
-def upload_wir_consultant():
-    db.create_all()
-    status="Submitted"
-    if 'file' not in request.files:
-        flash('No file part')
-        return redirect(request.url)
-    file = request.files['file']
-    if file.filename == '':
-        flash('No document selected for uploading')
-        return redirect(request.url)
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        mir_ID= request.form['wir']
-        file.save(os.path.join(app.root_path, "static/consultant_wir", filename))
-        
-        flash('The document has been  successfully uploaded!!!! ')
-        
-        #Entering the document reference record to the database
-        today = date.today()
-        consultant_reference_to_save = WIRConsultantDocument(wir_id=mir_ID,wir_file_name=filename, status=status,submitted_date=today)
-        db.session.add(consultant_reference_to_save)
-        db.session.commit()
-
-        return redirect('/WorkInspectionReqs', code=302)
-    else:
-        print("sum shit wrong with the file extensions")
-        flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
-        return redirect(request.url)
-
-@app.route('/UploadConsultantEOT', methods=['POST'])
-def upload_eot_consultant():
-    db.create_all()
-    status="Submitted"
-    if 'file' not in request.files:
-        flash('No file part')
-        return redirect(request.url)
-    file = request.files['file']
-    if file.filename == '':
-        flash('No document selected for uploading')
-        return redirect(request.url)
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        mir_ID= request.form['delay']
-        file.save(os.path.join(app.root_path, "static/consultant_eot", filename))
-        
-        flash('The document has been  successfully uploaded!!!! ')
-        submitted_user= current_user.username
-        #Entering the document reference record to the database
-        today = date.today()
-        consultant_reference_to_save = EOTConsultantDocument(eot_id=mir_ID,eot_file_name=filename, status=status,submitted_date=today,submitted_by=submitted_user)
-        db.session.add(consultant_reference_to_save)
-        db.session.commit()
-
-        return redirect('/delays', code=302)
-    else:
-        print("sum shit wrong with the file extensions")
-        flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
-        return redirect(request.url)
-
-    ##########################################################################################
-    #Testing the GUI from this point onwards
-@app.route("/dashboard", methods=['GET', 'POST'])
-@login_required
-def DashBoard():
-    pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
-   # assert pending_delays== 3,"test failed"
-    tasks = Tasks.query.all()
-    wir_count= len(WorkInspectionRequests.query.all())
-    #Pending MIR and WIR
-    submitted_wir= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Submitted").count()
-    submitted_mir= MaterialInspectionRequests.query.filter(WorkInspectionRequests.status == "Submitted").count()
-    mir_wir_pending_inspection = submitted_wir+submitted_mir
-    #Pending ends
-    approved_wir= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Approved").count()
-    approved_wir_as_noted= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Approved-As-Noted").count()
-    approved_wir_as_rejected= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Rejected").count()
-    approved_wir_as_revise= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Revise-and-ReSubmit").count()
-
-    mir_count= len(MaterialInspectionRequests.query.all())
-    approved_delays= Delay.query.filter(Delay.status == "Approved").count()
-    pending_tasks= Tasks.query.filter(Tasks.status == "Pending").count()
-    completed_tasks= Tasks.query.filter(Tasks.status == "Completed").count()
-    inprogress_tasks= Tasks.query.filter(Tasks.status == "In Progress").count()
-    task_count = pending_tasks + completed_tasks + inprogress_tasks
-    delay_count = pending_delays+approved_delays
-    data = {'Task' : 'Status', 'Pending' : pending_tasks, 'In Progress' : inprogress_tasks, 'Completed' : completed_tasks}
-    page_message="Project Management DashBoard"
-    page_name="Dashboard"
-    return render_template('index.html', pending_delays=pending_delays,
-     approved_delays=approved_delays, delay_count=delay_count, 
-     inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, 
-     pending_tasks=pending_tasks, data=data, tasks=tasks,
-     task_count=task_count,mir_wir_pending_inspection=mir_wir_pending_inspection,
-     submitted_wir=submitted_wir,submitted_mir=submitted_mir,page_message=page_message,page_name=page_name)
-
-
+#ALL FORMS FOR CREATING RECORDS START HERE
 @app.route("/TaskCreateForm", methods=['GET', 'POST'])
 @login_required
 def TaskCreate():
@@ -1099,6 +1056,10 @@ def DelayCreate():
         for err_msg in taskform.errors.values():
             flash(f'There has been an exception thrown ==> {err_msg}  <==')
 
+
+
+
+#ALL FORM PAGES FOR IMAGE AND DOCUMENT UPLOADS START HERE
 @app.route("/TaskImageUpload", methods=['GET', 'POST'])
 @login_required
 def TaskImageUpload():
@@ -1125,3 +1086,5 @@ def delayEOTUploadPageConsultant():
      
 
      return render_template('EOTDocumentUploadConsultant.html', delays=delays)
+
+    #ALL FORM PAGES FOR IMAGE AND DOCUMENT UPLOADS END HERE
