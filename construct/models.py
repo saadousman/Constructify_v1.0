@@ -116,4 +116,11 @@ class EOTDocument(db.Model):
     submitted_date = db.Column(db.String(length=30), nullable=False)
     submitted_by=db.Column(db.String(length=30), nullable=False)
 
+class EOTConsultantDocument(db.Model):
+    id = db.Column(db.Integer(), nullable=False, primary_key=True)
+    eot_file_name = db.Column(db.String(length=30), nullable=False)
+    eot_id = db.Column(db.String(length=30), nullable=False)
+    status = db.Column(db.String(length=30), nullable=False)
+    submitted_date = db.Column(db.String(length=30), nullable=False)
+    submitted_by=db.Column(db.String(length=30), nullable=False)
     

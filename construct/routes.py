@@ -1,5 +1,5 @@
 from flask import render_template, redirect, url_for, flash, get_flashed_messages, request, make_response, jsonify, Response, send_from_directory
-from construct.models import User, Delay, Tasks,  TaskToImage, WorkInspectionRequests, WIRDocument, MaterialInspectionRequests, MIRDocument, MIRConsultantDocument,WIRConsultantDocument, EOTDocument
+from construct.models import User, Delay, Tasks,  TaskToImage, WorkInspectionRequests, WIRDocument, MaterialInspectionRequests, MIRDocument, MIRConsultantDocument,WIRConsultantDocument, EOTDocument, EOTConsultantDocument
 from construct import app, db, date, timedelta, mail, Message
 from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm, ContactForm,WIRForm, MIRForm
 from construct.email_send import *
@@ -94,18 +94,23 @@ def eotapprovals():
 def delaypage():
 
     #Query DB for objects to pass to table and cards
+     #Use the following status types in forms: Submitted,Approved, Approved-As-Noted, Revise-and-ReSubmit, Rejected
     pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
-    approved_delays= Delay.query.filter(Delay.status == "Approved").count()
-    delay_count = pending_delays+approved_delays
+    approved_delays= Delay.query.filter(Delay.status == "Approved!").count()
+    Approved_As_Noted_delays= Delay.query.filter(Delay.status == "Approved-As-Noted").count()
+    ReviseandReSubmit_delays= Delay.query.filter(Delay.status == "Revise-and-ReSubmit").count()
+    Rejected_delays= Delay.query.filter(Delay.status == "Rejected").count()
     delayForm = DelayForm()
     delays = Delay.query.all()
     gannt_data = delays
    
    
 
-
+    page_message=("Project Delay and EOT Management")
     if request.method == "GET":
-        return render_template('DelayManagementpage.html', delays=delays, delayForm=delayForm, pending_delays=pending_delays, approved_delays=approved_delays, delay_count=delay_count, gannt_data=gannt_data)
+        return render_template('DelayManagementpage.html', delays=delays, delayForm=delayForm,pending_delays=pending_delays, 
+        approved_delays=approved_delays,Approved_As_Noted_delays=Approved_As_Noted_delays,
+        ReviseandReSubmit_delays=ReviseandReSubmit_delays, Rejected_delays=Rejected_delays,page_message=page_message)
 
    
 
@@ -318,11 +323,17 @@ def DelayPDFPage():
     #Query DB for objects to pass to table and cards
     delays = Delay.query.all()
     pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
-    approved_delays= Delay.query.filter(Delay.status == "Approved").count()
-    delay_count = pending_delays+approved_delays
+    approved_delays= Delay.query.filter(Delay.status == "Approved!").count()
+    Approved_As_Noted_delays= Delay.query.filter(Delay.status == "Approved-As-Noted").count()
+    ReviseandReSubmit_delays= Delay.query.filter(Delay.status == "Revise-and-ReSubmit").count()
+    Rejected_delays= Delay.query.filter(Delay.status == "Rejected").count()
+    delay_count = pending_delays+approved_delays+Approved_As_Noted_delays+ReviseandReSubmit_delays+Rejected_delays
     today = date.today()
     # Render the HTML page with the passed information. This will be converted into a PDF
-    rendered= render_template('Delaypdf.html', pending_delays=pending_delays,approved_delays=approved_delays, delay_count=delay_count, today=today, delays=delays)
+    #Use the following status types in forms: Submitted,Approved, Approved-As-Noted, Revise-and-ReSubmit, Rejected
+    rendered= render_template('Delaypdf.html', pending_delays=pending_delays,approved_delays=approved_delays,
+                        Approved_As_Noted_delays=Approved_As_Noted_delays,ReviseandReSubmit_delays=ReviseandReSubmit_delays,
+                         Rejected_delays=Rejected_delays,delay_count=delay_count, today=today, delays=delays)
 
     #Converts the saved HTML as a pdf document. Saved in memory
     pdf = pdfkit.from_string(rendered, False)
@@ -609,6 +620,17 @@ def eot_submitted_page(passed_id):
       #  return Response(images=images, mimetype=img.mimetype)
         return render_template('SubmittedEOTGallery.html', submited_eot_refs=submitted_eot, passed_eot_id=str(passed_id))
 
+@app.route("/EOTSubmittedConsultant/<string:passed_id>", methods=['GET', 'POST'])
+@login_required
+def eot_submitted_page_consultant(passed_id):
+
+        submitted_eot= EOTConsultantDocument.query.all()
+        
+        
+        
+      #  return Response(images=images, mimetype=img.mimetype)
+        return render_template('SubmittedEOTGalleryConsultant.html', submited_eot_refs=submitted_eot, passed_eot_id=str(passed_id))
+
 @app.route("/ConsultantMIRSubmitted/<string:passed_id>", methods=['GET', 'POST'])
 @login_required
 def consultant_mir_submitted_page(passed_id):
@@ -665,6 +687,13 @@ def downloadconsultantwir(wir_name):
     uploads = os.path.join(app.root_path, "static/consultant_wir")
     print("The path to the downloaded file is: "+uploads)
     return send_from_directory(directory=uploads, path=wir_name, as_attachment=True)
+
+@app.route('/downloadconsultanteot/<eot_name>,', methods=['GET', 'POST'])
+def downloadconsultanteot(eot_name):
+
+    uploads = os.path.join(app.root_path, "static/consultant_eot")
+    print("The path to the downloaded file is: "+uploads)
+    return send_from_directory(directory=uploads, path=eot_name, as_attachment=True)
 
 
 
@@ -925,6 +954,36 @@ def upload_wir_consultant():
         flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
         return redirect(request.url)
 
+@app.route('/UploadConsultantEOT', methods=['POST'])
+def upload_eot_consultant():
+    db.create_all()
+    status="Submitted"
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+    file = request.files['file']
+    if file.filename == '':
+        flash('No document selected for uploading')
+        return redirect(request.url)
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        mir_ID= request.form['delay']
+        file.save(os.path.join(app.root_path, "static/consultant_eot", filename))
+        
+        flash('The document has been  successfully uploaded!!!! ')
+        submitted_user= current_user.username
+        #Entering the document reference record to the database
+        today = date.today()
+        consultant_reference_to_save = EOTConsultantDocument(eot_id=mir_ID,eot_file_name=filename, status=status,submitted_date=today,submitted_by=submitted_user)
+        db.session.add(consultant_reference_to_save)
+        db.session.commit()
+
+        return redirect('/delays', code=302)
+    else:
+        print("sum shit wrong with the file extensions")
+        flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
+        return redirect(request.url)
+
     ##########################################################################################
     #Testing the GUI from this point onwards
 @app.route("/dashboard", methods=['GET', 'POST'])
@@ -1057,3 +1116,12 @@ def delayEOTUploadPage():
      
 
      return render_template('EOTDocumentUpload.html', delays=delays)
+
+@app.route("/ConsultantDelayEOTUploadPage", methods=['GET', 'POST'])
+@login_required
+def delayEOTUploadPageConsultant():
+
+     delays = Delay.query.all()
+     
+
+     return render_template('EOTDocumentUploadConsultant.html', delays=delays)

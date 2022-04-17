@@ -13,74 +13,120 @@
 <h1><span style="text-decoration: underline;">Delay Report</span></h1>
 <h3>Generated on {{today}} </h3>
 <p>&nbsp;</p>
-<h2>Delay Records</h2><br>
+<h2>Delay EOT Records</h2><br>
 <p>Pending EOT: {{pending_delays}}</p>
 <p>Approved : {{approved_delays}}</p>
-<p>Approved-As-Noted: {{approved_delays}}</p>
-<p>Revise-and-ReSubmit: {{approved_delays}}</p>
-<p>Rejected: {{approved_delays}}</p>
+<p>Approved-As-Noted: {{Approved_As_Noted_delays}}</p>
+<p>Revise-and-ReSubmit: {{ReviseandReSubmit_delays}}</p>
+<p>Rejected: {{Rejected_delays}}</p>
 <p>Total EOT's Submitted till date: {{delay_count}}</p>
     <br>
     <p>-------------------------------------------------------------------------------------------------------------------------------------------------</p>
 
-    <table class="table table-striped">
-
-
-
+    <table class="table align-items-center mb-10">
         <thead>
-            <tr>
-                <!-- Your Columns HERE -->
-                <th scope="col">ID</th>
-                <th scope="col">Type</th>
-                <th scope="col">Description</th>
-                <th scope="col">Severity</th>
-                <th scope="col">Phase</th>
-                <th scope="col">EOT</th>
-                <th scope="col">EOT Status</th>
-                <th scope="col">Reported Date?</th>
-            </tr>
+          <tr>
+            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Delay ID</th>
+            <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Type</th>
+            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+              Description</th>
+            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Severity
+            </th>
+            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">EOT Days
+            </th>
+            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">EOT
+              Status</th>
+            <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
+              Submitted Date
+            </th>
+
+            
+          </tr>
         </thead>
         <tbody>
-            <!-- Your rows inside the table HERE: -->
+          <!-- #Use the following status types in forms: Submitted,Approved, Approved-As-Noted, Revise-and-ReSubmit, Rejected -->
+          <!--Constructing A single row for the Table-->
+          {% for delay in delays %}
+          <tr>
+            <td>
+              <div class="d-flex px-2 py-1">
+                <div class="d-flex flex-column justify-content-center">
+                  <h6 class="mb-0 text-sm">{{delay.id}}</h6>
+                </div>
+              </div>
+            </td>
+            <td>
+              <p class="text-xs font-weight-bold mb-0">{{delay.type}}</p>
+            </td>
+            <td class="align-middle text-center text-sm">
+              <p class="mb-0 text-sm">{{delay.description}}</p>
+            </td>
+            <!--Conditional Badges for EOT severity starts here-->
+            {% if 'Medium' in delay.severity %}
+            <td class="align-middle text-center">
+              <span class="badge badge-sm bg-gradient-warning">{{delay.severity}}</span>
+            </td>
+            {% endif %}
+            {% if 'Major' in delay.severity %}
+            <td class="align-middle text-center">
+              <span class="badge badge-sm bg-gradient-danger">{{delay.severity}}</span>
+            </td>
+            {% endif %}
+            {% if 'Minor' in delay.severity %}
+            <td class="align-middle text-center">
+              <span class="badge badge-sm bg-gradient-success">{{delay.severity}}</span>
+            </td>
+            {% endif %}
+            <!--Conditional Badges for EOT severity ends here-->
+            <td class="align-middle text-center">
+              <p class="mb-0 text-sm">{{delay.delayed_days}}</p>
+            </td>
+            <!--Conditional Badges for EOT Status starts here-->
+           
+            {% if 'Approved!' in delay.status %}
+            <td class="align-middle text-center">
+              <span class="badge badge-sm bg-gradient-success">{{delay.status}}</span>
+            </td>
+            {% endif %}
+            {% if 'Approved-As-Noted' in delay.status %}
+            <td class="align-middle text-center">
+              <span class="badge badge-sm bg-gradient-info">{{delay.status}}</span>
+            </td>
+            {% endif %}
+            {% if 'Revise-and-ReSubmit' in delay.status %}
+            <td class="align-middle text-center">
+              <span class="badge badge-sm bg-gradient-warning">{{delay.status}}</span>
+            </td>
+            {% endif %}
+            {% if 'Rejected' in delay.status %}
+            <td class="align-middle text-center">
+              <span class="badge badge-sm bg-gradient-danger">{{delay.status}}</span>
+            </td>
+            {% endif %}
+            {% if 'Submitted' in delay.status %}
+            <td class="align-middle text-center">
+              <span class="badge badge-sm bg-gradient-info">{{delay.status}}</span>
+            </td>
+            {% endif %}
+           
 
-            {% for delay in delays %}
 
-            <tr>
-                <td>{{delay.id}}</td>
-                <td>{{delay.type}}</td>
-                <td width="20%">{{delay.description}}</td>
+            <!--Conditional Badges for EOT Status ends here-->
+            <td class="align-middle text-center">
+              <p class="mb-0 text-sm">{{delay.date}}</p>
+            </td>
 
-                <!-- Change Badge color based on Delay Deverity -->
-                {% if 'Major' in delay.severity %}
-                <td><span class="badge badge-pill badge-danger">{{delay.severity}}</span></td>
-                {% endif %}
-                {% if 'Medium' in delay.severity %}
-                <td><span class="badge badge-pill badge-warning">{{delay.severity}}</span></td>
-                {% endif %}
-                {% if 'Minor' in delay.severity %}
-                <td><span class="badge badge-pill badge-info">{{delay.severity}}</span></td>
-                {% endif %}
-
-                <td>{{delay.phase}}</td>
-                <td width="9%">{{delay.delayed_days}} days</td>
+           
 
 
-                {% if 'Approved' in delay.status %}
-                <td><span class="badge badge-pill badge-success">{{delay.status}}</span></td>
-                {% endif %}
-                {% if 'Submitted' in delay.status %}
-                <td><span class="badge badge-pill badge-light">{{delay.status}}</span></td>
-                {% endif %}
-
-
-                <td>{{delay.date}}</td>
-
-               
-            </tr>
             
-            {% endfor %}
+          </tr>
+
+          {% endfor %}
+
+
         </tbody>
-    </table>
+      </table>
     
     
     

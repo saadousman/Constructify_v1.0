@@ -107,7 +107,7 @@
                 <div class="numbers">
                   <p class="text-sm mb-0 text-uppercase font-weight-bold">EOT's Approved-As-Noted</p>
                   <h5 class="font-weight-bolder">
-                    {{approved_delays}}
+                    {{Approved_As_Noted_delays}}
                   </h5>
 
                 </div>
@@ -129,7 +129,7 @@
                 <div class="numbers">
                   <p class="text-sm mb-0 text-uppercase font-weight-bold">EOT's to Revise-and-ReSubmit</p>
                   <h5 class="font-weight-bolder">
-                    {{approved_delays}}
+                    {{ReviseandReSubmit_delays}}
                   </h5>
 
                 </div>
@@ -151,7 +151,7 @@
                 <div class="numbers">
                   <p class="text-sm mb-0 text-uppercase font-weight-bold">EOT's Rejected</p>
                   <h5 class="font-weight-bolder">
-                    {{approved_delays}}
+                    {{Rejected_delays}}
                   </h5>
 
                 </div>
@@ -192,6 +192,10 @@
           {% if current_user.role == 'Contractor' %}
           <a href="{{url_for('delayEOTUploadPage')}}" class="btn btn-success" role="button" aria-disabled="true"
             target="_blank">Upload EOT Document</a>
+          {% endif %}
+          {% if current_user.role == 'Consultant' %}
+          <a href="{{url_for('delayEOTUploadPageConsultant')}}" class="btn btn-primary" role="button" aria-disabled="true"
+            target="_blank">Upload EOT Documents with notes</a>
           {% endif %}
 
         </div>
@@ -253,7 +257,7 @@
                     <td class="align-middle text-center text-sm">
                       <p class="mb-0 text-sm">{{delay.description}}</p>
                     </td>
-
+                    <!--Conditional Badges for EOT severity starts here-->
                     {% if 'Medium' in delay.severity %}
                     <td class="align-middle text-center">
                       <span class="badge badge-sm bg-gradient-warning">{{delay.severity}}</span>
@@ -269,16 +273,41 @@
                       <span class="badge badge-sm bg-gradient-success">{{delay.severity}}</span>
                     </td>
                     {% endif %}
-
-                   
-
-
+                    <!--Conditional Badges for EOT severity ends here-->
                     <td class="align-middle text-center">
                       <p class="mb-0 text-sm">{{delay.delayed_days}}</p>
                     </td>
+                    <!--Conditional Badges for EOT Status starts here-->
+                   
+                    {% if 'Approved!' in delay.status %}
                     <td class="align-middle text-center">
-                      <p class="mb-0 text-sm">{{delay.status}}</p>
+                      <span class="badge badge-sm bg-gradient-success">{{delay.status}}</span>
                     </td>
+                    {% endif %}
+                    {% if 'Approved-As-Noted' in delay.status %}
+                    <td class="align-middle text-center">
+                      <span class="badge badge-sm bg-gradient-info">{{delay.status}}</span>
+                    </td>
+                    {% endif %}
+                    {% if 'Revise-and-ReSubmit' in delay.status %}
+                    <td class="align-middle text-center">
+                      <span class="badge badge-sm bg-gradient-warning">{{delay.status}}</span>
+                    </td>
+                    {% endif %}
+                    {% if 'Rejected' in delay.status %}
+                    <td class="align-middle text-center">
+                      <span class="badge badge-sm bg-gradient-danger">{{delay.status}}</span>
+                    </td>
+                    {% endif %}
+                    {% if 'Submitted' in delay.status %}
+                    <td class="align-middle text-center">
+                      <span class="badge badge-sm bg-gradient-info">{{delay.status}}</span>
+                    </td>
+                    {% endif %}
+                   
+
+
+                    <!--Conditional Badges for EOT Status ends here-->
                     <td class="align-middle text-center">
                       <p class="mb-0 text-sm">{{delay.date}}</p>
                     </td>
@@ -295,18 +324,20 @@
                         <div class="dropdown-menu">
                           {% if current_user.role == 'Consultant' %}
                           <p><strong><center>Mark as</center></strong></p>
-                          <a class="dropdown-item" href="{{url_for('eot_submitted_page',passed_id=delay.id)}}">Approved</a>
-                          <a class="dropdown-item" href="{{url_for('eot_submitted_page',passed_id=delay.id)}}">Approved-As-Noted</a>
-                          <a class="dropdown-item" href="{{url_for('eot_submitted_page',passed_id=delay.id)}}">Revise-and-ReSubmit</a>
-                          <a class="dropdown-item" href="{{url_for('eot_submitted_page',passed_id=delay.id)}}">Rejected</a>
+                          <a class="dropdown-item" href="/DelayStatusUpdate/{{delay.id}}?status=Approved!">Approved</a>
+                          <a class="dropdown-item" href="/DelayStatusUpdate/{{delay.id}}?status=Approved-As-Noted">Approved-As-Noted</a>
+                          <a class="dropdown-item" href="/DelayStatusUpdate/{{delay.id}}?status=Revise-and-ReSubmit">Revise-and-ReSubmit</a>
+                          <a class="dropdown-item" href="/DelayStatusUpdate/{{delay.id}}?status=Rejected">Rejected</a>
                           <div class="dropdown-divider"></div>
                           {% endif %}
                           
-                          {% if current_user.role == 'Contractor' %}
                           
+                          <a class="dropdown-item" href="{{url_for('eot_submitted_page',passed_id=delay.id)}}">View Contractor Submitted Documents</a>
+                          <a class="dropdown-item" href="{{url_for('eot_submitted_page_consultant',passed_id=delay.id)}}">View Consultant Submitted Documents</a>
+                          {% if current_user.role == 'Contractor' %}
+                          <div class="dropdown-divider"></div>
                           <a class="dropdown-item" href="{{url_for('deleteDelay',passed_id=delay.id)}}"><strong>Delete Delay</strong></a>
                           {% endif %}
-                          <a class="dropdown-item" href="{{url_for('eot_submitted_page',passed_id=delay.id)}}">View Submitted Documents</a>
                           
                         </div>
                       </div>
