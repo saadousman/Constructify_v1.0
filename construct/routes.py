@@ -92,7 +92,7 @@ def delaypage():
     Rejected_delays= Delay.query.filter(Delay.status == "Rejected").count()
     delayForm = DelayForm()
     delays = Delay.query.all()
-    gannt_data = delays
+    
    
    
 
@@ -184,11 +184,85 @@ def deleteTask(id):
     return redirect(url_for('Taskpage'))
 
     
-############ All Functions related to Task management end here ####################
+############  Functions related to Task management end here ####################
 
 
+############   Work Inspection Request module STARTS here ####################
+
+@app.route("/WorkInspectionReqs", methods=['GET', 'POST'])
+@login_required
+def wir_page():
+    delays = Delay.query.all()
+    wir_list = WorkInspectionRequests.query.all()
+    wirform= WIRForm()
+    today = date.today()
+    
+    
+    
+
+ #Render the Task page if the request is of type GET
+    if request.method == "GET":
+        return render_template('WorkInspectionRequest.html', delays=delays,wir_list=wir_list, wirform=wirform)
+
+    if request.method == "POST":
+    #Grab the form values and perform the relevant DB queries if the request is of type POST
+#Creating new Tasks
+             
+            
+
+            wir_to_create = WorkInspectionRequests(name=wirform.Name.data,
+                              description=wirform.Description.data,
+                              submitted_date=today)
+            db.session.add(wir_to_create)
+            db.session.commit()
+            
+            
+            flash(f'WIR Created!')
+           
+
+    return redirect(url_for('wir_page'))
+############   Work Inspection Request module ENDs here ####################
 
 
+############   MATERIAL Inspection Request module STARTS here ####################
+
+
+@app.route("/MaterialInspectReqs", methods=['GET', 'POST'])
+@login_required
+def material_inspection_page():
+    db.create_all()
+    pending_mirs= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Submitted").count()
+    approved_mirs= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Approved!").count()
+    Approved_As_Noted_mirs= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Approved-As-Noted").count()
+    ReviseandReSubmit_mirs= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Revise-and-ReSubmit").count()
+    Rejected_mirs= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Rejected").count()
+    mir_list = MaterialInspectionRequests.query.all()
+    
+#Render the MIR page if the request is of type GET
+    if request.method == "GET":
+        return render_template('MaterialInspectionManagementPage.html',pending_mirs=pending_mirs,approved_mirs=approved_mirs,Approved_As_Noted_mirs=Approved_As_Noted_mirs,
+        ReviseandReSubmit_mirs=ReviseandReSubmit_mirs,Rejected_mirs=Rejected_mirs,mir_list=mir_list )
+
+    if request.method == "POST":
+    #Grab the form values and perform the relevant DB queries if the request is of type POST
+#Creating new Tasks
+             
+            
+
+            mir_to_create = MaterialInspectionRequests(name=mirform.Name.data,
+                              description=mirform.Description.data,
+                              submitted_date=today)
+            db.session.add(mir_to_create)
+            db.session.commit()
+            
+            
+            flash(f'MIR Created!')
+           
+
+    return redirect(url_for('material_inspection_page'))
+
+
+############   MATERIAL Inspection Request module ENDS here ####################
 
 
 
@@ -691,38 +765,7 @@ def consultant_Wir_submitted_page(passed_id):
 #ALL IMAGE GALLERY AND SUBMITTED DOCUMENT DISPLAY PAGES END HERE
 
 
-@app.route("/WorkInspectionReqs", methods=['GET', 'POST'])
-@login_required
-def wir_page():
-    delays = Delay.query.all()
-    wir_list = WorkInspectionRequests.query.all()
-    wirform= WIRForm()
-    today = date.today()
-    
-    
-    
 
- #Render the Task page if the request is of type GET
-    if request.method == "GET":
-        return render_template('WorkInspectionRequest.html', delays=delays,wir_list=wir_list, wirform=wirform)
-
-    if request.method == "POST":
-    #Grab the form values and perform the relevant DB queries if the request is of type POST
-#Creating new Tasks
-             
-            
-
-            wir_to_create = WorkInspectionRequests(name=wirform.Name.data,
-                              description=wirform.Description.data,
-                              submitted_date=today)
-            db.session.add(wir_to_create)
-            db.session.commit()
-            
-            
-            flash(f'WIR Created!')
-           
-
-    return redirect(url_for('wir_page'))
 
 
 
@@ -777,36 +820,7 @@ def downloadconsultanteot(eot_name):
 #ALL ENDPOINTS FOR DOCUMENT AND IMAGE DOWNLOADS END HERE
 
 
-@app.route("/MaterialInspectReqs", methods=['GET', 'POST'])
-@login_required
-def material_inspection_page():
-    db.create_all()
-    mirform= MIRForm()
-    mir_list = MaterialInspectionRequests.query.all()
-    today = date.today()
-    print(mirform)
-    print(mir_list)
-#Render the MIR page if the request is of type GET
-    if request.method == "GET":
-        return render_template('MaterialInspectionRequest.html',mirform=mirform,mir_list=mir_list)
 
-    if request.method == "POST":
-    #Grab the form values and perform the relevant DB queries if the request is of type POST
-#Creating new Tasks
-             
-            
-
-            mir_to_create = MaterialInspectionRequests(name=mirform.Name.data,
-                              description=mirform.Description.data,
-                              submitted_date=today)
-            db.session.add(mir_to_create)
-            db.session.commit()
-            
-            
-            flash(f'MIR Created!')
-           
-
-    return redirect(url_for('material_inspection_page'))
     
 
 

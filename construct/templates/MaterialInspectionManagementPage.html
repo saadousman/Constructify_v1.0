@@ -21,7 +21,7 @@
   <link rel="apple-touch-icon" sizes="76x76" href="{{ url_for('static', filename='assets')}}/img/apple-icon.png">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets')}}/img/favicon.png">
   <title>
-    Project Delay Management
+    Material Inspection Management
   </title>
   <!--     Fonts and icons     -->
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
@@ -61,9 +61,9 @@
             <div class="row">
               <div class="col-8">
                 <div class="numbers">
-                  <p class="text-sm mb-0 text-uppercase font-weight-bold">Pending EOTs</p>
+                  <p class="text-sm mb-0 text-uppercase font-weight-bold">Pending MIRs</p>
                   <h5 class="font-weight-bolder">
-                    {{pending_delays}}
+                    {{pending_mirs}}
                   </h5>
 
                 </div>
@@ -83,9 +83,9 @@
             <div class="row">
               <div class="col-8">
                 <div class="numbers">
-                  <p class="text-sm mb-0 text-uppercase font-weight-bold">Approved EOTs</p>
+                  <p class="text-sm mb-0 text-uppercase font-weight-bold">Approved MIRs</p>
                   <h5 class="font-weight-bolder">
-                    {{approved_delays}}
+                    {{approved_mirs}}
                   </h5>
 
                 </div>
@@ -105,9 +105,9 @@
             <div class="row">
               <div class="col-8">
                 <div class="numbers">
-                  <p class="text-sm mb-0 text-uppercase font-weight-bold">EOT's Approved-As-Noted</p>
+                  <p class="text-sm mb-0 text-uppercase font-weight-bold">MIR's Approved-As-Noted</p>
                   <h5 class="font-weight-bolder">
-                    {{Approved_As_Noted_delays}}
+                    {{Approved_As_Noted_mirs}}
                   </h5>
 
                 </div>
@@ -127,9 +127,9 @@
             <div class="row">
               <div class="col-8">
                 <div class="numbers">
-                  <p class="text-sm mb-0 text-uppercase font-weight-bold">EOT's to Revise-and-ReSubmit</p>
+                  <p class="text-sm mb-0 text-uppercase font-weight-bold">MIR's to Revise-and-ReSubmit</p>
                   <h5 class="font-weight-bolder">
-                    {{ReviseandReSubmit_delays}}
+                    {{ReviseandReSubmit_mirs}}
                   </h5>
 
                 </div>
@@ -149,9 +149,9 @@
             <div class="row">
               <div class="col-8">
                 <div class="numbers">
-                  <p class="text-sm mb-0 text-uppercase font-weight-bold">EOT's Rejected</p>
+                  <p class="text-sm mb-0 text-uppercase font-weight-bold">MIR's Rejected</p>
                   <h5 class="font-weight-bolder">
-                    {{Rejected_delays}}
+                    {{Rejected_mirs}}
                   </h5>
 
                 </div>
@@ -176,33 +176,33 @@
 
 
   <br><br><br><br>
-  <!-- Buttons for Create delay and Others -->
-  <div class="col-10">
+  <!-- Buttons for Create mir and Others -->
+ {# <div class="col-10">
     <div class="container">
       <div class="row">
         <div class="col text-left">
           {% if current_user.role == 'Contractor' %}
-          <a href="{{url_for('DelayCreate')}}" class="btn btn-primary" role="button" aria-disabled="true"
-            target="_blank">Create New Delay EOT</a>
+          <a href="{{url_for('MIRCreate')}}" class="btn btn-primary" role="button" aria-disabled="true"
+            target="_blank">Create New MIR</a>
           {% endif %}
-          <a href="{{url_for('DelayPDFPage')}}" class="btn btn-info" role="button" aria-disabled="true"
+          <a href="{{url_for('MIRPDFPage')}}" class="btn btn-info" role="button" aria-disabled="true"
             target="_blank">Print PDF report</a>
-          <a href="{{url_for('DelayPDFPageEmail')}}" class="btn btn-secondary" role="button" aria-disabled="true"
+          <a href="{{url_for('MIRPDFPageEmail')}}" class="btn btn-secondary" role="button" aria-disabled="true"
             target="_blank">Email Report to StakeHolders</a>
           {% if current_user.role == 'Contractor' %}
-          <a href="{{url_for('delayEOTUploadPage')}}" class="btn btn-success" role="button" aria-disabled="true"
+          <a href="{{url_for('MIREOTUploadPage')}}" class="btn btn-success" role="button" aria-disabled="true"
             target="_blank">Upload EOT Document</a>
           {% endif %}
           {% if current_user.role == 'Consultant' %}
-          <a href="{{url_for('delayEOTUploadPageConsultant')}}" class="btn btn-primary" role="button" aria-disabled="true"
-            target="_blank">Upload EOT Documents with notes</a>
+          <a href="{{url_for('MIREOTUploadPageConsultant')}}" class="btn btn-primary" role="button" aria-disabled="true"
+            target="_blank">Upload MIR Documents with notes</a>
           {% endif %}
 
         </div>
 
       </div>
     </div>
-  </div>
+  </div>  #}
 
 
 
@@ -214,94 +214,68 @@
       <div class="col-12">
         <div class="card mb-4">
           <div class="card-header pb-0">
-            <h6>Reported Delays</h6>
+            <h6>Reported MIR's</h6>
           </div>
           <div class="card-body px-0 pt-0 pb-2">
             <div class="table-responsive p-0">
               <table class="table align-items-center mb-10">
                 <thead>
                   <tr>
-                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Delay ID</th>
-                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Type</th>
-                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                      Description</th>
-                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Severity
+                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">MIR ID</th>
+                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">name</th>
+                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Description</th>
+                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">status
                     </th>
-                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">EOT Days
-                    </th>
-                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">EOT
-                      Status</th>
-                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">
-                       Date
-                    </th>
+                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Submitted Date</th>
+        
 
-                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Action
-                    </th>
+                    <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Action</th>
                   </tr>
                 </thead>
                 <tbody>
                   <!-- #Use the following status types in forms: Submitted,Approved, Approved-As-Noted, Revise-and-ReSubmit, Rejected -->
                   <!--Constructing A single row for the Table-->
-                  {% for delay in delays %}
+                  {% for mir in mir_list %}
                   <tr>
                     <td>
                       <div class="d-flex px-2 py-1">
                         <div class="d-flex flex-column justify-content-center">
-                          <h6 class="mb-0 text-sm">{{delay.id}}</h6>
+                          <h6 class="mb-0 text-sm">{{mir.id}}</h6>
                         </div>
                       </div>
                     </td>
                     <td>
-                      <p class="text-xs font-weight-bold mb-0">{{delay.type}}</p>
+                      <p class="text-xs font-weight-bold mb-0">{{mir.name}}</p>
                     </td>
                     <td class="align-middle text-center text-sm">
-                      <p class="mb-0 text-sm">{{delay.description}}</p>
+                      <p class="mb-0 text-sm">{{mir.description}}</p>
                     </td>
-                    <!--Conditional Badges for EOT severity starts here-->
-                    {% if 'Medium' in delay.severity %}
-                    <td class="align-middle text-center">
-                      <span class="badge badge-sm bg-gradient-warning">{{delay.severity}}</span>
-                    </td>
-                    {% endif %}
-                    {% if 'Major' in delay.severity %}
-                    <td class="align-middle text-center">
-                      <span class="badge badge-sm bg-gradient-danger">{{delay.severity}}</span>
-                    </td>
-                    {% endif %}
-                    {% if 'Minor' in delay.severity %}
-                    <td class="align-middle text-center">
-                      <span class="badge badge-sm bg-gradient-success">{{delay.severity}}</span>
-                    </td>
-                    {% endif %}
-                    <!--Conditional Badges for EOT severity ends here-->
-                    <td class="align-middle text-center">
-                      <p class="mb-0 text-sm">{{delay.delayed_days}}</p>
-                    </td>
-                    <!--Conditional Badges for EOT Status starts here-->
+                    
+                    <!--Conditional Badges for MIR Status starts here-->
                    
-                    {% if 'Approved!' in delay.status %}
+                    {% if 'Approved!' in mir.status %}
                     <td class="align-middle text-center">
-                      <span class="badge badge-sm bg-gradient-success">{{delay.status}}</span>
+                      <span class="badge badge-sm bg-gradient-success">{{mir.status}}</span>
                     </td>
                     {% endif %}
-                    {% if 'Approved-As-Noted' in delay.status %}
+                    {% if 'Approved-As-Noted' in mir.status %}
                     <td class="align-middle text-center">
-                      <span class="badge badge-sm bg-gradient-info">{{delay.status}}</span>
+                      <span class="badge badge-sm bg-gradient-info">{{mir.status}}</span>
                     </td>
                     {% endif %}
-                    {% if 'Revise-and-ReSubmit' in delay.status %}
+                    {% if 'Revise-and-ReSubmit' in mir.status %}
                     <td class="align-middle text-center">
-                      <span class="badge badge-sm bg-gradient-warning">{{delay.status}}</span>
+                      <span class="badge badge-sm bg-gradient-warning">{{mir.status}}</span>
                     </td>
                     {% endif %}
-                    {% if 'Rejected' in delay.status %}
+                    {% if 'Rejected' in mir.status %}
                     <td class="align-middle text-center">
-                      <span class="badge badge-sm bg-gradient-danger">{{delay.status}}</span>
+                      <span class="badge badge-sm bg-gradient-danger">{{mir.status}}</span>
                     </td>
                     {% endif %}
-                    {% if 'Submitted' in delay.status %}
+                    {% if 'Submitted' in mir.status %}
                     <td class="align-middle text-center">
-                      <span class="badge badge-sm bg-gradient-info">{{delay.status}}</span>
+                      <span class="badge badge-sm bg-gradient-info">{{mir.status}}</span>
                     </td>
                     {% endif %}
                    
@@ -309,14 +283,14 @@
 
                     <!--Conditional Badges for EOT Status ends here-->
                     <td class="align-middle text-center">
-                      <p class="mb-0 text-sm">{{delay.date}}</p>
+                      <p class="mb-0 text-sm">{{mir.submitted_date}}</p>
                     </td>
 
                     <td class="align-middle">
 
-                      <div class="btn-group">
+                        {#     <div class="btn-group">
                         
-                        <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown"
+                      <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown"
                           aria-haspopup="true" aria-expanded="false">
                          Action
                         </button>
@@ -324,23 +298,23 @@
                         <div class="dropdown-menu">
                           {% if current_user.role == 'Consultant' %}
                           <p><strong><center>Mark as</center></strong></p>
-                          <a class="dropdown-item" href="/DelayStatusUpdate/{{delay.id}}?status=Approved!">Approved</a>
-                          <a class="dropdown-item" href="/DelayStatusUpdate/{{delay.id}}?status=Approved-As-Noted">Approved-As-Noted</a>
-                          <a class="dropdown-item" href="/DelayStatusUpdate/{{delay.id}}?status=Revise-and-ReSubmit">Revise-and-ReSubmit</a>
-                          <a class="dropdown-item" href="/DelayStatusUpdate/{{delay.id}}?status=Rejected">Rejected</a>
+                          <a class="dropdown-item" href="/MIRStatusUpdate/{{mir.id}}?status=Approved!">Approved</a>
+                          <a class="dropdown-item" href="/MIRStatusUpdate/{{mir.id}}?status=Approved-As-Noted">Approved-As-Noted</a>
+                          <a class="dropdown-item" href="/MIRStatusUpdate/{{mir.id}}?status=Revise-and-ReSubmit">Revise-and-ReSubmit</a>
+                          <a class="dropdown-item" href="/MIRStatusUpdate/{{mir.id}}?status=Rejected">Rejected</a>
                           <div class="dropdown-divider"></div>
                           {% endif %}
                           
                           <p><strong><center> Submitted Documents   </center></strong></p>
-                          <a class="dropdown-item" href="{{url_for('eot_submitted_page',passed_id=delay.id)}}">By The Contractor               </a>
-                          <a class="dropdown-item" href="{{url_for('eot_submitted_page_consultant',passed_id=delay.id)}}">By The Consultant              </a>
+                          <a class="dropdown-item" href="{{url_for('mir_submitted_page',passed_id=mir.id)}}">By The Contractor               </a>
+                          <a class="dropdown-item" href="{{url_for('mir_submitted_page_consultant',passed_id=mir.id)}}">By The Consultant              </a>
                           {% if current_user.role == 'Contractor' %}
                           <div class="dropdown-divider"></div>
-                          <a class="dropdown-item" href="{{url_for('deleteDelay',passed_id=delay.id)}}"><strong>Delete Delay</strong></a>
+                          <a class="dropdown-item" href="{{url_for('deletemir',passed_id=mir.id)}}"><strong>Delete mir</strong></a>
                           {% endif %}
                           
                         </div>
-                      </div>
+                      </div> #}
                     </td>
 
 
@@ -359,7 +333,7 @@
     </div>
 
   </div>
-  <!-- Row for the delays Table Ends-->
+  <!-- Row for the mirs Table Ends-->
   <!--New Row for Gannt Chart and Gallery Begins -->
 
 
