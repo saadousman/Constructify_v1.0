@@ -13,7 +13,7 @@ Material Inspections requests
 
 
 
-
+{% include 'includes/consulantmiruploadmodal.html' %}
 {% include 'includes/mirmodal.html' %}
 {% include 'includes/miruploadmodal.html' %}
 <div class="row" style="margin-top:20px;margin-left:30px">
@@ -56,18 +56,24 @@ Material Inspections requests
         <h3>Material Inspection Requests</h3>
         <p>Reporting and Managing MIR</p>
         <br>
+        {% if current_user.role == 'Contractor' %}
         <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#MIRCreateModal"
             data-whatever="@mdo">Create a New Record</button>
-        
+            {% endif %}
 
+            {% if current_user.role == 'Contractor' %}
             <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#MIRUploadModal"
-            data-whatever="@mdo">Submit mir Document</button>
-
+            data-whatever="@mdo">Submit Contractor MIR Document</button>
+            {% endif %}
+            {% if current_user.role == 'Consultant' %}
+            <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#ConsultantMIRUploadModal"
+            data-whatever="@mdo">Consultant MIR Document Upload</button>
+            {% endif %}
             
             <a href="{{url_for('PDFPage')}}" class="btn btn-secondary btn-lg active" role="button" aria-pressed="false" target="_blank">Print report</a>
             <a href="{{url_for('PDFPageEmail')}}" class="btn btn-secondary btn-lg active" role="button" aria-pressed="false" target="_blank">Email report to Stakeholders</a>
             
-
+           
            
         <br><br><br>
 
@@ -98,22 +104,23 @@ Material Inspections requests
                     <td width="20%">{{mir.description}}</td>
 
                     <!-- Change Badge color based on mir Deverity -->
+
                     {% if 'Submitted' in mir.status %}
                     <td><span class="badge badge-pill badge-info">{{mir.status}}</span></td>
                     {% endif %}
                     {% if 'Rejected' in mir.status %}
                     <td><span class="badge badge-pill badge-danger">{{mir.status}}</span></td>
                     {% endif %}
-                    {% if 'Revise-And-ReSubmit' in mir.status %}
+                    {% if 'Revise-and-ReSubmit' in mir.status %}
                     <td><span class="badge badge-pill badge-warning">{{mir.status}}</span></td>
                     {% endif %}
                     {% if 'Approved!' in mir.status %}
-                    <td><span class="badge badge-pill badge-info">{{mir.status}}</span></td>
+                    <td><span class="badge badge-pill badge-success">{{mir.status}}</span></td>
                     {% endif %}
                     {% if 'Approved-As-Noted' in mir.status %}
-                    <td><span class="badge badge-pill badge-warning">{{mir.status}}</span></td>
+                    <td><span class="badge badge-pill badge-light">{{mir.status}}</span></td>
                     {% endif %}
-                 
+                    
                     <td>{{mir.submitted_date}}</td>
                     
                     <td>
@@ -126,7 +133,15 @@ Material Inspections requests
                             </button>
                             <div class="dropdown-menu">
                                 {% with passed_id = mir.id  %}
-                                <a class="dropdown-item" href="{{url_for('mir_submitted_page',passed_id=mir.id)}}">View Submitted Document</a>
+                                <a class="dropdown-item" href="{{url_for('mir_submitted_page',passed_id=mir.id)}}" target="blank">View Contractor's Document</a>
+                                <a class="dropdown-item" href="{{url_for('consultant_mir_submitted_page',passed_id=mir.id)}}">View Consultant's Documents</a>
+                                {% if current_user.role == 'Consultant' %}
+                                <p><center>Mark as</center></p>
+                                <a class="dropdown-item" href="/MIRStatusUpdate/{{passed_id}}?status=Approved!">Approved</a>
+                                <a class="dropdown-item" href="/MIRStatusUpdate/{{passed_id}}?status=Approved-As-Noted">Approved-As-Noted</a>
+                                <a class="dropdown-item" href="/MIRStatusUpdate/{{passed_id}}?status=Revise-and-ReSubmit">Revise-and-ReSubmit</a>
+                                <a class="dropdown-item" href="/MIRStatusUpdate/{{passed_id}}?status=Rejected">Rejected</a>
+                                {% endif %}
                       <!--     <a class="dropdown-item" href="/MIRSubmitted/{{passed_id}}?status=approved">View Submitted Document</a> -->
                                 
                         {% endwith %}

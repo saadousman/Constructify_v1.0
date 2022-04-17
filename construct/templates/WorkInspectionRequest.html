@@ -13,7 +13,7 @@ wirs
 
 
 
-
+{% include 'includes/consultantwiruploadmodal.html' %}
 {% include 'includes/wirmodal.html' %}
 {% include 'includes/wiruploadmodal.html' %}
 <div class="row" style="margin-top:20px;margin-left:30px">
@@ -50,20 +50,23 @@ wirs
 </div>
 
 
-
 <div class="row" style="margin-top:20px;margin-left:30px">
     <div class="col-11">
         <h3>Work Inspection Requests</h3>
         <p>Reporting and Managing WIR</p>
         <br>
+        {% if current_user.role == 'Contractor' %}
         <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#WIRCreateModal"
             data-whatever="@mdo">Create a New Record</button>
         
 
             <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#WIRUploadModal"
             data-whatever="@mdo">Submit WIR Document</button>
-
-            
+        {% endif %}
+        {% if current_user.role == 'Consultant'%}
+        <button type="button" class="btn btn-primary btn-lg" data-toggle="modal" data-target="#ConsultantWIRUploadModal"
+            data-whatever="@mdo">Submit Consultant WIR Document</button>
+            {% endif %}
             <a href="{{url_for('PDFPage')}}" class="btn btn-secondary btn-lg active" role="button" aria-pressed="false" target="_blank">Print report</a>
             <a href="{{url_for('PDFPageEmail')}}" class="btn btn-secondary btn-lg active" role="button" aria-pressed="false" target="_blank">Email report to Stakeholders</a>
             
@@ -127,7 +130,9 @@ wirs
                             <div class="dropdown-menu">
                                
                                
-                                <a class="dropdown-item" href="{{url_for('wir_submitted_page',passed_id=wir.id)}}">View Submitted Document</a>
+                                <a class="dropdown-item" href="{{url_for('wir_submitted_page',passed_id=wir.id)}}">View Contractor Submitted Document</a>
+                                <a class="dropdown-item" href="{{url_for('consultant_Wir_submitted_page',passed_id=wir.id)}}">View Consultant Submitted Document</a>
+                                {% if current_user.role == 'Consultant' %}
                                 <p>
                                     <center><strong>Mark as</strong></center>
                                 </p>
@@ -137,6 +142,7 @@ wirs
                                 <a class="dropdown-item" href="/WIRStatusUpdate/{{passed_id}}?status=Revise-and-ReSubmit">Revise-and-ReSubmit</a>
                                 <a class="dropdown-item" href="/WIRStatusUpdate/{{passed_id}}?status=Rejected">Rejected</a>
                                 {% endwith %}
+                                {% endif %}
                         </div>  
 
 

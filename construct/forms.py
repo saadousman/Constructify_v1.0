@@ -37,7 +37,7 @@ class LoginForm(FlaskForm):
 
 class DelayForm(FlaskForm):
 
-    type = SelectField(u'Category', choices=[('Workforce', 'Workforce'), ('Financial', 'Financial'), ('Weather', 'Weather'), ('Logistics', 'Logistics'), (' Miscellaneous', ' Miscellaneous')])
+    type_of = SelectField(u'Category', choices=[('Workforce', 'Workforce'), ('Financial', 'Financial'), ('Weather', 'Weather'), ('Logistics', 'Logistics'), (' Miscellaneous', ' Miscellaneous')])
     description = StringField(label='Description', validators=[
                                 DataRequired()])
 

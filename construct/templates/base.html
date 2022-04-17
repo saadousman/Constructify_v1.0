@@ -35,6 +35,10 @@
                                 class="sr-only">(current)</span></a>
                     </li>
 
+                    <li class="nav-item active">
+                        <a class="nav-link" href="{{url_for('Taskpage')}}">Task Management <span
+                                class="sr-only">(current)</span></a>
+                    </li>
 
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="{{url_for('delaypage')}}" id="navbarDropdown"
@@ -48,21 +52,20 @@
                         </div>
                     </li>
 
-                    <li class="nav-item active">
-                        <a class="nav-link" href="{{url_for('Taskpage')}}">Task Management <span
-                                class="sr-only">(current)</span></a>
-                    </li>
-                    <li class="nav-item active">
-                        <a class="nav-link" href="{{url_for('wir_page')}}">Work Inspection Request<span
-                                class="sr-only">(current)</span></a>
-                                
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="{{url_for('delaypage')}}" id="navbarDropdown"
+                            role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            Inspection Requests
+                        </a>
+                        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                            <a class="dropdown-item" href="{{url_for('wir_page')}}">Work Inspection Request</a>
+                            <a class="dropdown-item" href="{{url_for('material_inspection_page')}}">Material Inspection Request</a>
+                            
+                        </div>
                     </li>
 
-                    <li class="nav-item active">
-                        <a class="nav-link" href="{{url_for('material_inspection_page')}}">Material Inspection Request<span
-                                class="sr-only">(current)</span></a>
-                                
-                    </li>
+                    
+                    
 
 
                 </ul>
@@ -117,6 +120,8 @@
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
+
+       
 
 
 

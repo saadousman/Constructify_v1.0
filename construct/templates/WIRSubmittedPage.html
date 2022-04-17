@@ -16,7 +16,7 @@ Submitted WIR Documents
     <div class="card-body">
       <h5 class="card-title">{{wir.wir_file_name}}</h5>
       <img src="/static/icons/doc_icon.png" alt="User Image" width="70" height="70">
-     
+      <p>Submitted on {{wir.submitted_date}}</p>
       <br><br>
       <a class="btn btn-outline-primary" href="{{url_for('downloadwir',wir_name=wir.wir_file_name,)}}" role="button">Download File</a>
     </div>

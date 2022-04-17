@@ -36,7 +36,7 @@ class Delay(db.Model):
     type = db.Column(db.String(length=30), nullable=False)
     description = db.Column(db.String(length=30), nullable=False)
     severity = db.Column(db.String(length=30), nullable=False)
-    phase = db.Column(db.String(length=30), nullable=False)
+    phase = db.Column(db.String(length=30), nullable=True,default="Default")
     delayed_days = db.Column(db.Integer(), nullable=True)
     date = db.Column(db.String(length=30), nullable=False)
     status = db.Column(db.String(length=30), nullable=True, default="Submitted")
@@ -63,12 +63,14 @@ class TaskToImage(db.Model):
     id = db.Column(db.Integer(), nullable=False, primary_key=True)
     img_name = db.Column(db.String(length=30), nullable=False)
     task_id = db.Column(db.String(length=30), nullable=False)
+    uploaded_date = db.Column(db.String(length=30), nullable=False)
     
 class WIRDocument(db.Model):
     id = db.Column(db.Integer(), nullable=False, primary_key=True)
     wir_file_name = db.Column(db.String(length=30), nullable=False)
     wir_id = db.Column(db.String(length=30), nullable=False)
     status = db.Column(db.String(length=30), nullable=False)
+    submitted_date = db.Column(db.String(length=30), nullable=False)
 
 class WorkInspectionRequests(db.Model):
     id = db.Column(db.Integer(), nullable=False, primary_key=True)
@@ -90,5 +92,28 @@ class MIRDocument(db.Model):
     mir_file_name = db.Column(db.String(length=30), nullable=False)
     mir_id = db.Column(db.String(length=30), nullable=False)
     status = db.Column(db.String(length=30), nullable=False)
+    submitted_date = db.Column(db.String(length=30), nullable=False)
+
+class MIRConsultantDocument(db.Model):
+    id = db.Column(db.Integer(), nullable=False, primary_key=True)
+    mir_file_name = db.Column(db.String(length=30), nullable=False)
+    mir_id = db.Column(db.String(length=30), nullable=False)
+    status = db.Column(db.String(length=30), nullable=False)
+    submitted_date = db.Column(db.String(length=30), nullable=False)
+
+class WIRConsultantDocument(db.Model):
+    id = db.Column(db.Integer(), nullable=False, primary_key=True)
+    wir_file_name = db.Column(db.String(length=30), nullable=False)
+    wir_id = db.Column(db.String(length=30), nullable=False)
+    status = db.Column(db.String(length=30), nullable=False)
+    submitted_date = db.Column(db.String(length=30), nullable=False)
+
+class EOTDocument(db.Model):
+    id = db.Column(db.Integer(), nullable=False, primary_key=True)
+    eot_file_name = db.Column(db.String(length=30), nullable=False)
+    eot_id = db.Column(db.String(length=30), nullable=False)
+    status = db.Column(db.String(length=30), nullable=False)
+    submitted_date = db.Column(db.String(length=30), nullable=False)
+    submitted_by=db.Column(db.String(length=30), nullable=False)
 
     

@@ -1,5 +1,4 @@
-
-<div class="modal fade" id="TaskModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+<div class="modal fade" id="taskcreateModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
   aria-hidden="true">
   <div class="modal-dialog" role="document">
     <div class="modal-content">
@@ -12,7 +11,7 @@
       <div class="modal-body">
 
 
-        <form method="POST" class="form-register">
+        <form role="form" method="POST"">
           {{ taskform.hidden_tag() }}
 
           <div class="form-group">
@@ -20,13 +19,13 @@
             {{ taskform.Name(class="form-control", placeholder="Enter the Task Name") }}
           </div>
 
-          
+
           <div class="form-group">
             {{ taskform.Description.label() }}
             {{ taskform.Description(class="form-control", placeholder="Enter the Task description") }}
           </div>
 
-          
+
           <div class="form-group">
             {{ taskform.phase.label() }}
             {{ taskform.phase(class="form-control", placeholder="Enter the phase") }}
@@ -36,8 +35,8 @@
             {{ taskform.percentage.label() }}
             {{ taskform.percentage(class="form-control", placeholder="Enter Task weight in percentage") }}
           </div>
-    
-          
+
+
           <div class="form-group">
             {{ taskform.start_date.label() }}
             {{taskform.start_date(class= "form-control")}}
@@ -61,16 +60,12 @@
           </div>
         </form>
 
-        
+
 
       </div>
 
     </div>
   </div>
-  <style>
-    .modal-content {
-      background-color: #212121
-    }
-  </style>
+
 
 </div>
