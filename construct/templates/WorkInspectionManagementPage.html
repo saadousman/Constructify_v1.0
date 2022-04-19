@@ -21,7 +21,7 @@
   <link rel="apple-touch-icon" sizes="76x76" href="{{ url_for('static', filename='assets')}}/img/apple-icon.png">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets')}}/img/favicon.png">
   <title>
-    Material Inspection Management
+    Work Inspection Management
   </title>
   <!--     Fonts and icons     -->
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
@@ -61,9 +61,9 @@
             <div class="row">
               <div class="col-8">
                 <div class="numbers">
-                  <p class="text-sm mb-0 text-uppercase font-weight-bold">Pending MIRs</p>
+                  <p class="text-sm mb-0 text-uppercase font-weight-bold">Pending WIRs</p>
                   <h5 class="font-weight-bolder">
-                    {{pending_mirs}}
+                    {{pending_wirs}}
                   </h5>
 
                 </div>
@@ -83,9 +83,9 @@
             <div class="row">
               <div class="col-8">
                 <div class="numbers">
-                  <p class="text-sm mb-0 text-uppercase font-weight-bold">Approved MIRs</p>
+                  <p class="text-sm mb-0 text-uppercase font-weight-bold">Approved WIRs</p>
                   <h5 class="font-weight-bolder">
-                    {{approved_mirs}}
+                    {{approved_wirs}}
                   </h5>
 
                 </div>
@@ -107,7 +107,7 @@
                 <div class="numbers">
                   <p class="text-sm mb-0 text-uppercase font-weight-bold">Approved-As-Noted</p>
                   <h5 class="font-weight-bolder">
-                    {{Approved_As_Noted_mirs}}
+                    {{Approved_As_Noted_wirs}}
                   </h5>
 
                 </div>
@@ -129,7 +129,7 @@
                 <div class="numbers">
                   <p class="text-sm mb-0 text-uppercase font-weight-bold">Revise-and-ReSubmit</p>
                   <h5 class="font-weight-bolder">
-                    {{ReviseandReSubmit_mirs}}
+                    {{ReviseandReSubmit_wirs}}
                   </h5>
 
                 </div>
@@ -149,10 +149,9 @@
             <div class="row">
               <div class="col-8">
                 <div class="numbers">
-                  <p class="text-sm mb-0 text-uppercase font-weight-bold">Rejected MIRs </p>
-                    
+                  <p class="text-sm mb-0 text-uppercase font-weight-bold">WIR's Rejected</p>
                   <h5 class="font-weight-bolder">
-                    {{Rejected_mirs}}
+                    {{Rejected_wirs}}
                   </h5>
 
                 </div>
@@ -177,28 +176,28 @@
 
 
   <br><br><br><br>
-  <!-- Buttons for Create mir and Others -->
+  <!-- Buttons for Create wir and Others -->
  <div class="col-10">
     <div class="container">
       <div class="row">
         <div class="col text-left">
          {% if current_user.role == 'Contractor' %}
-          <a href="{{url_for('MIRCreate')}}" class="btn btn-primary" role="button" aria-disabled="true"
-            target="_blank">Create New MIR</a>
-          {% endif %}
-               <a href="{{url_for('MIRPDFPage')}}" class="btn btn-info" role="button" aria-disabled="true"
-            target="_blank">Print PDF report</a>
-               <a href="{{url_for('MIRPDFPageEmail')}}" class="btn btn-secondary" role="button" aria-disabled="true"
+          <a href="{{url_for('WIRCreate')}}" class="btn btn-primary" role="button" aria-disabled="true"
+            target="_blank">Create New WIR</a>
+       {% endif %}
+                <a href="{{url_for('WIRPdfGeneration')}}" class="btn btn-info" role="button" aria-disabled="true"
+           target="_blank">Print PDF report</a>
+               <a href="{{url_for('WIRPDFPageEmail')}}" class="btn btn-secondary" role="button" aria-disabled="true"
             target="_blank">Email Report to StakeHolders</a>
-               {% if current_user.role == 'Contractor' %}
-          <a href="{{url_for('MIRDocumentUploadPage')}}" class="btn btn-success" role="button" aria-disabled="true"
-            target="_blank">Upload MIR Document</a>
+               {% if current_user.role == 'Contractor' %} 
+          <a href="{{url_for('WIRDocumentUploadPage')}}" class="btn btn-success" role="button" aria-disabled="true"
+            target="_blank">Upload WIR Document</a>
           {% endif %}
-            {% if current_user.role == 'Consultant' %}
-          <a href="{{url_for('ConsultantMIRDocumentUploadPage')}}" class="btn btn-primary" role="button" aria-disabled="true"
-            target="_blank">Upload MIR Documents with notes</a>
+        {#    {% if current_user.role == 'Consultant' %}
+          <a href="{{url_for('ConsultantWIRDocumentUploadPage')}}" class="btn btn-primary" role="button" aria-disabled="true"
+            target="_blank">Upload WIR Documents with notes</a>
           {% endif %} 
-
+          #}
         </div>
 
       </div>
@@ -215,14 +214,14 @@
       <div class="col-12">
         <div class="card mb-4">
           <div class="card-header pb-0">
-            <h6>Reported MIR's</h6>
+            <h6>Reported WIR's</h6>
           </div>
           <div class="card-body px-0 pt-0 pb-10">
             <div class="table-responsive p-0">
               <table class="table align-items-center mb-10">
                 <thead>
                   <tr>
-                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">MIR ID</th>
+                    <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">WIR ID</th>
                     <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Name</th>
                     <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Description</th>
                     <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Status</th>
@@ -236,60 +235,60 @@
                 <tbody>
                   <!-- #Use the following status types in forms: Submitted,Approved, Approved-As-Noted, Revise-and-ReSubmit, Rejected -->
                   <!--Constructing A single row for the Table-->
-                  {% for mir in mir_list %}
+                  {% for wir in wir_list %}
                   <tr>
                     <td>
                       <div class="d-flex px-2 py-1">
                         <div class="d-flex flex-column justify-content-center">
-                          <h6 class="mb-0 text-sm">{{mir.id}}</h6>
+                          <h6 class="mb-0 text-sm">{{wir.id}}</h6>
                         </div>
                       </div>
                     </td>
                     <td>
-                      <p class="text-xs font-weight-bold mb-0">{{mir.name}}</p>
+                      <p class="text-xs font-weight-bold mb-0">{{wir.name}}</p>
                     </td>
                     <td class="align-middle text-center text-sm">
-                      <p class="mb-0 text-sm">{{mir.description}}</p>
+                      <p class="mb-0 text-sm">{{wir.description}}</p>
                     </td>
                     
-                    <!--Conditional Badges for MIR Status starts here-->
+                    <!--Conditional Badges for WIR Status starts here-->
                    
-                    {% if 'Approved!' in mir.status %}
+                    {% if 'Approved!' in wir.status %}
                     <td class="align-middle text-center">
-                      <span class="badge badge-sm bg-gradient-success">{{mir.status}}</span>
+                      <span class="badge badge-sm bg-gradient-success">{{wir.status}}</span>
                     </td>
                     {% endif %}
-                    {% if 'Approved-As-Noted' in mir.status %}
+                    {% if 'Approved-As-Noted' in wir.status %}
                     <td class="align-middle text-center">
-                      <span class="badge badge-sm bg-gradient-info">{{mir.status}}</span>
+                      <span class="badge badge-sm bg-gradient-info">{{wir.status}}</span>
                     </td>
                     {% endif %}
-                    {% if 'Revise-and-ReSubmit' in mir.status %}
+                    {% if 'Revise-and-ReSubmit' in wir.status %}
                     <td class="align-middle text-center">
-                      <span class="badge badge-sm bg-gradient-warning">{{mir.status}}</span>
+                      <span class="badge badge-sm bg-gradient-warning">{{wir.status}}</span>
                     </td>
                     {% endif %}
-                    {% if 'Rejected' in mir.status %}
+                    {% if 'Rejected' in wir.status %}
                     <td class="align-middle text-center">
-                      <span class="badge badge-sm bg-gradient-danger">{{mir.status}}</span>
+                      <span class="badge badge-sm bg-gradient-danger">{{wir.status}}</span>
                     </td>
                     {% endif %}
-                    {% if 'Submitted' in mir.status %}
+                    {% if 'Submitted' in wir.status %}
                     <td class="align-middle text-center">
-                      <span class="badge badge-sm bg-gradient-info">{{mir.status}}</span>
+                      <span class="badge badge-sm bg-gradient-info">{{wir.status}}</span>
                     </td>
                     {% endif %}
                     <!--Conditional Badges for EOT Status ends here-->
 
                     <td class="align-middle text-center text-sm">
-                      <p class="mb-0 text-sm">{{mir.type}}</p>
+                      <p class="mb-0 text-sm">{{wir.type}}</p>
                     </td>
 
                    
                     <td class="align-middle text-center">
-                      <p class="mb-0 text-sm">{{mir.submitted_date}}</p>
+                      <p class="mb-0 text-sm">{{wir.submitted_date}}</p>
                     </td>
-
+                    <!--Button Group Starts here-->
                     <td class="align-middle">
 
                           <div class="btn-group">
@@ -299,25 +298,25 @@
                          Action
                         </button>
                         
-                        <div class="dropdown-menu">
+                       <div class="dropdown-menu">
                           {% if current_user.role == 'Consultant' %}
                           <p><strong><center>Mark as</center></strong></p>
-                          <a class="dropdown-item" href="/MIRStatusUpdate/{{mir.id}}?status=Approved!">Approved</a>
-                          <a class="dropdown-item" href="/MIRStatusUpdate/{{mir.id}}?status=Approved-As-Noted">Approved-As-Noted</a>
-                          <a class="dropdown-item" href="/MIRStatusUpdate/{{mir.id}}?status=Revise-and-ReSubmit">Revise-and-ReSubmit</a>
-                          <a class="dropdown-item" href="/MIRStatusUpdate/{{mir.id}}?status=Rejected">Rejected</a>
+                          <a class="dropdown-item" href="/WIRStatusUpdate/{{wir.id}}?status=Approved!">Approved</a>
+                          <a class="dropdown-item" href="/WIRStatusUpdate/{{wir.id}}?status=Approved-As-Noted">Approved-As-Noted</a>
+                          <a class="dropdown-item" href="/WIRStatusUpdate/{{wir.id}}?status=Revise-and-ReSubmit">Revise-and-ReSubmit</a>
+                          <a class="dropdown-item" href="/WIRStatusUpdate/{{wir.id}}?status=Rejected">Rejected</a>
                           <div class="dropdown-divider"></div>
                           {% endif %}
-                                 
+                      {#   
                           
-                          <a class="dropdown-item" href="{{url_for('mir_submitted_page',passed_id=mir.id)}}">Contractor's Documents</a>
-                         <a class="dropdown-item" href="{{url_for('mir_submitted_page_consultant',passed_id=mir.id)}}">Consultant's Documents</a> 
+                          <a class="dropdown-item" href="{{url_for('wir_submitted_page',passed_id=wir.id)}}">Contractor's Documents</a>
+                         <a class="dropdown-item" href="{{url_for('wir_submitted_page_consultant',passed_id=wir.id)}}">Consultant's Documents</a>  #}  
                           {% if current_user.role == 'Contractor' %}
                           <div class="dropdown-divider"></div>
-                         <a class="dropdown-item" href="{{url_for('deleteMIR',passed_id=mir.id)}}"><strong>Delete MIR</strong></a>
+                         <a class="dropdown-item" href="{{url_for('deleteWIR',passed_id=wir.id)}}"><strong>Delete WIR</strong></a>
                           {% endif %}
                           
-                        </div>
+                        </div> 
                       </div>
                     </td>
 
@@ -337,7 +336,7 @@
     </div>
 
   </div>
-  <!-- Row for the mirs Table Ends-->
+  <!-- Row for the wirs Table Ends-->
   <!--New Row for Gannt Chart and Gallery Begins -->
 
 

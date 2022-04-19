@@ -14,24 +14,14 @@
 -->
 <!DOCTYPE html>
 <html lang="en">
-  {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-  {% for category, message in messages %}
-  
- {{message}}
-
-
-
-{% endfor %}
-{% endif %}
-{% endwith %}
+ 
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <link rel="apple-touch-icon" sizes="76x76" href="{{ url_for('static', filename='assets')}}/img/apple-icon.png">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets')}}/img/favicon.png">
   <title>
-    Create MIR Record
+    MIR Document Upload
   </title>
   <!--     Fonts and icons     -->
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
@@ -56,47 +46,59 @@
             <div class="col-xl-4 col-lg-5 col-md-7 d-flex flex-column mx-lg-0 mx-auto">
               <div class="card card-plain">
                 <div class="card-header pb-0 text-start">
-                  <h3 class="font-weight-bolder">Create A Material Inspection Request</h3><br>
-                  <h4 class="font-weight-bolder"></h4>
-                  <p class="mb-0"></p>
+                  {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% if messages %}
+                  {% for category, message in messages %}
+                  
+                 {{message}}
+                
+                
+                
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
+                  <h3 class="font-weight-bolder">Upload MIR Documents</h3><br>
+                  
+                  <p class="mb-0">Choose a MIR ID and File</p>
                 </div>
                 <div class="card-body">
-                  <form role="form" method="POST">
-                    {{ MIRForm.hidden_tag() }}
-
-                    <div class="mb-3">
-                      {{ MIRForm.Name.label() }}
-                      {{ MIRForm.Name(class="form-control", placeholder="Enter the MIR Name") }}
-                    </div>
-
-                    <div class="mb-3">
-                      {{ MIRForm.Description.label() }}
-                      {{ MIRForm.Description(class="form-control", placeholder="Enter the MIR description") }}
-                    </div>
-
-
-                    <div class="mb-3">
-                      {{ MIRForm.Type.label() }}
-                      {{ MIRForm.Type(class="form-control", placeholder="Select the Type") }}
-                    </div>
-                   
-
-    
-                    <div class="text-left">
-                      
-                      {{ MIRForm.submit(class="btn btn-primary") }}
-                    </div>
-                  </form>
+                  <form method="post" action="/UploadMIR" enctype="multipart/form-data">
+                    <dl>
+                        <p>
+                            <input type="file" name="file" class="form-control" autocomplete="off" required>
+                        </p>
+                    </dl>
+          
+          
+          
+                    <dl>
+                      <label for="mir">Choose a MIR ID</label>
+          
+                      <select name="mir" id="tasks">
+                        {%for mir in mir_list %}
+                        <option value="{{mir.id}}"> #{{mir.id}}  ({{mir.name}})</option>
+                        {%endfor%}
+                      </select>
+                    </dl>
+          
+                        <input type="submit" value="Submit" class="btn btn-info">
+                    </p>
+                </form>
                 </div>
-                
+                <div class="card-footer text-center pt-0 px-lg-2 px-1">
+                  <p class="mb-4 text-sm mx-auto">
+                    Go Back to the
+                    <a href="{{ url_for('material_inspection_page')}}" class="text-primary text-gradient font-weight-bold">Material Inspection Requests Page</a>
+                  </p>
+                </div>
               </div>
             </div>
             <div class="col-6 d-lg-flex d-none h-100 my-auto pe-0 position-absolute top-0 end-0 text-center justify-content-center flex-column">
               <div class="position-relative bg-gradient-primary h-100 m-3 px-7 border-radius-lg d-flex flex-column justify-content-center overflow-hidden" style="background-image: url('https://www.constructionexec.com/assets/site_18/images/article/081219110833.jpg?width=1280');
           background-size: cover;">
                 <span class="mask bg-gradient-primary opacity-6"></span>
-                <h4 class="mt-5 text-white font-weight-bolder position-relative">Create Your MIR Records here</h4>
-                
+                <h4 class="mt-5 text-white font-weight-bolder position-relative">“{{passed_quote}}”</h4>
+                <p class="text-white position-relative">{{passed_quote_author}}</p>
               </div>
             </div>
           </div>

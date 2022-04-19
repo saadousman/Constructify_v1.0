@@ -21,7 +21,7 @@
   <link rel="apple-touch-icon" sizes="76x76" href="{{ url_for('static', filename='assets')}}/img/apple-icon.png">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets')}}/img/favicon.png">
   <title>
-    Submitted EOT Documents
+    Submitted Material inspection requests
   </title>
   <!--     Fonts and icons     -->
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
@@ -61,17 +61,17 @@
 
 
   <!--Creates containers and displays the images referenced to the task ID-->
-  {% for eot in submited_eot_refs %}
-  {% if eot.eot_id == passed_eot_id %}
+  {% for mir in submitted_mir %}
+  {% if mir.mir_id == passed_mir_id %}
   <div class="container-fluid py-4">
     <div class="row">
       <div class="col-5">
         <div class="card mb-4">
           <div class="card-header pb-0">
-            <h6>File Name: <strong> {{eot.eot_file_name}}</strong></h6>
-            <h7>Submitted on: <strong>{{eot.submitted_date}}</strong>  <br>
-            <h7>By : <strong>{{eot.submitted_by}} </strong></h7> <br>
-            <h7>For Delay ID: <strong>{{passed_eot_id}}</strong></h7> <br><br>
+            <h6>File Name      : <strong> {{mir.mir_file_name}}</strong></h6>
+            <h7>Submitted on   : <strong>{{mir.submitted_date}}</strong>  <br>
+            <h7>By             : <strong>{{mir.submitted_by}} </strong></h7> <br>
+            <h7>For MIR ID     : <strong>{{passed_mir_id}}</strong></h7> <br><br>
           </div>
           <div class="card-body px-0 pt-0 pb-2">
             <div class="col-md-8 p-lg-5 mx-auto my-5">
@@ -79,7 +79,7 @@
                 <img src="/static/icons/doc_icon.png" alt="User Image" width="70" height="70">
 
                 <br><br>
-                  <a class="btn btn-outline-primary" href="{{url_for('downloadeot',eot_name=eot.eot_file_name)}}" role="button">Download File</a>
+                  <a class="btn btn-outline-primary" href="{{url_for('downloadconsultantmir',mir_name=mir.mir_file_name)}}" role="button">Download File</a>
                
 
               </div>
@@ -95,8 +95,7 @@
   {% endif %}
   {% endfor %}
   <!--Displays Error Message if No Image references were found for the Task-->
- {% if check_if_empty== "True" %}
-
+  {% if mir_list_is_empty == "True" %}
 
   <div class="container-fluid py-4">
     <div class="row">
@@ -109,7 +108,7 @@
           <div class="card-body px-0 pt-0 pb-2">
             <div class="col-md-8 p-lg-5 mx-auto my-5">
 
-              <h6>No Documents are uploaded for this Extension of Time request</h6>
+              <h6>No Documents are uploaded for this Material inspection request</h6>
 
             </div>
           </div>
@@ -118,8 +117,7 @@
     </div>
 
   </div>
- 
- {% endif %}
+  {% endif %}
 
 
 

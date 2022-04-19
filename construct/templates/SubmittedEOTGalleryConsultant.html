@@ -21,7 +21,7 @@
   <link rel="apple-touch-icon" sizes="76x76" href="{{ url_for('static', filename='assets')}}/img/apple-icon.png">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets')}}/img/favicon.png">
   <title>
-    Project Task Management
+    Submutted EOT
   </title>
   <!--     Fonts and icons     -->
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
@@ -95,7 +95,29 @@
   {% endif %}
   {% endfor %}
   <!--Displays Error Message if No Image references were found for the Task-->
- 
+  {% if check_if_empty == "True" %}
+
+  <div class="container-fluid py-4">
+    <div class="row">
+      <div class="col-12">
+        <div class="card mb-4">
+          <div class="card-header pb-0">
+            <h6>Error</h6>
+
+          </div>
+          <div class="card-body px-0 pt-0 pb-2">
+            <div class="col-md-8 p-lg-5 mx-auto my-5">
+
+              <h6>No Documents are uploaded for this Extension of Time request</h6>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  {% endif %}
 
 
 

@@ -41,8 +41,7 @@
 </head>
 
 
-<!-- Include Modal for Task Creation here-->
-{% include 'includes/taskmodal.html' %}
+
 <!-- Side NavBar Code starts here-->
 {% include 'includes/GlobalSideNavbar.html' %}
 <!-- Side NavBar Code end here-->
@@ -276,7 +275,7 @@
                           <a class="dropdown-item" href="{{url_for('ImageGallery',id=task.id)}}">View Photos</a>
                           {% if current_user.role == 'Contractor' %}
                           <div class="dropdown-divider"></div>
-                          <a class="dropdown-item" href="{{url_for('deleteTask',id=task.id)}}">Delete Task</a>
+                          <a class="dropdown-item" href="{{url_for('deleteTask',id=task.id)}}"><strong>Delete Task</strong> </a>
                           {% endif %}
                         </div>
                       </div>

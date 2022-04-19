@@ -1,7 +1,7 @@
 from flask import render_template, redirect, url_for, flash, get_flashed_messages, request, make_response, jsonify, Response, send_from_directory
-from construct.models import User, Delay, Tasks,  TaskToImage, WorkInspectionRequests, WIRDocument, MaterialInspectionRequests, MIRDocument, MIRConsultantDocument,WIRConsultantDocument, EOTDocument, EOTConsultantDocument
+from construct.models import User, Delay, Tasks,  TaskToImage, WorkInspectionRequests, WIRDocument, MaterialInspectionRequests, MIRDocument, MIRConsultantDocument,WIRConsultantDocument, EOTDocument, EOTConsultantDocument, WorkInspectionRequests
 from construct import app, db, date, timedelta, mail, Message
-from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm, ContactForm,WIRForm, MIRForm
+from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm,WIRSubmitForm, MIRSubmitForm
 from construct.email_send import *
 from flask_login import login_user, logout_user, login_required, current_user
 import time
@@ -12,6 +12,7 @@ import base64
 from twilio.rest import Client
 import os
 import requests, random
+from sqlalchemy import delete
 
 
 
@@ -20,6 +21,19 @@ ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xl
  
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+#####################################################################################################
+#ALL IMAGE AND DOCUMENT UPLOADING MODULES START HERE                                                #
+#ALL GALLERIES FOR IMAGES AND DOCUMENTS START HERE                                                  #
+#ALL ENDPOINTS FOR IMAGE AND DOCUMENT DOWNLOADS START HERE                                          #
+#ENDPOINTS FOR UPDATING THE STATUS OF RECORDS START HERE                                            #
+#ALL FORMS FOR CREATING RECORDS START HERE                                                          #
+#ALL FORM PAGES FOR IMAGE AND DOCUMENT UPLOADS START HERE                                           # 
+# PDF GENERATION MODULES START HERE                                                                 #
+#####################################################################################################
+
+
+
 
 
 ############ The Homepage and Dashboard ####################
@@ -65,18 +79,7 @@ def DashBoard():
 
 ############ All Functions related to Delays ####################
 
-#Deleting Delays
-@app.route("/deletedelay/<int:passed_id>")
-def deleteDelay(passed_id):
-    #pass delay id and remove the row from the DB
-    delay_to_delete = Delay.query.get_or_404(passed_id)
-    db.session.delete(delay_to_delete)
-    db.session.commit()
-    #Send Email notification to Clients
-    #SendNotificationAsContractor("Delay Deletion")
-    flash(f'Record deleted!')
-    return redirect(url_for('delaypage'))
-    
+  
     
 #Path to the Delays Module
 @app.route("/delays", methods=['GET', 'POST'])
@@ -137,90 +140,15 @@ def Taskpage():
     
     return render_template('TaskManagementpage.html', tasks=tasks, taskform=taskform, inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, pending_tasks=pending_tasks, data=data,page_message=page_message, task_count=task_count,page_name=page_name)
 
-    if request.method == "POST":
-    #Grab the form values and perform the relevant DB queries if the request is of type POST
-
-#Creating new Tasks test new gui
-            start_date= taskform.start_date.data      
-            end_date= taskform.end_date.data         
-            total_days= (end_date-start_date).days  
-            print(start_date)
-            print(end_date)
-
-            task_to_create = Tasks(Name=taskform.Name.data,
-                              description=taskform.Description.data,
-                              phase=taskform.phase.data,
-                              Percentage=taskform.percentage.data,
-                              start_date= taskform.start_date.data,
-                              end_date= taskform.end_date.data,
-                              total_estimated_cost= taskform.total_estimated_cost.data,
-                              total_days= total_days )
-            print(start_date)
-            print(end_date)
-            db.session.add(task_to_create)
-            db.session.commit()
-            send_sms("A Task was Updated. Please Check your email man")
-           # SendNotificationAsContractor("Task Record")
-            flash(f'Task Created!')
-            print(start_date)
-            print(end_date)
-
-    return redirect(url_for('delaypage'))
-
 # if the errors in the form error dictionary is not empty
 
-    if form.errors != {}:  
-        for err_msg in taskform.errors.values():
-            flash(f'There has been an exception thrown ==> {err_msg}  <==')
-
-#Delete Task Item
-@app.route("/deleteTask/<int:id>")
-def deleteTask(id):
-    task_to_delete = Tasks.query.get_or_404(id)
-    db.session.delete(task_to_delete)
-    db.session.commit()
-    #SendNotificationAsContractor("Task Item Deletion")
-    flash(f'Task deleted!')
-    return redirect(url_for('Taskpage'))
-
-    
+   
 ############  Functions related to Task management end here ####################
 
 
-############   Work Inspection Request module STARTS here ####################
 
-@app.route("/WorkInspectionReqs", methods=['GET', 'POST'])
-@login_required
-def wir_page():
-    delays = Delay.query.all()
-    wir_list = WorkInspectionRequests.query.all()
-    wirform= WIRForm()
-    today = date.today()
-    
-    
-    
 
- #Render the Task page if the request is of type GET
-    if request.method == "GET":
-        return render_template('WorkInspectionRequest.html', delays=delays,wir_list=wir_list, wirform=wirform)
 
-    if request.method == "POST":
-    #Grab the form values and perform the relevant DB queries if the request is of type POST
-#Creating new Tasks
-             
-            
-
-            wir_to_create = WorkInspectionRequests(name=wirform.Name.data,
-                              description=wirform.Description.data,
-                              submitted_date=today)
-            db.session.add(wir_to_create)
-            db.session.commit()
-            
-            
-            flash(f'WIR Created!')
-           
-
-    return redirect(url_for('wir_page'))
 ############   Work Inspection Request module ENDs here ####################
 
 
@@ -237,36 +165,45 @@ def material_inspection_page():
     ReviseandReSubmit_mirs= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Revise-and-ReSubmit").count()
     Rejected_mirs= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Rejected").count()
     mir_list = MaterialInspectionRequests.query.all()
+    page_message="Material Inspection Request Management"
+    for mir in mir_list:
+        print(mir.id)
+        print(mir.name)
+        print(mir.description)
+        print(mir.status)
     
 #Render the MIR page if the request is of type GET
     if request.method == "GET":
         return render_template('MaterialInspectionManagementPage.html',pending_mirs=pending_mirs,approved_mirs=approved_mirs,Approved_As_Noted_mirs=Approved_As_Noted_mirs,
-        ReviseandReSubmit_mirs=ReviseandReSubmit_mirs,Rejected_mirs=Rejected_mirs,mir_list=mir_list )
+        ReviseandReSubmit_mirs=ReviseandReSubmit_mirs,Rejected_mirs=Rejected_mirs,mir_list=mir_list,page_message=page_message )
 
-    if request.method == "POST":
-    #Grab the form values and perform the relevant DB queries if the request is of type POST
-#Creating new Tasks
-             
-            
-
-            mir_to_create = MaterialInspectionRequests(name=mirform.Name.data,
-                              description=mirform.Description.data,
-                              submitted_date=today)
-            db.session.add(mir_to_create)
-            db.session.commit()
-            
-            
-            flash(f'MIR Created!')
-           
-
-    return redirect(url_for('material_inspection_page'))
+  
 
 
 ############   MATERIAL Inspection Request module ENDS here ####################
 
+############   Work Inspection Request module STARTS here ####################
+
+@app.route("/WorkInspectionReqs", methods=['GET', 'POST'])
+@login_required
+def work_inspection_page():
+    db.create_all()
+    pending_wirs= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Submitted").count()
+    approved_wirs= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Approved!").count()
+    Approved_As_Noted_wirs= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Approved-As-Noted").count()
+    ReviseandReSubmit_wirs= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Revise-and-ReSubmit").count()
+    Rejected_wirs= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Rejected").count()
+    wir_list = WorkInspectionRequests.query.all()
+    page_message="Work Inspection Request Management"
+
+#Render the WIR page if the request is of type GET
+    if request.method == "GET":
+        return render_template('WorkInspectionManagementPage.html',pending_wirs=pending_wirs,approved_wirs=approved_wirs,Approved_As_Noted_wirs=Approved_As_Noted_wirs,
+        ReviseandReSubmit_wirs=ReviseandReSubmit_wirs,Rejected_wirs=Rejected_wirs,wir_list=wir_list,page_message=page_message )
 
 
 
+############   Work Inspection Request module ENDS here ####################
 
 
 ############ All Functions related to Registration and Login ####################
@@ -322,10 +259,55 @@ def logout_page():
 
 ############ All Functions related to Registration and Login END HERE ####################
 
+################  ALL Delete records Modules are written here ####################
 
 
+#Deleting Delays
+@app.route("/deletedelay/<int:passed_id>")
+def deleteDelay(passed_id):
+    #pass delay id and remove the row from the DB
+    delay_to_delete = Delay.query.get_or_404(passed_id)
+    db.session.delete(delay_to_delete)
+    db.session.commit()
+    #Send Email notification to Clients
+    #SendNotificationAsContractor("Delay record Deletion")
+    flash(f'Record deleted!')
+    return redirect(url_for('delaypage'))
+
+#Delete Task Item
+@app.route("/deleteTask/<int:id>")
+def deleteTask(id):
+    task_to_delete = Tasks.query.get_or_404(id)
+    db.session.delete(task_to_delete)
+    db.session.commit()
+    #SendNotificationAsContractor("Task Item Deletion")
+    flash(f'Task deleted!')
+    return redirect(url_for('Taskpage'))
+
+#Delete MIR Item
+@app.route("/deleteMIR/<int:passed_id>")
+def deleteMIR(passed_id):
+    #Deletes the MIR request
+    mir_to_delete = MaterialInspectionRequests.query.get_or_404(passed_id)
+    db.session.delete(mir_to_delete)
+    db.session.commit()
+    #SendNotificationAsContractor("Material Inspection record Deletion")
+    flash(f'MIR deleted!')
+    return redirect(url_for('material_inspection_page'))
+
+#Delete MIR Item
+@app.route("/deleteWIR/<int:passed_id>")
+def deleteWIR(passed_id):
+    #Deletes the MIR request
+    wir_to_delete = WorkInspectionRequests.query.get_or_404(passed_id)
+    db.session.delete(wir_to_delete)
+    db.session.commit()
+    #SendNotificationAsContractor("Material Inspection record Deletion")
+    flash(f'WIR deleted!')
+    return redirect(url_for('work_inspection_page'))
 
 
+################  ALL Delete records Modules END here ####################
 
 
 
@@ -356,7 +338,7 @@ def DelayPDFPage():
     #Builds the response with the pdf attached in the response content
     response = make_response(pdf)
     response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = 'inline; filename=Delaypdfreport.pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=DelayReport.pdf'
     #SendNotificationAsContractor("PDF Report Generation")
     return response
 
@@ -379,7 +361,67 @@ def TaskPDFPage():
     #Builds the response with the pdf attached in the response content
     response = make_response(pdf)
     response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = 'inline; filename=taskpdfreport.pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=TaskReport.pdf'
+    #SendNotificationAsContractor("PDF Report Generation")
+    return response
+
+
+@app.route("/MIRPdfGeneration", methods=['GET', 'POST'])
+@login_required
+def MIRPDFPage():
+
+    #Query DB for objects to pass to table and cards
+    db.create_all()
+    pending_mirs= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Submitted").count()
+    approved_mirs= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Approved!").count()
+    Approved_As_Noted_mirs= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Approved-As-Noted").count()
+    ReviseandReSubmit_mirs= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Revise-and-ReSubmit").count()
+    Rejected_mirs= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Rejected").count()
+    mir_list = MaterialInspectionRequests.query.all()
+    total_mir=len(mir_list)
+    today = date.today()
+    # Render the HTML page with the passed information. This will be converted into a PDF
+    #Use the following status types in forms: Submitted,Approved, Approved-As-Noted, Revise-and-ReSubmit, Rejected
+    rendered= render_template('MIRpdf.html', pending_mirs=pending_mirs,approved_mirs=approved_mirs,Approved_As_Noted_mirs=Approved_As_Noted_mirs,
+        ReviseandReSubmit_mirs=ReviseandReSubmit_mirs,Rejected_mirs=Rejected_mirs,mir_list=mir_list,today=today,total_mir=total_mir)
+
+    #Converts the saved HTML as a pdf document. Saved in memory
+    pdf = pdfkit.from_string(rendered, False)
+    #Builds the response with the pdf attached in the response content
+    response = make_response(pdf)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=MIRReport.pdf'
+    #SendNotificationAsContractor("PDF Report Generation")
+    return response
+
+
+
+
+@app.route("/WIRPdfGeneration", methods=['GET', 'POST'])
+@login_required
+def WIRPdfGeneration():
+
+    #Query DB for objects to pass to table and cards
+    db.create_all()
+    pending_wirs= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Submitted").count()
+    approved_wirs= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Approved!").count()
+    Approved_As_Noted_wirs= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Approved-As-Noted").count()
+    ReviseandReSubmit_wirs= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Revise-and-ReSubmit").count()
+    Rejected_wirs= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Rejected").count()
+    wir_list = WorkInspectionRequests.query.all()
+    total_wir=len(wir_list)
+    today = date.today()
+    # Render the HTML page with the passed information. This will be converted into a PDF
+    #Use the following status types in forms: Submitted,Approved, Approved-As-Noted, Revise-and-ReSubmit, Rejected
+    rendered= render_template('WIRpdf.html', pending_wirs=pending_wirs,approved_wirs=approved_wirs,Approved_As_Noted_wirs=Approved_As_Noted_wirs,
+        ReviseandReSubmit_wirs=ReviseandReSubmit_wirs,Rejected_wirs=Rejected_wirs,wir_list=wir_list,today=today,total_wir=total_wir)
+
+    #Converts the saved HTML as a pdf document. Saved in memory
+    pdf = pdfkit.from_string(rendered, False)
+    #Builds the response with the pdf attached in the response content
+    response = make_response(pdf)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=WIRReport.pdf'
     #SendNotificationAsContractor("PDF Report Generation")
     return response
 
@@ -419,7 +461,7 @@ def TaskPDFPageEmail():
     # Render the HTML page with the passed information. This will be converted into a PDF
     rendered= render_template('taskpdf.html', pending_tasks=pending_tasks, completed_tasks=completed_tasks,inprogress_tasks=inprogress_tasks, data=data, today=today, tasks=tasks )
     #generate the pdf and store it in the appropriate directory
-    pdf = pdfkit.from_string(rendered, 'construct/newtaskpdf.pdf')
+    pdf = pdfkit.from_string(rendered, 'construct/TaskReport.pdf')
 
     
     
@@ -435,22 +477,21 @@ def TaskPDFPageEmail():
 @app.route("/DelayPdfEmail", methods=['GET', 'POST'])
 @login_required
 def DelayPDFPageEmail():
-
-     
-   
-    
-
     #Query DB for objects to pass to table and cards
     delays = Delay.query.all()
-    gannt_data = delays
     pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
-    approved_delays= Delay.query.filter(Delay.status == "Approved").count()
-    delay_count = pending_delays+approved_delays
+    approved_delays= Delay.query.filter(Delay.status == "Approved!").count()
+    Approved_As_Noted_delays= Delay.query.filter(Delay.status == "Approved-As-Noted").count()
+    ReviseandReSubmit_delays= Delay.query.filter(Delay.status == "Revise-and-ReSubmit").count()
+    Rejected_delays= Delay.query.filter(Delay.status == "Rejected").count()
+    delay_count = pending_delays+approved_delays+Approved_As_Noted_delays+ReviseandReSubmit_delays+Rejected_delays
     today = date.today()
     #render the html page that will be converted into a pdf
-    rendered= render_template('Delaypdf.html', pending_delays=pending_delays,approved_delays=approved_delays, delay_count=delay_count, today=today, delays=delays)
+    rendered= render_template('Delaypdf.html', pending_delays=pending_delays,approved_delays=approved_delays,
+                        Approved_As_Noted_delays=Approved_As_Noted_delays,ReviseandReSubmit_delays=ReviseandReSubmit_delays,
+                         Rejected_delays=Rejected_delays,delay_count=delay_count, today=today, delays=delays)
     #generate the pdf and store it in the appropriate directory
-    pdf = pdfkit.from_string(rendered, 'construct/newdelaypdf.pdf')
+    pdf = pdfkit.from_string(rendered, 'construct/DelayReport.pdf')
 
     
     
@@ -462,6 +503,56 @@ def DelayPDFPageEmail():
 
 
     return redirect('/delays', code=302)
+
+@app.route("/MIRPdfEmail", methods=['GET', 'POST'])
+@login_required
+def MIRPDFPageEmail():
+    #Query DB for objects to pass to table and cards
+    db.create_all()
+    pending_mirs= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Submitted").count()
+    approved_mirs= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Approved!").count()
+    Approved_As_Noted_mirs= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Approved-As-Noted").count()
+    ReviseandReSubmit_mirs= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Revise-and-ReSubmit").count()
+    Rejected_mirs= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Rejected").count()
+    mir_list = MaterialInspectionRequests.query.all()
+    total_mir=len(mir_list)
+    today = date.today()
+    #render the html page that will be converted into a pdf
+    rendered= render_template('MIRpdf.html', pending_mirs=pending_mirs,approved_mirs=approved_mirs,Approved_As_Noted_mirs=Approved_As_Noted_mirs,
+        ReviseandReSubmit_mirs=ReviseandReSubmit_mirs,Rejected_mirs=Rejected_mirs,mir_list=mir_list,today=today,total_mir=total_mir)
+    #generate the pdf and store it in the appropriate directory
+    pdf = pdfkit.from_string(rendered, 'construct/MIRReport.pdf')    
+    #send_sms()calls the send_sms function to send an sms to stakeholders. Message body is passed as a parameter
+    #SendDelayReport() calls the imported function to send an email notification to the stakeholders with the attached pdf that is generated
+    SendMIRReport()
+    send_sms("Material Inspected Report was Generated and sent to your email")
+    return redirect('/delays', code=302)
+
+@app.route("/WIRPdfEmail", methods=['GET', 'POST'])
+@login_required
+def WIRPDFPageEmail():
+    #Query DB for objects to pass to table and cards
+    db.create_all()
+    pending_wirs= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Submitted").count()
+    approved_wirs= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Approved!").count()
+    Approved_As_Noted_wirs= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Approved-As-Noted").count()
+    ReviseandReSubmit_wirs= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Revise-and-ReSubmit").count()
+    Rejected_wirs= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Rejected").count()
+    wir_list = WorkInspectionRequests.query.all()
+    total_wir=len(wir_list)
+    today = date.today()
+    #render the html page that will be converted into a pdf
+    rendered= render_template('WIRpdf.html', pending_wirs=pending_wirs,approved_wirs=approved_wirs,Approved_As_Noted_wirs=Approved_As_Noted_wirs,
+        ReviseandReSubmit_wirs=ReviseandReSubmit_wirs,Rejected_wirs=Rejected_wirs,wir_list=wir_list,today=today,total_wir=total_wir)
+    #generate the pdf and store it in the appropriate directory
+    pdf = pdfkit.from_string(rendered, 'construct/WIRReport.pdf')    
+    #send_sms()calls the send_sms function to send an sms to stakeholders. Message body is passed as a parameter
+    #SendDelayReport() calls the imported function to send an email notification to the stakeholders with the attached pdf that is generated
+    SendWIRReport()
+    send_sms("Work Inspected Report was Generated and sent to your email")
+    return redirect('/WorkInspectionReqs', code=302)
+
+
 
 
 #EMAIL NOTIFICATION MODULES END HERE
@@ -517,8 +608,9 @@ def upload_wir():
         
         flash('The document has been  successfully uploaded!!!! ')
         today = date.today()
+        submitted_user= current_user.username
         #Entering the document reference record to the database
-        wir_reference_to_save = WIRDocument(wir_id=wir_ID,wir_file_name=filename, status=status,submitted_date=today)
+        wir_reference_to_save = WIRDocument(wir_id=wir_ID,wir_file_name=filename, status=status,submitted_date=today,submitted_by=submitted_user)
         db.session.add(wir_reference_to_save)
         db.session.commit()
 
@@ -543,10 +635,10 @@ def upload_mir():
         filename = secure_filename(file.filename)
         mir_ID= request.form['mir']
         file.save(os.path.join(app.root_path, "static/mir", filename))
-        
+        submitted_user= current_user.username
         today = date.today()
         #Entering the document reference record to the database
-        mir_reference_to_save = MIRDocument(mir_id=mir_ID,mir_file_name=filename, status=status,submitted_date=today)
+        mir_reference_to_save = MIRDocument(mir_id=mir_ID,mir_file_name=filename, status=status,submitted_date=today,submitted_by=submitted_user)
         db.session.add(mir_reference_to_save)
         db.session.commit()
 
@@ -588,9 +680,9 @@ def upload_eot():
 
 #ALL UPLOADS AS CONSULTANT START HERE
 
-@app.route('/UploadConsultantMIR', methods=['POST'])
+@app.route('/UploadMIRConsultant', methods=['POST'])
 def upload_mir_consultant():
-    db.create_all()
+
     status="Submitted"
     if 'file' not in request.files:
         flash('No file part')
@@ -603,15 +695,14 @@ def upload_mir_consultant():
         filename = secure_filename(file.filename)
         mir_ID= request.form['mir']
         file.save(os.path.join(app.root_path, "static/consultant_mir", filename))
-        
-        flash('The document has been  successfully uploaded!!!! ')
-        
-        #Entering the document reference record to the database
+        submitted_user= current_user.username
         today = date.today()
-        consultant_reference_to_save = MIRConsultantDocument(mir_id=mir_ID,mir_file_name=filename, status=status,submitted_date=today)
-        db.session.add(consultant_reference_to_save)
+        #Entering the document reference record to the database
+        mir_reference_to_save = MIRConsultantDocument(mir_id=mir_ID,mir_file_name=filename, status=status,submitted_date=today,submitted_by=submitted_user)
+        db.session.add(mir_reference_to_save)
         db.session.commit()
 
+        flash('The document has been  successfully uploaded!!!   ')
         return redirect('/MaterialInspectReqs', code=302)
     else:
         print("sum shit wrong with the file extensions")
@@ -675,7 +766,7 @@ def upload_eot_consultant():
 
         return redirect('/delays', code=302)
     else:
-        print("sum shit wrong with the file extensions")
+        print("Incompatible file extension used")
         flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
         return redirect(request.url)
 
@@ -688,82 +779,124 @@ def upload_eot_consultant():
 @app.route("/ImageGallery/<int:id>", methods=['GET', 'POST'])
 def ImageGallery(id):
         tasks= TaskToImage.query.all()
-        
         print(tasks)
         ident=str(id)
+        contains_image=[]
+
+        for task in tasks:
+            if task.task_id == ident:
+                contains_image.append(1)
+        print(contains_image)
+        if contains_image:
+            image="Has an image"
+        else:
+            image="empty"
+
         page_message="Image Gallery for Task"
-      #  return Response(images=images, mimetype=img.mimetype)
-        return render_template('ImageGallery.html', taskref=tasks, taskid=ident, page_message=page_message)
+        return render_template('ImageGallery.html', taskref=tasks, taskid=ident, page_message=page_message,image=image)
+        
 
 @app.route("/WIRSubmitted/<string:passed_id>", methods=['GET', 'POST'])
 @login_required
 def wir_submitted_page(passed_id):
-        wir_list=[]
         submitted_wir= WIRDocument.query.all()
-        
-        
-        
-      #  return Response(images=images, mimetype=img.mimetype)
-        return render_template('WIRSubmittedPage.html', fileNamelist=submitted_wir, passed_wir=str(passed_id))
 
-@app.route("/MIRSubmitted/<string:passed_id>", methods=['GET', 'POST'])
-@login_required
-def mir_submitted_page(passed_id):
-        
-        submitted_mir= MIRDocument.query.all()
-        
-        
-        
-      #  return Response(images=images, mimetype=img.mimetype)
-        return render_template('MIRSubmittedPage.html', fileNamelist=submitted_mir, passed_mir_id=str(passed_id))
+        contains_wir=[]
+        page_message="WIR's Submitted by the Contractor"
+        return render_template('WIRSubmittedPage.html', fileNamelist=submitted_wir, passed_wir=str(passed_id),wir_recs=wir_recs)
+
+
 
 
 @app.route("/EOTSubmitted/<string:passed_id>", methods=['GET', 'POST'])
 @login_required
 def eot_submitted_page(passed_id):
-
         submitted_eot= EOTDocument.query.all()
-        
-        
-        
-      #  return Response(images=images, mimetype=img.mimetype)
-        return render_template('SubmittedEOTGallery.html', submited_eot_refs=submitted_eot, passed_eot_id=str(passed_id))
+        check_if_empty=[]
+
+        for eot in submitted_eot:
+            if eot.eot_ID == passed_id:
+                check_if_empty.append(eot.eot_ID)
+        if check_if_empty:
+            check_if_empty="False"
+        else:
+            check_if_empty="True"
+
+
+
+        page_message="EOT's Submitted by the Contractor"
+        return render_template('SubmittedEOTGallery.html', submited_eot_refs=submitted_eot, passed_eot_id=str(passed_id),check_if_empty=check_if_empty)
+
 
 @app.route("/EOTSubmittedConsultant/<string:passed_id>", methods=['GET', 'POST'])
 @login_required
 def eot_submitted_page_consultant(passed_id):
-
         submitted_eot= EOTConsultantDocument.query.all()
-        
-        
-        
-      #  return Response(images=images, mimetype=img.mimetype)
-        return render_template('SubmittedEOTGalleryConsultant.html', submited_eot_refs=submitted_eot, passed_eot_id=str(passed_id))
+        check_if_empty=[]
 
-@app.route("/ConsultantMIRSubmitted/<string:passed_id>", methods=['GET', 'POST'])
-@login_required
-def consultant_mir_submitted_page(passed_id):
+        for eot in submitted_eot:
+            if eot.eot_ID == passed_id:
+                check_if_empty.append(eot.eot_ID)
+        if check_if_empty:
+            check_if_empty="False"
+        else:
+            check_if_empty="True"
+
+        page_message="EOT's Submitted by the Consultant"
+        return render_template('SubmittedEOTGalleryConsultant.html', submited_eot_refs=submitted_eot, passed_eot_id=str(passed_id),check_if_empty=check_if_empty)
+
+
         
-        submitted_mir_document= MIRConsultantDocument.query.all()
-        
-        
-        
-      #  return Response(images=images, mimetype=img.mimetype)
-        return render_template('ConsultantMIRSubmittedPage.html', fileNamelist=submitted_mir_document, passed_mir_id=str(passed_id))
 
 @app.route("/ConsultantWIRSubmitted/<string:passed_id>", methods=['GET', 'POST'])
 @login_required
 def consultant_Wir_submitted_page(passed_id):
-        
-        submitted_Wir_document= WIRConsultantDocument.query.all()
-        
-        
-        
+        submitted_Wir_document= WIRConsultantDocument.query.all()        
+        page_message="WIR's Submitted by the Consultant"
       #  return Response(images=images, mimetype=img.mimetype)
         return render_template('ConsultantWIRSubmittedPage.html', fileNamelist=submitted_Wir_document, passed_wir_id=str(passed_id))
  
-#ALL IMAGE GALLERY AND SUBMITTED DOCUMENT DISPLAY PAGES END HERE
 
+@app.route("/MIRSubmittedGallery/<string:passed_id>", methods=['GET', 'POST'])
+@login_required
+def mir_submitted_page(passed_id):
+        submitted_mir= MIRDocument.query.all()     
+        check_if_empty=[]
+
+        for mir in submitted_mir:
+            if mir.mir_id == passed_id:
+                check_if_empty.append(mir.mir_id)
+        if submitted_mir:
+            mir_list_is_empty="False"
+        else:
+            mir_list_is_empty="True"
+
+        
+
+        page_message="MIR's submitted by the Contractor"
+        return render_template('SubmittedMIRGallery.html', submitted_mir=submitted_mir, passed_mir_id=str(passed_id),mir_list_is_empty=mir_list_is_empty)
+
+@app.route("/MIRSubmittedGalleryConsultant/<string:passed_id>", methods=['GET', 'POST'])
+@login_required
+def mir_submitted_page_consultant(passed_id):
+        submitted_mir= MIRConsultantDocument.query.all()
+        check_if_empty=[]
+
+        for mir in submitted_mir:
+            if mir.mir_id == passed_id:
+                check_if_empty.append(mir.mir_id)
+        if submitted_mir:
+            mir_list_is_empty="False"
+        else:
+            mir_list_is_empty="True"
+
+
+
+        page_message="MIR's submitted by the Contractor"
+        return render_template('SubmittedMIRGalleryConsultant.html', submitted_mir=submitted_mir, passed_mir_id=str(passed_id),mir_list_is_empty=mir_list_is_empty)
+
+
+#ALL IMAGE GALLERY AND SUBMITTED DOCUMENT DISPLAY PAGES END HERE
 
 
 
@@ -865,7 +998,7 @@ def WIRStatusUpdate(passed_id):
         print("Status set as Rejected in the DB")
         flash(f'WIR set as Rejected!')
 
-    return redirect(url_for('wir_page'))
+    return redirect(url_for('work_inspection_page'))
 
 #Updating Task Records
 @app.route("/TaskStatusUpdate/<string:passed_id>")
@@ -945,7 +1078,7 @@ def MIRStatusUpdate(passed_id):
 
     return redirect(url_for('material_inspection_page'))
 
-#Updating Work Inspection Request Records
+#Updating Delay Request Records
 @app.route("/DelayStatusUpdate/<string:passed_id>")
 def EOTStatusUpdate(passed_id):
     print("The EOT ID passed from the page is: "+ passed_id)
@@ -1030,6 +1163,10 @@ def TaskCreate():
             print(end_date)
 
     return redirect(url_for('Taskpage'))
+    #Throw execptions if there are errors in the data entered into he form 
+    if form.errors != {}:  
+        for err_msg in taskform.errors.values():
+            flash(f'There has been an exception thrown ==> {err_msg}  <==')
 
 # if the errors in the form error dictionary is not empty
 
@@ -1064,11 +1201,75 @@ def DelayCreate():
     
     return redirect(url_for('delaypage'))
 
+
+
+#FORM PAGE FOR CREATING MATERIAL INSPECTION REQUESTS
+@app.route("/MIRCreateForm", methods=['GET', 'POST'])
+@login_required
+def MIRCreate():
+    db.create_all()
+    MIRForm = MIRSubmitForm()
+    if request.method == "GET":
+        return render_template('MIRCreateForm.html', MIRForm=MIRForm)
+
+    if request.method == "POST":
+
+#Creating new Delays
+            today = date.today()
+            mir_to_create = MaterialInspectionRequests(type=MIRForm.Type.data,name=MIRForm.Name.data, description=MIRForm.Description .data, submitted_date=today)
+           
+            db.session.add(mir_to_create)
+            db.session.commit()
+            #SendNotificationAsContractor("EOT Submission")
+           # send_sms("A Material Inspection request Was Submitted by the Contractor")
+            
+            flash(f'Material Inspection Request Created!')     
+            
+           
+    
+    return redirect(url_for('material_inspection_page'))
+
 # if the errors in the form error dictionary is not empty
 
     if form.errors != {}:  
         for err_msg in taskform.errors.values():
             flash(f'There has been an exception thrown ==> {err_msg}  <==')
+
+#FORM PAGE FOR CREATING WORK INSPECTION REQUESTS
+@app.route("/WIRCreateForm", methods=['GET', 'POST'])
+@login_required
+def WIRCreate():
+    db.create_all()
+    WIRForm = WIRSubmitForm()
+    if request.method == "GET":
+        return render_template('WIRCreateForm.html', WIRForm=WIRForm)
+
+    if request.method == "POST":
+
+            today = date.today()
+            wir_to_create = WorkInspectionRequests(type=WIRForm.Type.data,name=WIRForm.Name.data, description=WIRForm.Description .data, submitted_date=today)
+           
+            db.session.add(wir_to_create)
+            db.session.commit()
+            print("The WIR record has been created")
+            #SendNotificationAsContractor("EOT Submission")
+           # send_sms("A Material Inspection request Was Submitted by the Contractor")
+            
+            flash(f'Work Inspection Request Created!')     
+            
+           
+    
+    return redirect(url_for('work_inspection_page'))
+
+# if the errors in the form error dictionary is not empty
+
+    if form.errors != {}:  
+        for err_msg in taskform.errors.values():
+            flash(f'There has been an exception thrown ==> {err_msg}  <==')
+
+
+
+
 
 
 
@@ -1082,7 +1283,7 @@ def TaskImageUpload():
      
 
      return render_template('TaskImageupload.html', tasks=tasks)
-
+#---------------------
 @app.route("/DelayEOTUploadPage", methods=['GET', 'POST'])
 @login_required
 def delayEOTUploadPage():
@@ -1091,7 +1292,7 @@ def delayEOTUploadPage():
      
 
      return render_template('EOTDocumentUpload.html', delays=delays)
-
+#---------------------
 @app.route("/ConsultantDelayEOTUploadPage", methods=['GET', 'POST'])
 @login_required
 def delayEOTUploadPageConsultant():
@@ -1100,5 +1301,42 @@ def delayEOTUploadPageConsultant():
      
 
      return render_template('EOTDocumentUploadConsultant.html', delays=delays)
+#---------------------
+@app.route("/MIRDocumentUploadPage", methods=['GET', 'POST'])
+@login_required
+def MIRDocumentUploadPage():
+
+    mir_list = MaterialInspectionRequests.query.all()
+
+     
+
+    return render_template('MIRDocumentUpload.html', mir_list=mir_list)
+#--------------------------
+
+@app.route("/ConsultantMIRDocumentUploadPage", methods=['GET', 'POST'])
+@login_required
+def ConsultantMIRDocumentUploadPage():
+
+    mir_list = MaterialInspectionRequests.query.all()
+    
+     
+
+    return render_template('MIRDocumentUploadConsultant.html', mir_list=mir_list)
+#----------------------------
+
+@app.route("/WIRDocumentUploadPage", methods=['GET', 'POST'])
+@login_required
+def WIRDocumentUploadPage():
+
+    wir_list = WorkInspectionRequests.query.all()
+
+     
+
+    return render_template('WIRDocumentUpload.html', wir_list=wir_list)
+
+
+
+
+
 
     #ALL FORM PAGES FOR IMAGE AND DOCUMENT UPLOADS END HERE
