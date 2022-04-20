@@ -37,7 +37,7 @@ class LoginForm(FlaskForm):
 
 class DelayForm(FlaskForm):
 
-    type = SelectField(u'Category', choices=[('Workforce', 'Workforce'), ('Financial', 'Financial'), ('Weather', 'Weather'), ('Logistics', 'Logistics'), (' Miscellaneous', ' Miscellaneous')])
+    type_of = SelectField(u'Category', choices=[('Workforce', 'Workforce'), ('Financial', 'Financial'), ('Weather', 'Weather'), ('Logistics', 'Logistics'), (' Miscellaneous', ' Miscellaneous')])
     description = StringField(label='Description', validators=[
                                 DataRequired()])
 
@@ -68,28 +68,23 @@ class TaskForm(FlaskForm):
     submit = SubmitField(label='Submit Task')
 
 
-
-class ContactForm(FlaskForm):
-    name = StringField(label='User Name', validators=[DataRequired()])
-    email_address = StringField(label='Email Address', validators=[DataRequired()])
-    contact_no= StringField(label='Contact Number', validators=[DataRequired()])
-    role = SelectField(u'Role', choices=[('Client', 'Client'), ('Consultant', 'Consultant'), ('Contractor', 'Contractor')])
-    submit = SubmitField(label='Create User')
     
 
 
-class WIRForm(FlaskForm):
+class WIRSubmitForm(FlaskForm):
     Name = StringField(label='Name', validators=[
                                 DataRequired()])
     Description = StringField(label='Description', validators=[
                                 DataRequired()])
+    Type = SelectField(u'Type', choices=[('Plumbing', 'Plumbing'), ('Electrical', 'Electrical'), ('Roofing', 'Roofing'),('Flooring', 'Flooring'),('Interior', 'Interior')])
     submit = SubmitField(label='Submit WIR')
 
-class MIRForm(FlaskForm):
+class MIRSubmitForm(FlaskForm):
     Name = StringField(label='Name', validators=[
                                 DataRequired()])
     Description = StringField(label='Description', validators=[
                                 DataRequired()])
+    Type = SelectField(u'Type', choices=[('Raw Material', 'Raw Material'), ('Electrical', 'Electrical'), ('Roofing', 'Roofing'),('Metal', 'Metal'),('Interior', 'Interior')])
     submit = SubmitField(label='Submit MIR')
    
  
