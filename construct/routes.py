@@ -148,10 +148,6 @@ def Taskpage():
 
 
 
-
-############   Work Inspection Request module ENDs here ####################
-
-
 ############   MATERIAL Inspection Request module STARTS here ####################
 
 
@@ -461,7 +457,7 @@ def TaskPDFPageEmail():
     # Render the HTML page with the passed information. This will be converted into a PDF
     rendered= render_template('taskpdf.html', pending_tasks=pending_tasks, completed_tasks=completed_tasks,inprogress_tasks=inprogress_tasks, data=data, today=today, tasks=tasks )
     #generate the pdf and store it in the appropriate directory
-    pdf = pdfkit.from_string(rendered, 'construct/TaskReport.pdf')
+    pdf = pdfkit.from_string(rendered, 'construct/pdf/TaskReport.pdf')
 
     
     
@@ -491,7 +487,7 @@ def DelayPDFPageEmail():
                         Approved_As_Noted_delays=Approved_As_Noted_delays,ReviseandReSubmit_delays=ReviseandReSubmit_delays,
                          Rejected_delays=Rejected_delays,delay_count=delay_count, today=today, delays=delays)
     #generate the pdf and store it in the appropriate directory
-    pdf = pdfkit.from_string(rendered, 'construct/DelayReport.pdf')
+    pdf = pdfkit.from_string(rendered, 'construct/pdf/DelayReport.pdf')
 
     
     
@@ -521,7 +517,7 @@ def MIRPDFPageEmail():
     rendered= render_template('MIRpdf.html', pending_mirs=pending_mirs,approved_mirs=approved_mirs,Approved_As_Noted_mirs=Approved_As_Noted_mirs,
         ReviseandReSubmit_mirs=ReviseandReSubmit_mirs,Rejected_mirs=Rejected_mirs,mir_list=mir_list,today=today,total_mir=total_mir)
     #generate the pdf and store it in the appropriate directory
-    pdf = pdfkit.from_string(rendered, 'construct/MIRReport.pdf')    
+    pdf = pdfkit.from_string(rendered, 'construct/pdf/MIRReport.pdf')    
     #send_sms()calls the send_sms function to send an sms to stakeholders. Message body is passed as a parameter
     #SendDelayReport() calls the imported function to send an email notification to the stakeholders with the attached pdf that is generated
     SendMIRReport()
@@ -545,9 +541,10 @@ def WIRPDFPageEmail():
     rendered= render_template('WIRpdf.html', pending_wirs=pending_wirs,approved_wirs=approved_wirs,Approved_As_Noted_wirs=Approved_As_Noted_wirs,
         ReviseandReSubmit_wirs=ReviseandReSubmit_wirs,Rejected_wirs=Rejected_wirs,wir_list=wir_list,today=today,total_wir=total_wir)
     #generate the pdf and store it in the appropriate directory
-    pdf = pdfkit.from_string(rendered, 'construct/WIRReport.pdf')    
+    pdf = pdfkit.from_string(rendered, 'construct/pdf/WIRReport.pdf')    
     #send_sms()calls the send_sms function to send an sms to stakeholders. Message body is passed as a parameter
     #SendDelayReport() calls the imported function to send an email notification to the stakeholders with the attached pdf that is generated
+    time.sleep(3)
     SendWIRReport()
     send_sms("Work Inspected Report was Generated and sent to your email")
     return redirect('/WorkInspectionReqs', code=302)
@@ -723,14 +720,16 @@ def upload_wir_consultant():
         return redirect(request.url)
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        mir_ID= request.form['wir']
+        wir_ID= request.form['wir']
         file.save(os.path.join(app.root_path, "static/consultant_wir", filename))
         
-        flash('The document has been  successfully uploaded!!!! ')
+        flash('The WIR document has been  successfully uploaded!!!! ')
         
         #Entering the document reference record to the database
         today = date.today()
-        consultant_reference_to_save = WIRConsultantDocument(wir_id=mir_ID,wir_file_name=filename, status=status,submitted_date=today)
+        submitted_user= current_user.username
+        
+        consultant_reference_to_save = WIRConsultantDocument(wir_id=wir_ID,wir_file_name=filename, status=status,submitted_date=today, submitted_by=submitted_user)
         db.session.add(consultant_reference_to_save)
         db.session.commit()
 
@@ -796,14 +795,20 @@ def ImageGallery(id):
         return render_template('ImageGallery.html', taskref=tasks, taskid=ident, page_message=page_message,image=image)
         
 
-@app.route("/WIRSubmitted/<string:passed_id>", methods=['GET', 'POST'])
+@app.route("/WIRSubmittedGallery/<string:passed_id>", methods=['GET', 'POST'])
 @login_required
 def wir_submitted_page(passed_id):
         submitted_wir= WIRDocument.query.all()
+        has_wir_id = "False"
+        for wir in submitted_wir:
+            if wir.wir_id == passed_id:
+                has_wir_id="True"
+                break
 
-        contains_wir=[]
+
+
         page_message="WIR's Submitted by the Contractor"
-        return render_template('WIRSubmittedPage.html', fileNamelist=submitted_wir, passed_wir=str(passed_id),wir_recs=wir_recs)
+        return render_template('SubmittedWIRGallery.html', submitted_wir=submitted_wir, passed_wir_id=str(passed_id),has_wir_id=has_wir_id)
 
 
 
@@ -851,10 +856,19 @@ def eot_submitted_page_consultant(passed_id):
 @app.route("/ConsultantWIRSubmitted/<string:passed_id>", methods=['GET', 'POST'])
 @login_required
 def consultant_Wir_submitted_page(passed_id):
-        submitted_Wir_document= WIRConsultantDocument.query.all()        
+        submitted_Wir_document= WIRConsultantDocument.query.all()
+        has_wir_id = "False"
+        for wir in submitted_Wir_document:
+            if wir.wir_id == passed_id:
+                has_wir_id="True"
+                break
+
+
+
+
         page_message="WIR's Submitted by the Consultant"
       #  return Response(images=images, mimetype=img.mimetype)
-        return render_template('ConsultantWIRSubmittedPage.html', fileNamelist=submitted_Wir_document, passed_wir_id=str(passed_id))
+        return render_template('SubmittedWIRGalleryConsultant.html', submitted_Wir_document=submitted_Wir_document, passed_wir_id=str(passed_id),has_wir_id=has_wir_id)
  
 
 @app.route("/MIRSubmittedGallery/<string:passed_id>", methods=['GET', 'POST'])
@@ -910,14 +924,14 @@ def downloadwir(wir_name):
     uploads = os.path.join(app.root_path, "static/wir")
     print("The path to the downloaded file is: "+uploads)
     return send_from_directory(directory=uploads, path=wir_name, as_attachment=True)
-
+#------------------------------------------------------------
 @app.route('/downloadmir/<mir_name>,', methods=['GET', 'POST'])
 def downloadmir(mir_name):
 
     uploads = os.path.join(app.root_path, "static/mir")
     print("The path to the downloaded file is: "+uploads)
     return send_from_directory(directory=uploads, path=mir_name, as_attachment=True)
-
+#------------------------------------------------------------
 @app.route('/downloadeot/<eot_name>,', methods=['GET', 'POST'])
 def downloadeot(eot_name):
 
@@ -935,14 +949,14 @@ def downloadconsultantmir(mir_name):
     uploads = os.path.join(app.root_path, "static/consultant_mir")
     print("The path to the downloaded file is: "+uploads)
     return send_from_directory(directory=uploads, path=mir_name, as_attachment=True)
-
+#------------------------------------------------------------
 @app.route('/downloadconsultantwir/<wir_name>,', methods=['GET', 'POST'])
 def downloadconsultantwir(wir_name):
 
     uploads = os.path.join(app.root_path, "static/consultant_wir")
     print("The path to the downloaded file is: "+uploads)
     return send_from_directory(directory=uploads, path=wir_name, as_attachment=True)
-
+#------------------------------------------------------------
 @app.route('/downloadconsultanteot/<eot_name>,', methods=['GET', 'POST'])
 def downloadconsultanteot(eot_name):
 
@@ -1334,9 +1348,38 @@ def WIRDocumentUploadPage():
 
     return render_template('WIRDocumentUpload.html', wir_list=wir_list)
 
+@app.route("/ConsultantWIRDocumentUploadPage", methods=['GET', 'POST'])
+@login_required
+def ConsultantWIRDocumentUploadPage():
+
+    wir_list = WorkInspectionRequests.query.all()
+    
+     
+
+    return render_template('WIRDocumentUploadConsultant.html', wir_list=wir_list)
+
 
 
 
 
 
     #ALL FORM PAGES FOR IMAGE AND DOCUMENT UPLOADS END HERE
+
+
+@app.route("/GroupChat", methods=['GET', 'POST'])
+@login_required
+def group_chat_page():
+    page_message="Group Chat"
+    return render_template('GroupChat.html',page_message=page_message)
+
+@app.route("/ConsultantChat", methods=['GET', 'POST'])
+@login_required
+def consultant_chat_page():
+    page_message="Consultant Chat"
+    return render_template('ConsultantChat.html',page_message=page_message)
+
+@app.route("/ContractorChat", methods=['GET', 'POST'])
+@login_required
+def contractor_chat_page():
+    page_message="Contractor's Chat Page"
+    return render_template('ContractorChat.html',page_message=page_message)

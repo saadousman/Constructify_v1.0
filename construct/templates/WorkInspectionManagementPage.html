@@ -193,11 +193,11 @@
           <a href="{{url_for('WIRDocumentUploadPage')}}" class="btn btn-success" role="button" aria-disabled="true"
             target="_blank">Upload WIR Document</a>
           {% endif %}
-        {#    {% if current_user.role == 'Consultant' %}
+            {% if current_user.role == 'Consultant' %}
           <a href="{{url_for('ConsultantWIRDocumentUploadPage')}}" class="btn btn-primary" role="button" aria-disabled="true"
             target="_blank">Upload WIR Documents with notes</a>
           {% endif %} 
-          #}
+          
         </div>
 
       </div>
@@ -307,10 +307,10 @@
                           <a class="dropdown-item" href="/WIRStatusUpdate/{{wir.id}}?status=Rejected">Rejected</a>
                           <div class="dropdown-divider"></div>
                           {% endif %}
-                      {#   
+ 
                           
                           <a class="dropdown-item" href="{{url_for('wir_submitted_page',passed_id=wir.id)}}">Contractor's Documents</a>
-                         <a class="dropdown-item" href="{{url_for('wir_submitted_page_consultant',passed_id=wir.id)}}">Consultant's Documents</a>  #}  
+                           <a class="dropdown-item" href="{{url_for('consultant_Wir_submitted_page',passed_id=wir.id)}}">Consultant's Documents</a> 
                           {% if current_user.role == 'Contractor' %}
                           <div class="dropdown-divider"></div>
                          <a class="dropdown-item" href="{{url_for('deleteWIR',passed_id=wir.id)}}"><strong>Delete WIR</strong></a>
