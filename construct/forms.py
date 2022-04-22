@@ -28,13 +28,13 @@ class RegisterForm(FlaskForm):
     submit = SubmitField(label='Create Account!')
     role = SelectField(u'Select User Role', choices=[('Client', 'Client'), ('Consultant', 'Consultant'), ('Contractor', 'Contractor')])
     contact_no= StringField(label='Contact Number', validators=[DataRequired()])
-
+#--------------------------------------------------------------------
 class LoginForm(FlaskForm):
     username = StringField(label='User Name', validators=[DataRequired()])
     login_password = StringField(label='Password', validators=[DataRequired()])
     submit = SubmitField(label='Login')
 
-
+#--------------------------------------------------------------------
 class DelayForm(FlaskForm):
 
     type_of = SelectField(u'Category', choices=[('Workforce', 'Workforce'), ('Financial', 'Financial'), ('Weather', 'Weather'), ('Logistics', 'Logistics'), (' Miscellaneous', ' Miscellaneous')])
@@ -48,7 +48,7 @@ class DelayForm(FlaskForm):
     date = DateField('Date', format='%Y-%m-%d') 
     submit = SubmitField(label='Submit Delay!')
 
-
+#--------------------------------------------------------------------
 class TaskForm(FlaskForm):
     Name = StringField(label='Name', validators=[
                                 DataRequired()])
@@ -69,7 +69,7 @@ class TaskForm(FlaskForm):
 
 
     
-
+#--------------------------------------------------------------------
 
 class WIRSubmitForm(FlaskForm):
     Name = StringField(label='Name', validators=[
@@ -78,7 +78,7 @@ class WIRSubmitForm(FlaskForm):
                                 DataRequired()])
     Type = SelectField(u'Type', choices=[('Plumbing', 'Plumbing'), ('Electrical', 'Electrical'), ('Roofing', 'Roofing'),('Flooring', 'Flooring'),('Interior', 'Interior')])
     submit = SubmitField(label='Submit WIR')
-
+#--------------------------------------------------------------------
 class MIRSubmitForm(FlaskForm):
     Name = StringField(label='Name', validators=[
                                 DataRequired()])
@@ -86,7 +86,7 @@ class MIRSubmitForm(FlaskForm):
                                 DataRequired()])
     Type = SelectField(u'Type', choices=[('Raw Material', 'Raw Material'), ('Electrical', 'Electrical'), ('Roofing', 'Roofing'),('Metal', 'Metal'),('Interior', 'Interior')])
     submit = SubmitField(label='Submit MIR')
-
+#--------------------------------------------------------------------
 class VariationSubmitForm(FlaskForm):
     Name = StringField(label='Name', validators=[
                                 DataRequired()])
@@ -94,5 +94,13 @@ class VariationSubmitForm(FlaskForm):
                                 DataRequired()])
     
     submit = SubmitField(label='Submit Variation Request')
-   
+#--------------------------------------------------------------------
+class PaymentSubmitForm(FlaskForm):
+    Name = StringField(label='Name', validators=[
+                                DataRequired()])
+    Description = StringField(label='Description', validators=[
+                                DataRequired()])
+    Type = SelectField(u'Type', choices=[('Interim-Payment', 'Interim-Payment'), ('On-Account Payment', 'On-Account Payment'), ('Final Payment', 'Final Payment')])
+    
+    submit = SubmitField(label='Submit Payment Request')
  
