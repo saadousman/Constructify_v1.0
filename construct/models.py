@@ -163,6 +163,30 @@ class VariationConsultantDocument(db.Model):
     submitted_by=db.Column(db.String(length=30), nullable=False)
 
 
+#ALL MODELS FOR Payment requests
+class PaymentRequests(db.Model):
+    id = db.Column(db.Integer(), nullable=False, primary_key=True)
+    name = db.Column(db.String(length=30), nullable=False)
+    description = db.Column(db.String(length=30), nullable=False)
+    status = db.Column(db.String(length=30), nullable=True, default="Submitted")
+    submitted_date = db.Column(db.String(length=30), nullable=False)
+    type=  db.Column(db.String(length=30), nullable=False)
+
+class PaymentDocument(db.Model):
+    id = db.Column(db.Integer(), nullable=False, primary_key=True)
+    payment_file_name = db.Column(db.String(length=30), nullable=False)
+    payment_id = db.Column(db.String(length=30), nullable=False)
+    status = db.Column(db.String(length=30), nullable=False)
+    submitted_date = db.Column(db.String(length=30), nullable=False)
+    submitted_by=db.Column(db.String(length=30), nullable=False)
+class PaymentConsultantDocument(db.Model):
+    id = db.Column(db.Integer(), nullable=False, primary_key=True)
+    payment_file_name = db.Column(db.String(length=30), nullable=False)
+    payment_id = db.Column(db.String(length=30), nullable=False)
+    status = db.Column(db.String(length=30), nullable=False)
+    submitted_date = db.Column(db.String(length=30), nullable=False)
+    submitted_by=db.Column(db.String(length=30), nullable=False)
+
 
 
     

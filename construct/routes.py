@@ -1,7 +1,7 @@
 from flask import render_template, redirect, url_for, flash, get_flashed_messages, request, make_response, jsonify, Response, send_from_directory
-from construct.models import User, Delay, Tasks,  TaskToImage, WorkInspectionRequests, WIRDocument, MaterialInspectionRequests, MIRDocument, MIRConsultantDocument,WIRConsultantDocument, EOTDocument, EOTConsultantDocument, WorkInspectionRequests,VariationInspectionRequests,VariationDocument,VariationConsultantDocument
+from construct.models import User, Delay, Tasks,  TaskToImage, WorkInspectionRequests, WIRDocument, MaterialInspectionRequests, MIRDocument, MIRConsultantDocument,WIRConsultantDocument, EOTDocument, EOTConsultantDocument, WorkInspectionRequests,VariationInspectionRequests,VariationDocument,VariationConsultantDocument, PaymentRequests, PaymentConsultantDocument,PaymentDocument
 from construct import app, db, date, timedelta, mail, Message
-from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm,WIRSubmitForm, MIRSubmitForm, VariationSubmitForm
+from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm,WIRSubmitForm, MIRSubmitForm, VariationSubmitForm, PaymentSubmitForm
 from construct.email_send import *
 from flask_login import login_user, logout_user, login_required, current_user
 import time
@@ -212,15 +212,32 @@ def variation_requests_page():
     variation_list = VariationInspectionRequests.query.all()
     page_message="Variation Request Management"
 
-#Render the WIR page if the request is of type GET
+#Render the  page if the request is of type GET
     if request.method == "GET":
         return render_template('VariationsManagementPage.html',pending_variation=pending_variation,
         approved_variation=approved_variation,Rejected_variation=Rejected_variation,
         variation_list=variation_list,page_message=page_message )
 
 ############    Variation Request module Ends here ####################
+############   Payments Request module Starts here ####################
 
+@app.route("/PaymentRequests", methods=['GET', 'POST'])
+@login_required
+def payment_requests_page():
+    db.create_all()
+    pending_payment= PaymentRequests.query.filter(PaymentRequests.status == "Submitted").count()
+    approved_payment= PaymentRequests.query.filter(PaymentRequests.status == "Approved!").count()
+    Rejected_payment= PaymentRequests.query.filter(PaymentRequests.status == "Rejected").count()
+    joint_review_payment= PaymentRequests.query.filter(PaymentRequests.status == "Joint-Review").count()
+    payment_list = PaymentRequests.query.all()
+    page_message="Payment Request Management"
 
+#Render the  page if the request is of type GET
+    if request.method == "GET":
+        return render_template('PaymentManagementPage.html',pending_payment=pending_payment,
+        approved_payment=approved_payment,Rejected_payment=Rejected_payment,
+        payment_list=payment_list,page_message=page_message,joint_review_payment=joint_review_payment )
+############   Payments Request module ends here ####################
 
 
 ############ All Functions related to Registration and Login ####################
@@ -333,6 +350,17 @@ def deleteVariation(passed_id):
     #SendNotificationAsContractor("Material Inspection record Deletion")
     flash(f'Variation Request deleted!')
     return redirect(url_for('variation_requests_page'))
+
+#Delete Variation Item
+@app.route("/deletePayment/<int:passed_id>")
+def deletePayment(passed_id):
+    #Deletes the MIR request
+    payment_to_delete = PaymentRequests.query.get_or_404(passed_id)
+    db.session.delete(payment_to_delete)
+    db.session.commit()
+    #SendNotificationAsContractor("Material Inspection record Deletion")
+    flash(f'Payment Request deleted!')
+    return redirect(url_for('payment_requests_page'))
 
 
 ################  ALL Delete records Modules END here ####################
@@ -523,6 +551,36 @@ def VariationPdfGeneration():
     
 
         return redirect('/VariationRequests', code=302)
+#-------------------------------------------------------------------------------------------
+
+@app.route("/PaymentPdfGeneration", methods=['GET', 'POST'])
+@login_required
+def PaymentPdfGeneration():
+    needs_to_be_emailed = request.args.get('needs_to_be_emailed')
+    db.create_all()
+    pending_payments= PaymentRequests.query.filter(PaymentRequests.status == "Submitted").count()
+    approved_payments= PaymentRequests.query.filter(PaymentRequests.status == "Approved!").count()
+    Joint_review_payments= PaymentRequests.query.filter(PaymentRequests.status == "Joint-Review").count()
+    Rejected_payments= PaymentRequests.query.filter(PaymentRequests.status == "Rejected").count()
+    payment_list = PaymentRequests.query.all()
+    total_payment=len(payment_list)
+    today = date.today()
+
+    rendered= render_template('Paymentpdf.html', pending_payments=pending_payments,approved_payments=approved_payments
+    ,Rejected_payments=Rejected_payments,payment_list=payment_list,today=today,total_payment=total_payment,Joint_review_payments=Joint_review_payments)
+    #If the email needs to be emailed
+
+    
+    if needs_to_be_emailed == 'Yes':
+        pdf = pdfkit.from_string(rendered, 'construct/pdf/PaymentReport.pdf')
+
+        SendAllReports("PaymentReport.pdf","Payment Request Report Generated","A payment request report has been sent to all stakeholders")
+        print("sent the emails")
+        
+        send_sms("A Payment Request Report was generated and to your email")
+        
+        flash(f'PDF Report Emailed to Stakeholders')
+        return redirect('/PaymentRequests', code=302)
    
 
    #If the email needs to be printed only
@@ -530,7 +588,7 @@ def VariationPdfGeneration():
     #Builds the response with the pdf attached in the response content
     response = make_response(pdf)
     response.headers['Content-Type'] = 'application/pdf'
-    response.headers['Content-Disposition'] = 'inline; filename=VariationReport.pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=PaymentReport.pdf'
     #SendNotificationAsContractor("PDF Report Generation")
     return response
 
@@ -538,27 +596,6 @@ def VariationPdfGeneration():
 
 
 # PDF GENERATION MODULES END HERE
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #EMAIL NOTIFICATION MODULES END HERE
 
 
@@ -712,6 +749,39 @@ def upload_var_document():
         print("Something wrong with the file extensions")
         flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
         return redirect(request.url)
+#------------------------------------------------------------------------------------------------------
+@app.route('/UploadPaymentDocument', methods=['POST'])
+def upload_payment_document():
+    
+    status="Submitted"
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+    file = request.files['file']
+    if file.filename == '':
+        flash('No document selected for uploading')
+        return redirect(request.url)
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        payment_ID= request.form['payments']
+        file.save(os.path.join(app.root_path, "static/payments", filename))
+        submitted_user= current_user.username
+        today = date.today()
+        #Entering the document reference record to the database
+        payment_reference_to_save = PaymentDocument(payment_id=payment_ID,payment_file_name=filename, status=status,submitted_date=today,submitted_by=submitted_user)
+        db.session.add(payment_reference_to_save)
+        db.session.commit()
+
+        flash('The Payment request Document has been successfully uploaded!!!')
+        return redirect('/PaymentRequests', code=302)
+    else:
+        print("Something wrong with the file extensions")
+        flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
+        return redirect(request.url)
+
+
+
+
 
 #ALL UPLOADS AS CONSULTANT START HERE
 
@@ -808,6 +878,44 @@ def UploadVariationDocumentConsulant():
         print("Something wrong with the file extensions")
         flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
         return redirect(request.url)
+#-----------------------------------------------------------------------------------------------------------------------------
+@app.route('/UploadPaymentDocumentConsultant', methods=['POST'])
+def upload_payment_document_consultant():
+    
+    status="Submitted"
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+    file = request.files['file']
+    if file.filename == '':
+        flash('No document selected for uploading')
+        return redirect(request.url)
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        payment_ID= request.form['payments']
+        file.save(os.path.join(app.root_path, "static/consultant_payments", filename))
+        submitted_user= current_user.username
+        today = date.today()
+        #Entering the document reference record to the database
+        payment_reference_to_save = PaymentConsultantDocument(payment_id=payment_ID,payment_file_name=filename, status=status,submitted_date=today,submitted_by=submitted_user)
+        db.session.add(payment_reference_to_save)
+        db.session.commit()
+
+        flash('The Payment request Document has been successfully uploaded!!!')
+        return redirect('/PaymentRequests', code=302)
+    else:
+        print("Something wrong with the file extensions")
+        flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
+        return redirect(request.url)
+
+
+
+
+
+
+
+
+
 
 #ALL UPLOADS AS CONSULTANT END HERE
 
@@ -948,7 +1056,7 @@ def mir_submitted_page_consultant(passed_id):
         page_message="MIR's submitted by the Contractor"
         return render_template('SubmittedMIRGalleryConsultant.html', submitted_mir=submitted_mir, passed_mir_id=str(passed_id),mir_list_is_empty=mir_list_is_empty)
 
-#--------------------------------------------------------------------------------
+
 
 
 
@@ -986,6 +1094,39 @@ def Variation_submitted_page_consultant(passed_id):
         page_message="Variation Requests Submitted by the Contractor"
         return render_template('SubmittedVariationGalleryConsultant.html', submitted_variation=submitted_variation, passed_variation_id=str(passed_id),has_variation_id=has_variation_id)
 
+#----------------------------------------------------------------------------------
+@app.route("/PaymentSubmittedGallery/<string:passed_id>", methods=['GET', 'POST'])
+@login_required
+def payment_submitted_page(passed_id):
+        submitted_payment= PaymentDocument.query.all()
+        has_payment_id = "False"
+        for payment in submitted_payment:
+            if payment.payment_id == passed_id:
+                has_payment_id="True"
+                break
+
+
+
+        page_message="Payment Requests Submitted by the Contractor"
+        return render_template('SubmittedPaymentGallery.html', submitted_payment=submitted_payment, passed_payment_id=str(passed_id),has_payment_id=has_payment_id,page_message=page_message)
+#----------------------------------------------------------------------------------
+@app.route("/PaymentSubmittedGalleryConsultant/<string:passed_id>", methods=['GET', 'POST'])
+@login_required
+def payment_submitted_page_consultant (passed_id):
+        submitted_payment= PaymentConsultantDocument.query.all()
+        has_payment_id = "False"
+        for payment in submitted_payment:
+            if payment.payment_id == passed_id:
+                has_payment_id="True"
+                break
+
+
+
+        page_message="Payment Requests Submitted by the Consultant"
+        return render_template('SubmittedPaymentGalleryConsultant.html', submitted_payment=submitted_payment, passed_payment_id=str(passed_id),has_payment_id=has_payment_id,page_message=page_message)
+
+
+
 
 #ALL IMAGE GALLERY AND SUBMITTED DOCUMENT DISPLAY PAGES END HERE
 
@@ -1022,8 +1163,12 @@ def downloadvariation(variation_name):
     print("The path to the downloaded file is: "+uploads)
     return send_from_directory(directory=uploads, path=variation_name, as_attachment=True)
 #--------------------------------------------------------------
-
-
+@app.route('/downloadpayment/<payment_name>,', methods=['GET', 'POST'])
+def downloadpayment(payment_name):
+    uploads = os.path.join(app.root_path, "static/payments")
+    print("The path to the downloaded file is: "+uploads)
+    return send_from_directory(directory=uploads, path=payment_name, as_attachment=True)
+#--------------------------------------------------------------
 
 #ENDPOINTS FOR CONSULTANT DOWNLOADS
 
@@ -1055,6 +1200,16 @@ def downloadconsultantvariation(variation_name):
     uploads = os.path.join(app.root_path, "static/consultant_variations")
     print("The path to the downloaded file is: "+uploads)
     return send_from_directory(directory=uploads, path=variation_name, as_attachment=True)
+#------------------------------------------------------------
+@app.route('/downloadconsultantpayment/<payment_name>,', methods=['GET', 'POST'])
+def downloadconsultantpayment(payment_name):
+    uploads = os.path.join(app.root_path, "static/consultant_payments")
+    print("The path to the downloaded file is: "+uploads)
+    return send_from_directory(directory=uploads, path=payment_name, as_attachment=True)
+
+#------------------------------------------------------------
+
+
 
 
 #ALL ENDPOINTS FOR DOCUMENT AND IMAGE DOWNLOADS END HERE
@@ -1254,6 +1409,43 @@ def VariationStatusUpdate(passed_id):
         flash(f'Variation Request Rejected!')
 
     return redirect(url_for('variation_requests_page'))
+#------------------------------------------------------------
+
+@app.route("/PaymentStatusUpdate/<string:passed_id>")
+def PaymentStatusUpdate(passed_id):
+    print("The ID passed from the page is: "+ passed_id)
+    print("The Payment Status Query parameter passed from the page is:  "+ request.args.get('status'))
+    #Set Status as Approved
+    #Use the following status types in forms: Submitted,Approved, Approved-As-Noted, Revise-and-ReSubmit, Rejected
+    payment_Status = request.args.get('status')
+    
+
+
+    if payment_Status == 'Approved!':
+        payment_to_approve = PaymentRequests.query.get_or_404(passed_id)
+        payment_to_approve.status = "Approved!"
+        
+        db.session.commit()
+        print("Status set as Approved! in the DB")
+        flash(f'Payment Request Approved!')
+    
+
+    if payment_Status == 'Rejected':
+        payment_to_revise_and_resubmit = PaymentRequests.query.get_or_404(passed_id)
+        payment_to_revise_and_resubmit.status = "Rejected"
+        db.session.commit()
+        print("Status set as Rejected in the DB")
+        flash(f'Payment Request Rejected!')
+    
+    if payment_Status == 'Joint-Review':
+        payment_to_revise_and_resubmit = PaymentRequests.query.get_or_404(passed_id)
+        payment_to_revise_and_resubmit.status = "Joint-Review"
+        db.session.commit()
+        print("Status set as Rejected in the DB")
+        flash(f'Payment Request Set as requiring a Joint-Review !')
+
+    return redirect(url_for('payment_requests_page'))
+
 
 #ENDPOINTS FOR UPDATING THE STATUS OF RECORDS END HERE
 
@@ -1443,9 +1635,40 @@ def VariationCreate():
         for err_msg in taskform.errors.values():
             flash(f'There has been an exception thrown ==> {err_msg}  <==')
 
+#---------------------------------------------------------------------
+@app.route("/PaymentsCreateForm", methods=['GET', 'POST'])
+@login_required
+def PaymentsCreateForm():
+    db.create_all()
+    print("DB Tables created")
+    PaymentForm = PaymentSubmitForm()
+    if request.method == "GET":
+        return render_template('PaymentsCreateForm.html', PaymentForm=PaymentForm)
 
+    if request.method == "POST":
 
+            today = date.today()
+            payment_request_to_create = PaymentRequests(name=PaymentForm.Name.data, description=PaymentForm.Description.data,type=PaymentForm.Type.data,submitted_date=today)
+           
+            db.session.add(payment_request_to_create)
+            db.session.commit()
+            print("The Variation Request has been submitted and notified")
+            #SendNotificationAsContractor("EOT Submission")
+           # send_sms("A Material Inspection request Was Submitted by the Contractor")
+            
+            flash(f'The Payment Request has been submitted and notified')     
+            
+           
+    
+    return redirect(url_for('payment_requests_page'))
 
+# if the errors in the form error dictionary is not empty
+
+    if form.errors != {}:  
+        for err_msg in taskform.errors.values():
+            flash(f'There has been an exception thrown ==> {err_msg}  <==')
+
+#-----------------------------------------------------------------------------
 
 
 #ALL FORM PAGES FOR IMAGE AND DOCUMENT UPLOADS START HERE
@@ -1534,7 +1757,19 @@ def ConsultantVariationDocumentUploadPage():
     variation_list = VariationInspectionRequests.query.all()
     return render_template('VariationDocumentUploadConsultant.html', variation_list=variation_list)
 
+#-------------------------------------------------------------------------------
+@app.route("/PaymentDocumentUploadPage", methods=['GET', 'POST'])
+@login_required
+def PaymentDocumentUploadPage():
+    payment_list = PaymentRequests.query.all()
+    return render_template('PaymentDocumentUpload.html', payment_list=payment_list)
 
+#-------------------------------------------------------------------------------
+@app.route("/ConsultantPaymentDocumentUploadPage", methods=['GET', 'POST'])
+@login_required
+def ConsultantPaymentDocumentUploadPage():
+    payment_list = PaymentRequests.query.all()
+    return render_template('PaymentDocumentUploadConsultant.html', payment_list=payment_list)
 
 
     #ALL FORM PAGES FOR IMAGE AND DOCUMENT UPLOADS END HERE
