@@ -21,7 +21,7 @@
   <link rel="apple-touch-icon" sizes="76x76" href="{{ url_for('static', filename='assets')}}/img/apple-icon.png">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets')}}/img/favicon.png">
   <title>
-    Group Chat
+    Submitted Variation requests
   </title>
   <!--     Fonts and icons     -->
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
@@ -36,7 +36,7 @@
     rel="stylesheet" />
   <link rel="stylesheet" type="text/css"
     href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css">
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
 
 </head>
 
@@ -50,32 +50,77 @@
   {% include 'includes/GlobalNavbar.html' %}
   <!-- End Navbar -->
 
-  <body>
 
 
 
 
 
 
-    <br><br>
-    <div class="container-fluid py-4">
-      <div class="row">
-        <div class="col-12">
-          <div class="card mb-4">
-            <div class="card-header pb-0">
-              <h6>Group Chat box</h6>
+
+  <br><br><br><br><br><br><br>
+
+
+  <!--Creates containers and displays the images referenced to the task ID-->
+  {% for variation in submitted_variation %}
+  {% if variation.variation_id == passed_variation_id %}
+  <div class="container-fluid py-4">
+    <div class="row">
+      <div class="col-5">
+        <div class="card mb-4">
+          <div class="card-header pb-0">
+            <h6>File Name      : <strong> {{variation.variation_file_name}}</strong></h6>
+            <h7>Submitted on   : <strong>{{variation.submitted_date}}</strong>  <br>
+            <h7>By             : <strong>{{variation.submitted_by}} </strong></h7> <br>
+            <h7>For Variation ID     : <strong>{{passed_variation_id}}</strong></h7> <br><br>
+          </div>
+          <div class="card-body px-0 pt-0 pb-2">
+            <div class="col-md-8 p-lg-5 mx-auto my-5">
+              <div class="table-responsive p-0">
+                <img src="/static/icons/doc_icon.png" alt="User Image" width="70" height="70">
+
+                <br><br>
+                 <a class="btn btn-outline-primary" href="{{url_for('downloadconsultantvariation',variation_name=variation.variation_file_name)}}" role="button">Download File</a> 
+               
+
+              </div>
+
+
             </div>
-
-            <iframe src="https://organizations.minnit.chat/1231816443143366631/ConstructifyChat?embed&nickname="
-              style="border:none;width:100%;height:500px;" allowTransparency="true"></iframe>
-
           </div>
         </div>
       </div>
     </div>
 
+  </div>
+  {% endif %}
+  {% endfor %}
+  <!--Displays Error Message if No Image references were found for the Task-->
+  {% if has_variation_id == "False" %}
 
-  </body>
+  <div class="container-fluid py-4">
+    <div class="row">
+      <div class="col-12">
+        <div class="card mb-4">
+          <div class="card-header pb-0">
+            <h6>Error</h6>
+
+          </div>
+          <div class="card-body px-0 pt-0 pb-2">
+            <div class="col-md-8 p-lg-5 mx-auto my-5">
+
+              <h6>No Documents are uploaded by the Consultant for this Variations request</h6>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  {% endif %}
+
+
+
   <!--   Core JS Files   -->
   <script src='https://kit.fontawesome.com/a076d05399.js'></script>
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"

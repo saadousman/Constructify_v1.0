@@ -187,7 +187,7 @@
        {% endif %}
                 <a href="{{url_for('WIRPdfGeneration')}}" class="btn btn-info" role="button" aria-disabled="true"
            target="_blank">Print PDF report</a>
-               <a href="{{url_for('WIRPDFPageEmail')}}" class="btn btn-secondary" role="button" aria-disabled="true"
+               <a href="{{url_for('WIRPdfGeneration')}}?needs_to_be_emailed=Yes" class="btn btn-secondary" role="button" aria-disabled="true"
             target="_blank">Email Report to StakeHolders</a>
                {% if current_user.role == 'Contractor' %} 
           <a href="{{url_for('WIRDocumentUploadPage')}}" class="btn btn-success" role="button" aria-disabled="true"
