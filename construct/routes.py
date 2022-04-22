@@ -1,7 +1,7 @@
 from flask import render_template, redirect, url_for, flash, get_flashed_messages, request, make_response, jsonify, Response, send_from_directory
-from construct.models import User, Delay, Tasks,  TaskToImage, WorkInspectionRequests, WIRDocument, MaterialInspectionRequests, MIRDocument, MIRConsultantDocument,WIRConsultantDocument, EOTDocument, EOTConsultantDocument, WorkInspectionRequests
+from construct.models import User, Delay, Tasks,  TaskToImage, WorkInspectionRequests, WIRDocument, MaterialInspectionRequests, MIRDocument, MIRConsultantDocument,WIRConsultantDocument, EOTDocument, EOTConsultantDocument, WorkInspectionRequests,VariationInspectionRequests,VariationDocument,VariationConsultantDocument
 from construct import app, db, date, timedelta, mail, Message
-from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm,WIRSubmitForm, MIRSubmitForm
+from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm,WIRSubmitForm, MIRSubmitForm, VariationSubmitForm
 from construct.email_send import *
 from flask_login import login_user, logout_user, login_required, current_user
 import time
@@ -200,6 +200,27 @@ def work_inspection_page():
 
 
 ############   Work Inspection Request module ENDS here ####################
+############   Variation Request module Starts here ####################
+
+@app.route("/VariationRequests", methods=['GET', 'POST'])
+@login_required
+def variation_requests_page():
+    db.create_all()
+    pending_variation= VariationInspectionRequests.query.filter(VariationInspectionRequests.status == "Submitted").count()
+    approved_variation= VariationInspectionRequests.query.filter(VariationInspectionRequests.status == "Approved!").count()
+    Rejected_variation= VariationInspectionRequests.query.filter(VariationInspectionRequests.status == "Rejected").count()
+    variation_list = VariationInspectionRequests.query.all()
+    page_message="Variation Request Management"
+
+#Render the WIR page if the request is of type GET
+    if request.method == "GET":
+        return render_template('VariationsManagementPage.html',pending_variation=pending_variation,
+        approved_variation=approved_variation,Rejected_variation=Rejected_variation,
+        variation_list=variation_list,page_message=page_message )
+
+############    Variation Request module Ends here ####################
+
+
 
 
 ############ All Functions related to Registration and Login ####################
@@ -291,7 +312,7 @@ def deleteMIR(passed_id):
     flash(f'MIR deleted!')
     return redirect(url_for('material_inspection_page'))
 
-#Delete MIR Item
+#Delete WIR Item
 @app.route("/deleteWIR/<int:passed_id>")
 def deleteWIR(passed_id):
     #Deletes the MIR request
@@ -301,6 +322,17 @@ def deleteWIR(passed_id):
     #SendNotificationAsContractor("Material Inspection record Deletion")
     flash(f'WIR deleted!')
     return redirect(url_for('work_inspection_page'))
+
+#Delete Variation Item
+@app.route("/deleteVariation/<int:passed_id>")
+def deleteVariation(passed_id):
+    #Deletes the MIR request
+    variation_to_delete = VariationInspectionRequests.query.get_or_404(passed_id)
+    db.session.delete(variation_to_delete)
+    db.session.commit()
+    #SendNotificationAsContractor("Material Inspection record Deletion")
+    flash(f'Variation Request deleted!')
+    return redirect(url_for('variation_requests_page'))
 
 
 ################  ALL Delete records Modules END here ####################
@@ -313,7 +345,7 @@ def deleteWIR(passed_id):
 @app.route("/DelayPdfGeneration", methods=['GET', 'POST'])
 @login_required
 def DelayPDFPage():
-
+    needs_to_be_emailed = request.args.get('needs_to_be_emailed')
     #Query DB for objects to pass to table and cards
     delays = Delay.query.all()
     pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
@@ -323,13 +355,23 @@ def DelayPDFPage():
     Rejected_delays= Delay.query.filter(Delay.status == "Rejected").count()
     delay_count = pending_delays+approved_delays+Approved_As_Noted_delays+ReviseandReSubmit_delays+Rejected_delays
     today = date.today()
-    # Render the HTML page with the passed information. This will be converted into a PDF
-    #Use the following status types in forms: Submitted,Approved, Approved-As-Noted, Revise-and-ReSubmit, Rejected
+
     rendered= render_template('Delaypdf.html', pending_delays=pending_delays,approved_delays=approved_delays,
                         Approved_As_Noted_delays=Approved_As_Noted_delays,ReviseandReSubmit_delays=ReviseandReSubmit_delays,
                          Rejected_delays=Rejected_delays,delay_count=delay_count, today=today, delays=delays)
 
-    #Converts the saved HTML as a pdf document. Saved in memory
+    #If the PDF needs to be emailed to all stakeholders
+    if needs_to_be_emailed == 'Yes':
+            pdf = pdfkit.from_string(rendered, 'construct/pdf/DelayReport.pdf')
+
+            SendAllReports("DelayReport.pdf","Project Delay Report Generated","A Project Delay Report has been sent to all stakeholders")
+            print("sent the emails")
+            send_sms("A Project Delay Report was generated and to your email")
+            flash(f'PDF Record Emailed to Stakeholders')
+            return redirect('/delays', code=302)
+
+
+    #IF the PDF needs to be downloaded
     pdf = pdfkit.from_string(rendered, False)
     #Builds the response with the pdf attached in the response content
     response = make_response(pdf)
@@ -341,7 +383,7 @@ def DelayPDFPage():
 @app.route("/TaskPdfGeneration", methods=['GET', 'POST'])
 @login_required
 def TaskPDFPage():
-    
+    needs_to_be_emailed = request.args.get('needs_to_be_emailed')
     #Query DB for objects to pass to table and cards
     tasks = Tasks.query.all()
     pending_tasks= Tasks.query.filter(Tasks.status == "Pending").count()
@@ -352,6 +394,16 @@ def TaskPDFPage():
     # Render the HTML page with the passed information. This will be converted into a PDF
     rendered= render_template('taskpdf.html', pending_tasks=pending_tasks, completed_tasks=completed_tasks,inprogress_tasks=inprogress_tasks, data=data, today=today, tasks=tasks )
 
+    if needs_to_be_emailed == 'Yes':
+            pdf = pdfkit.from_string(rendered, 'construct/pdf/TaskReport.pdf')
+
+            SendAllReports("TaskReport.pdf","Project Task Report Generated","A Project Task report has been sent to all stakeholders")
+            print("sent the emails")
+            send_sms("A Project Task Report was generated and to your email")
+            flash(f'PDF Record Emailed to Stakeholders')
+            return redirect('/Tasks', code=302)
+
+
     #Converts the saved HTML as a pdf document. Saved in memory
     pdf = pdfkit.from_string(rendered, False)
     #Builds the response with the pdf attached in the response content
@@ -359,13 +411,15 @@ def TaskPDFPage():
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = 'inline; filename=TaskReport.pdf'
     #SendNotificationAsContractor("PDF Report Generation")
+   
     return response
+   
 
 
 @app.route("/MIRPdfGeneration", methods=['GET', 'POST'])
 @login_required
 def MIRPDFPage():
-
+    needs_to_be_emailed = request.args.get('needs_to_be_emailed')
     #Query DB for objects to pass to table and cards
     db.create_all()
     pending_mirs= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Submitted").count()
@@ -376,10 +430,21 @@ def MIRPDFPage():
     mir_list = MaterialInspectionRequests.query.all()
     total_mir=len(mir_list)
     today = date.today()
-    # Render the HTML page with the passed information. This will be converted into a PDF
-    #Use the following status types in forms: Submitted,Approved, Approved-As-Noted, Revise-and-ReSubmit, Rejected
+
+
+    
     rendered= render_template('MIRpdf.html', pending_mirs=pending_mirs,approved_mirs=approved_mirs,Approved_As_Noted_mirs=Approved_As_Noted_mirs,
         ReviseandReSubmit_mirs=ReviseandReSubmit_mirs,Rejected_mirs=Rejected_mirs,mir_list=mir_list,today=today,total_mir=total_mir)
+
+    if needs_to_be_emailed == 'Yes':
+            pdf = pdfkit.from_string(rendered, 'construct/pdf/MIRReport.pdf')
+
+            SendAllReports("MIRReport.pdf","Material Inspection Request Report Generated","A Material inspection report has been sent to all stakeholders")
+            print("sent the emails")
+            send_sms("A Material Inspection Report was generated and to your email")
+            return redirect('/MaterialInspectionReqs', code=302)
+
+
 
     #Converts the saved HTML as a pdf document. Saved in memory
     pdf = pdfkit.from_string(rendered, False)
@@ -396,7 +461,7 @@ def MIRPDFPage():
 @app.route("/WIRPdfGeneration", methods=['GET', 'POST'])
 @login_required
 def WIRPdfGeneration():
-
+    needs_to_be_emailed = request.args.get('needs_to_be_emailed')
     #Query DB for objects to pass to table and cards
     db.create_all()
     pending_wirs= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Submitted").count()
@@ -407,19 +472,70 @@ def WIRPdfGeneration():
     wir_list = WorkInspectionRequests.query.all()
     total_wir=len(wir_list)
     today = date.today()
-    # Render the HTML page with the passed information. This will be converted into a PDF
-    #Use the following status types in forms: Submitted,Approved, Approved-As-Noted, Revise-and-ReSubmit, Rejected
+  
     rendered= render_template('WIRpdf.html', pending_wirs=pending_wirs,approved_wirs=approved_wirs,Approved_As_Noted_wirs=Approved_As_Noted_wirs,
         ReviseandReSubmit_wirs=ReviseandReSubmit_wirs,Rejected_wirs=Rejected_wirs,wir_list=wir_list,today=today,total_wir=total_wir)
+    #if needs_to_be_emailed is True then the PDF will be sent Via Email
+    if needs_to_be_emailed == 'Yes':
+            pdf = pdfkit.from_string(rendered, 'construct/pdf/WIRReport.pdf')
 
-    #Converts the saved HTML as a pdf document. Saved in memory
+            SendAllReports("WIRReport.pdf","Work Inspection Request Report Generated","A WIR report has been sent to all stakeholders")
+            print("sent the emails")
+            send_sms("A Variation Request Report was generated and to your email")
+            return redirect('/WorkInspectionReqs', code=302)
+
+
+
+    #PDF is returned as a download
+    #Converts the saved HTML String as a pdf document in memory
     pdf = pdfkit.from_string(rendered, False)
     #Builds the response with the pdf attached in the response content
     response = make_response(pdf)
     response.headers['Content-Type'] = 'application/pdf'
     response.headers['Content-Disposition'] = 'inline; filename=WIRReport.pdf'
+    
+    return response
+
+
+@app.route("/VariationPdfGeneration", methods=['GET', 'POST'])
+@login_required
+def VariationPdfGeneration():
+    needs_to_be_emailed = request.args.get('needs_to_be_emailed')
+    db.create_all()
+    pending_vars= VariationInspectionRequests.query.filter(VariationInspectionRequests.status == "Submitted").count()
+    approved_vars= VariationInspectionRequests.query.filter(VariationInspectionRequests.status == "Approved!").count()
+    Rejected_vars= VariationInspectionRequests.query.filter(VariationInspectionRequests.status == "Rejected").count()
+    var_list = VariationInspectionRequests.query.all()
+    total_var=len(var_list)
+    today = date.today()
+
+    rendered= render_template('Variationpdf.html', pending_vars=pending_vars,approved_vars=approved_vars
+    ,Rejected_vars=Rejected_vars,var_list=var_list,today=today,total_var=total_var)
+    #If the email needs to be emailed
+
+    
+    if needs_to_be_emailed == 'Yes':
+        pdf = pdfkit.from_string(rendered, 'construct/pdf/VariationReport.pdf')
+
+        SendAllReports("VariationReport.pdf","Variation Request Report Generated","A variation request report has been sent to all stakeholders")
+        print("sent the emails")
+        send_sms("A Variation Request Report was generated and to your email")
+    
+
+        return redirect('/VariationRequests', code=302)
+   
+
+   #If the email needs to be printed only
+    pdf = pdfkit.from_string(rendered, False)
+    #Builds the response with the pdf attached in the response content
+    response = make_response(pdf)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=VariationReport.pdf'
     #SendNotificationAsContractor("PDF Report Generation")
     return response
+
+    
+
 
 # PDF GENERATION MODULES END HERE
 
@@ -439,115 +555,6 @@ def WIRPdfGeneration():
 
 
 
-
-
-#EMAIL NOTIFICATION MODULES START HERE
-
-@app.route("/TaskPdfEmail", methods=['GET', 'POST'])
-@login_required
-def TaskPDFPageEmail():
-
-      #Query DB for objects to pass to table and cards
-    tasks = Tasks.query.all()
-    pending_tasks= Tasks.query.filter(Tasks.status == "Pending").count()
-    completed_tasks= Tasks.query.filter(Tasks.status == "Completed").count()
-    inprogress_tasks= Tasks.query.filter(Tasks.status == "In Progress").count()
-    data = {'Task' : 'Status', 'Pending' : pending_tasks, 'In Progress' : inprogress_tasks, 'Completed' : completed_tasks}
-    today = date.today()
-    # Render the HTML page with the passed information. This will be converted into a PDF
-    rendered= render_template('taskpdf.html', pending_tasks=pending_tasks, completed_tasks=completed_tasks,inprogress_tasks=inprogress_tasks, data=data, today=today, tasks=tasks )
-    #generate the pdf and store it in the appropriate directory
-    pdf = pdfkit.from_string(rendered, 'construct/pdf/TaskReport.pdf')
-
-    
-    
-    #send_sms()calls the send_sms function to send an sms to stakeholders. Message body is passed as a parameter
-    #SendDelayReport() calls the imported function to send an email notification to the stakeholders with the attached pdf that is generated
-    SendTaskReport()
-    send_sms("A Task Progress Report was generated and to your email")
-           
-
-
-    return redirect('/Tasks', code=302)
-
-@app.route("/DelayPdfEmail", methods=['GET', 'POST'])
-@login_required
-def DelayPDFPageEmail():
-    #Query DB for objects to pass to table and cards
-    delays = Delay.query.all()
-    pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
-    approved_delays= Delay.query.filter(Delay.status == "Approved!").count()
-    Approved_As_Noted_delays= Delay.query.filter(Delay.status == "Approved-As-Noted").count()
-    ReviseandReSubmit_delays= Delay.query.filter(Delay.status == "Revise-and-ReSubmit").count()
-    Rejected_delays= Delay.query.filter(Delay.status == "Rejected").count()
-    delay_count = pending_delays+approved_delays+Approved_As_Noted_delays+ReviseandReSubmit_delays+Rejected_delays
-    today = date.today()
-    #render the html page that will be converted into a pdf
-    rendered= render_template('Delaypdf.html', pending_delays=pending_delays,approved_delays=approved_delays,
-                        Approved_As_Noted_delays=Approved_As_Noted_delays,ReviseandReSubmit_delays=ReviseandReSubmit_delays,
-                         Rejected_delays=Rejected_delays,delay_count=delay_count, today=today, delays=delays)
-    #generate the pdf and store it in the appropriate directory
-    pdf = pdfkit.from_string(rendered, 'construct/pdf/DelayReport.pdf')
-
-    
-    
-    #send_sms()calls the send_sms function to send an sms to stakeholders. Message body is passed as a parameter
-    #SendDelayReport() calls the imported function to send an email notification to the stakeholders with the attached pdf that is generated
-    SendDelayReport()
-    send_sms("Delay Report was printed. Please Check your email man")
-           
-
-
-    return redirect('/delays', code=302)
-
-@app.route("/MIRPdfEmail", methods=['GET', 'POST'])
-@login_required
-def MIRPDFPageEmail():
-    #Query DB for objects to pass to table and cards
-    db.create_all()
-    pending_mirs= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Submitted").count()
-    approved_mirs= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Approved!").count()
-    Approved_As_Noted_mirs= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Approved-As-Noted").count()
-    ReviseandReSubmit_mirs= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Revise-and-ReSubmit").count()
-    Rejected_mirs= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Rejected").count()
-    mir_list = MaterialInspectionRequests.query.all()
-    total_mir=len(mir_list)
-    today = date.today()
-    #render the html page that will be converted into a pdf
-    rendered= render_template('MIRpdf.html', pending_mirs=pending_mirs,approved_mirs=approved_mirs,Approved_As_Noted_mirs=Approved_As_Noted_mirs,
-        ReviseandReSubmit_mirs=ReviseandReSubmit_mirs,Rejected_mirs=Rejected_mirs,mir_list=mir_list,today=today,total_mir=total_mir)
-    #generate the pdf and store it in the appropriate directory
-    pdf = pdfkit.from_string(rendered, 'construct/pdf/MIRReport.pdf')    
-    #send_sms()calls the send_sms function to send an sms to stakeholders. Message body is passed as a parameter
-    #SendDelayReport() calls the imported function to send an email notification to the stakeholders with the attached pdf that is generated
-    SendMIRReport()
-    send_sms("Material Inspected Report was Generated and sent to your email")
-    return redirect('/delays', code=302)
-
-@app.route("/WIRPdfEmail", methods=['GET', 'POST'])
-@login_required
-def WIRPDFPageEmail():
-    #Query DB for objects to pass to table and cards
-    db.create_all()
-    pending_wirs= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Submitted").count()
-    approved_wirs= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Approved!").count()
-    Approved_As_Noted_wirs= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Approved-As-Noted").count()
-    ReviseandReSubmit_wirs= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Revise-and-ReSubmit").count()
-    Rejected_wirs= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Rejected").count()
-    wir_list = WorkInspectionRequests.query.all()
-    total_wir=len(wir_list)
-    today = date.today()
-    #render the html page that will be converted into a pdf
-    rendered= render_template('WIRpdf.html', pending_wirs=pending_wirs,approved_wirs=approved_wirs,Approved_As_Noted_wirs=Approved_As_Noted_wirs,
-        ReviseandReSubmit_wirs=ReviseandReSubmit_wirs,Rejected_wirs=Rejected_wirs,wir_list=wir_list,today=today,total_wir=total_wir)
-    #generate the pdf and store it in the appropriate directory
-    pdf = pdfkit.from_string(rendered, 'construct/pdf/WIRReport.pdf')    
-    #send_sms()calls the send_sms function to send an sms to stakeholders. Message body is passed as a parameter
-    #SendDelayReport() calls the imported function to send an email notification to the stakeholders with the attached pdf that is generated
-    time.sleep(3)
-    SendWIRReport()
-    send_sms("Work Inspected Report was Generated and sent to your email")
-    return redirect('/WorkInspectionReqs', code=302)
 
 
 
@@ -675,6 +682,37 @@ def upload_eot():
         flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
         return redirect(request.url)
 
+#-----------------------------------------------------------
+
+@app.route('/UploadVariationDocument', methods=['POST'])
+def upload_var_document():
+
+    status="Submitted"
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+    file = request.files['file']
+    if file.filename == '':
+        flash('No document selected for uploading')
+        return redirect(request.url)
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        variation_ID= request.form['variations']
+        file.save(os.path.join(app.root_path, "static/variations", filename))
+        submitted_user= current_user.username
+        today = date.today()
+        #Entering the document reference record to the database
+        var_reference_to_save = VariationDocument(variation_id=variation_ID,variation_file_name=filename, status=status,submitted_date=today,submitted_by=submitted_user)
+        db.session.add(var_reference_to_save)
+        db.session.commit()
+
+        flash('The Variation request Document has been  successfully uploaded!!!   ')
+        return redirect('/VariationRequests', code=302)
+    else:
+        print("Something wrong with the file extensions")
+        flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
+        return redirect(request.url)
+
 #ALL UPLOADS AS CONSULTANT START HERE
 
 @app.route('/UploadMIRConsultant', methods=['POST'])
@@ -739,9 +777,12 @@ def upload_wir_consultant():
         flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
         return redirect(request.url)
 
-@app.route('/UploadConsultantEOT', methods=['POST'])
-def upload_eot_consultant():
-    db.create_all()
+
+
+#------------------------------------------------------------------------------vv
+@app.route('/UploadVariationDocumentConsulant', methods=['POST'])
+def UploadVariationDocumentConsulant():
+
     status="Submitted"
     if 'file' not in request.files:
         flash('No file part')
@@ -752,23 +793,21 @@ def upload_eot_consultant():
         return redirect(request.url)
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
-        mir_ID= request.form['delay']
-        file.save(os.path.join(app.root_path, "static/consultant_eot", filename))
-        
-        flash('The document has been  successfully uploaded!!!! ')
+        variation_ID= request.form['variations']
+        file.save(os.path.join(app.root_path, "static/consultant_variations", filename))
         submitted_user= current_user.username
-        #Entering the document reference record to the database
         today = date.today()
-        consultant_reference_to_save = EOTConsultantDocument(eot_id=mir_ID,eot_file_name=filename, status=status,submitted_date=today,submitted_by=submitted_user)
-        db.session.add(consultant_reference_to_save)
+        #Entering the document reference record to the database
+        var_reference_to_save = VariationConsultantDocument(variation_id=variation_ID,variation_file_name=filename, status=status,submitted_date=today,submitted_by=submitted_user)
+        db.session.add(var_reference_to_save)
         db.session.commit()
 
-        return redirect('/delays', code=302)
+        flash('The Consultant Variation request Document has been  successfully uploaded!!!   ')
+        return redirect('/VariationRequests', code=302)
     else:
-        print("Incompatible file extension used")
+        print("Something wrong with the file extensions")
         flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
         return redirect(request.url)
-
 
 #ALL UPLOADS AS CONSULTANT END HERE
 
@@ -909,6 +948,44 @@ def mir_submitted_page_consultant(passed_id):
         page_message="MIR's submitted by the Contractor"
         return render_template('SubmittedMIRGalleryConsultant.html', submitted_mir=submitted_mir, passed_mir_id=str(passed_id),mir_list_is_empty=mir_list_is_empty)
 
+#--------------------------------------------------------------------------------
+
+
+
+#----------------------------------------------------------------------------------
+
+@app.route("/VariationSubmittedGallery/<string:passed_id>", methods=['GET', 'POST'])
+@login_required
+def Variation_submitted_page(passed_id):
+        submitted_variation= VariationDocument.query.all()
+        has_variation_id = "False"
+        for variation in submitted_variation:
+            if variation.variation_id == passed_id:
+                has_variation_id="True"
+                break
+
+
+
+        page_message="Variation Requests Submitted by the Contractor"
+        return render_template('SubmittedVariationGallery.html', submitted_variation=submitted_variation, passed_variation_id=str(passed_id),has_variation_id=has_variation_id)
+#----------------------------------------------------------------------------------
+
+
+@app.route("/VariationSubmittedGalleryConsultant/<string:passed_id>", methods=['GET', 'POST'])
+@login_required
+def Variation_submitted_page_consultant(passed_id):
+        submitted_variation= VariationConsultantDocument.query.all()
+        has_variation_id = "False"
+        for variation in submitted_variation:
+            if variation.variation_id == passed_id:
+                has_variation_id="True"
+                break
+
+
+
+        page_message="Variation Requests Submitted by the Contractor"
+        return render_template('SubmittedVariationGalleryConsultant.html', submitted_variation=submitted_variation, passed_variation_id=str(passed_id),has_variation_id=has_variation_id)
+
 
 #ALL IMAGE GALLERY AND SUBMITTED DOCUMENT DISPLAY PAGES END HERE
 
@@ -938,6 +1015,14 @@ def downloadeot(eot_name):
     uploads = os.path.join(app.root_path, "static/eot")
     print("The path to the downloaded file is: "+uploads)
     return send_from_directory(directory=uploads, path=eot_name, as_attachment=True)
+#--------------------------------------------------------------
+@app.route('/downloadvariation/<variation_name>,', methods=['GET', 'POST'])
+def downloadvariation(variation_name):
+    uploads = os.path.join(app.root_path, "static/variations")
+    print("The path to the downloaded file is: "+uploads)
+    return send_from_directory(directory=uploads, path=variation_name, as_attachment=True)
+#--------------------------------------------------------------
+
 
 
 #ENDPOINTS FOR CONSULTANT DOWNLOADS
@@ -963,6 +1048,14 @@ def downloadconsultanteot(eot_name):
     uploads = os.path.join(app.root_path, "static/consultant_eot")
     print("The path to the downloaded file is: "+uploads)
     return send_from_directory(directory=uploads, path=eot_name, as_attachment=True)
+
+#------------------------------------------------------------
+@app.route('/downloadconsultantvariation/<variation_name>,', methods=['GET', 'POST'])
+def downloadconsultantvariation(variation_name):
+    uploads = os.path.join(app.root_path, "static/consultant_variations")
+    print("The path to the downloaded file is: "+uploads)
+    return send_from_directory(directory=uploads, path=variation_name, as_attachment=True)
+
 
 #ALL ENDPOINTS FOR DOCUMENT AND IMAGE DOWNLOADS END HERE
 
@@ -1132,6 +1225,35 @@ def EOTStatusUpdate(passed_id):
         flash(f'EOT set as Rejected!')
 
     return redirect(url_for('delaypage'))
+#------------------------------------------------------------
+
+@app.route("/VariationStatusUpdate/<string:passed_id>")
+def VariationStatusUpdate(passed_id):
+    print("The ID passed from the page is: "+ passed_id)
+    print("The Variation Status Query parameter passed from the page is:  "+ request.args.get('status'))
+    #Set Status as Approved
+    #Use the following status types in forms: Submitted,Approved, Approved-As-Noted, Revise-and-ReSubmit, Rejected
+    var_Status = request.args.get('status')
+    
+
+
+    if var_Status == 'Approved!':
+        var_to_approve = VariationInspectionRequests.query.get_or_404(passed_id)
+        var_to_approve.status = "Approved!"
+        
+        db.session.commit()
+        print("Status set as Approved! in the DB")
+        flash(f'Variation Request Approved!')
+    
+
+    if var_Status == 'Rejected':
+        var_to_revise_and_resubmit = VariationInspectionRequests.query.get_or_404(passed_id)
+        var_to_revise_and_resubmit.status = "Rejected"
+        db.session.commit()
+        print("Status set as Rejected in the DB")
+        flash(f'Variation Request Rejected!')
+
+    return redirect(url_for('variation_requests_page'))
 
 #ENDPOINTS FOR UPDATING THE STATUS OF RECORDS END HERE
 
@@ -1187,6 +1309,10 @@ def TaskCreate():
     if form.errors != {}:  
         for err_msg in taskform.errors.values():
             flash(f'There has been an exception thrown ==> {err_msg}  <==')
+
+
+
+
 
 @app.route("/DelayCreateForm", methods=['GET', 'POST'])
 @login_required
@@ -1261,7 +1387,8 @@ def WIRCreate():
     if request.method == "POST":
 
             today = date.today()
-            wir_to_create = WorkInspectionRequests(type=WIRForm.Type.data,name=WIRForm.Name.data, description=WIRForm.Description .data, submitted_date=today)
+            wir_to_create = WorkInspectionRequests(type=WIRForm.Type.data,
+            name=WIRForm.Name.data, description=WIRForm.Description .data, submitted_date=today)
            
             db.session.add(wir_to_create)
             db.session.commit()
@@ -1281,7 +1408,40 @@ def WIRCreate():
         for err_msg in taskform.errors.values():
             flash(f'There has been an exception thrown ==> {err_msg}  <==')
 
+#--------------------------------------------------------------------------
 
+#FORM PAGE FOR CREATING Variation REQUESTS
+@app.route("/VariationCreateForm", methods=['GET', 'POST'])
+@login_required
+def VariationCreate():
+    db.create_all()
+    print("DB Tables created")
+    VarForm = VariationSubmitForm()
+    if request.method == "GET":
+        return render_template('VariationCreateForm.html', VarForm=VarForm)
+
+    if request.method == "POST":
+
+            today = date.today()
+            var_request_to_create = VariationInspectionRequests(name=VarForm.Name.data, description=VarForm.Description .data, submitted_date=today)
+           
+            db.session.add(var_request_to_create)
+            db.session.commit()
+            print("The Variation Request has been submitted and notified")
+            #SendNotificationAsContractor("EOT Submission")
+           # send_sms("A Material Inspection request Was Submitted by the Contractor")
+            
+            flash(f'The Variation Request has been submitted and notified')     
+            
+           
+    
+    return redirect(url_for('variation_requests_page'))
+
+# if the errors in the form error dictionary is not empty
+
+    if form.errors != {}:  
+        for err_msg in taskform.errors.values():
+            flash(f'There has been an exception thrown ==> {err_msg}  <==')
 
 
 
@@ -1357,19 +1517,34 @@ def ConsultantWIRDocumentUploadPage():
      
 
     return render_template('WIRDocumentUploadConsultant.html', wir_list=wir_list)
+#-------------------------------------------------------------------------------
 
 
+@app.route("/VariationDocumentUploadPage", methods=['GET', 'POST'])
+@login_required
+def VariationDocumentUploadPage():
+    variation_list = VariationInspectionRequests.query.all()
+    return render_template('VariationDocumentUpload.html', variation_list=variation_list)
+
+
+#-------------------------------------------------------------------------------
+@app.route("/ConsultantVariationDocumentUploadPage", methods=['GET', 'POST'])
+@login_required
+def ConsultantVariationDocumentUploadPage():
+    variation_list = VariationInspectionRequests.query.all()
+    return render_template('VariationDocumentUploadConsultant.html', variation_list=variation_list)
 
 
 
 
     #ALL FORM PAGES FOR IMAGE AND DOCUMENT UPLOADS END HERE
 
+#Chat Boxes for stakeholders starts here
 
 @app.route("/GroupChat", methods=['GET', 'POST'])
 @login_required
 def group_chat_page():
-    page_message="Group Chat"
+    page_message="All Stakeholder's Group Chat"
     return render_template('GroupChat.html',page_message=page_message)
 
 @app.route("/ConsultantChat", methods=['GET', 'POST'])
@@ -1383,3 +1558,5 @@ def consultant_chat_page():
 def contractor_chat_page():
     page_message="Contractor's Chat Page"
     return render_template('ContractorChat.html',page_message=page_message)
+
+#Chat Boxes for stakeholders end here

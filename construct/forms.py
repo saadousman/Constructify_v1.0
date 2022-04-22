@@ -86,5 +86,13 @@ class MIRSubmitForm(FlaskForm):
                                 DataRequired()])
     Type = SelectField(u'Type', choices=[('Raw Material', 'Raw Material'), ('Electrical', 'Electrical'), ('Roofing', 'Roofing'),('Metal', 'Metal'),('Interior', 'Interior')])
     submit = SubmitField(label='Submit MIR')
+
+class VariationSubmitForm(FlaskForm):
+    Name = StringField(label='Name', validators=[
+                                DataRequired()])
+    Description = StringField(label='Description', validators=[
+                                DataRequired()])
+    
+    submit = SubmitField(label='Submit Variation Request')
    
  

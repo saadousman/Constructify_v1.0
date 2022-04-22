@@ -139,6 +139,30 @@ class MIRConsultantDocument(db.Model):
     submitted_by=db.Column(db.String(length=30), nullable=False)
 
 
+#ALL MODELS FOR MATERIAL INSPECTION REQUESTS
+class VariationInspectionRequests(db.Model):
+    id = db.Column(db.Integer(), nullable=False, primary_key=True)
+    name = db.Column(db.String(length=30), nullable=False)
+    description = db.Column(db.String(length=30), nullable=False)
+    status = db.Column(db.String(length=30), nullable=True, default="Submitted")
+    submitted_date = db.Column(db.String(length=30), nullable=False)
+
+class VariationDocument(db.Model):
+    id = db.Column(db.Integer(), nullable=False, primary_key=True)
+    variation_file_name = db.Column(db.String(length=30), nullable=False)
+    variation_id = db.Column(db.String(length=30), nullable=False)
+    status = db.Column(db.String(length=30), nullable=False)
+    submitted_date = db.Column(db.String(length=30), nullable=False)
+    submitted_by=db.Column(db.String(length=30), nullable=False)
+class VariationConsultantDocument(db.Model):
+    id = db.Column(db.Integer(), nullable=False, primary_key=True)
+    variation_file_name = db.Column(db.String(length=30), nullable=False)
+    variation_id = db.Column(db.String(length=30), nullable=False)
+    status = db.Column(db.String(length=30), nullable=False)
+    submitted_date = db.Column(db.String(length=30), nullable=False)
+    submitted_by=db.Column(db.String(length=30), nullable=False)
+
+
 
 
     
