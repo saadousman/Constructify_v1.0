@@ -48,7 +48,9 @@ def DashBoard():
 
     user_list= User.query.all()
     user_count=len(user_list)
+    #Delays data for cards
     pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
+    rejected_delays= Delay.query.filter(Delay.status == "Rejected").count()
     #data for the payments cards
     #All Payments
     payment_list= PaymentRequests.query.all()
@@ -88,7 +90,7 @@ def DashBoard():
     data = {'Task' : 'Status', 'Pending' : pending_tasks, 'In Progress' : inprogress_tasks, 'Completed' : completed_tasks}
     page_message="Project Management DashBoard"
     page_name="Dashboard"
-    return render_template('index.html', pending_delays=pending_delays,
+    return render_template('index.html', rejected_delays=rejected_delays,pending_delays=pending_delays,
      approved_delays=approved_delays, delay_count=delay_count, 
      inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, 
      pending_tasks=pending_tasks, data=data, tasks=tasks,
