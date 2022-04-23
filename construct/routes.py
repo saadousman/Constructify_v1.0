@@ -45,6 +45,8 @@ def allowed_file(filename):
 @app.route("/dashboard", methods=['GET', 'POST'])
 @login_required
 def DashBoard():
+
+    user_list= User.query.all()
     pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
    # assert pending_delays== 3,"test failed"
     tasks = Tasks.query.all()
@@ -74,7 +76,8 @@ def DashBoard():
      inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, 
      pending_tasks=pending_tasks, data=data, tasks=tasks,
      task_count=task_count,mir_wir_pending_inspection=mir_wir_pending_inspection,
-     submitted_wir=submitted_wir,submitted_mir=submitted_mir,page_message=page_message,page_name=page_name)
+     submitted_wir=submitted_wir,submitted_mir=submitted_mir,
+     page_message=page_message,page_name=page_name,user_list=user_list)
 
 
 
