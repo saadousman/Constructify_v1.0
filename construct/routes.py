@@ -604,7 +604,8 @@ def PaymentPdfGeneration():
 
 @app.route('/UploadImage', methods=['POST'])
 def upload_image():
-
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     if 'file' not in request.files:
         flash('No file part')
         return redirect(request.url)
@@ -634,6 +635,8 @@ def upload_image():
 
 @app.route('/UploadWIR', methods=['POST'])
 def upload_wir():
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     status="Submitted"
     if 'file' not in request.files:
         flash('No file part')
@@ -663,7 +666,8 @@ def upload_wir():
 
 @app.route('/UploadMIR', methods=['POST'])
 def upload_mir():
-
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     status="Submitted"
     if 'file' not in request.files:
         flash('No file part')
@@ -692,6 +696,10 @@ def upload_mir():
 
 @app.route('/UploadEOT', methods=['POST'])
 def upload_eot():
+
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
+
     status="Submitted"
     db.create_all()
     if 'file' not in request.files:
@@ -723,6 +731,8 @@ def upload_eot():
 
 @app.route('/UploadVariationDocument', methods=['POST'])
 def upload_var_document():
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
 
     status="Submitted"
     if 'file' not in request.files:
@@ -752,7 +762,9 @@ def upload_var_document():
 #------------------------------------------------------------------------------------------------------
 @app.route('/UploadPaymentDocument', methods=['POST'])
 def upload_payment_document():
-    
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
+
     status="Submitted"
     if 'file' not in request.files:
         flash('No file part')
@@ -787,7 +799,8 @@ def upload_payment_document():
 
 @app.route('/UploadMIRConsultant', methods=['POST'])
 def upload_mir_consultant():
-
+    if current_user.role != 'Consultant':
+        return redirect(url_for('UnAuthorized'))
     status="Submitted"
     if 'file' not in request.files:
         flash('No file part')
@@ -817,6 +830,8 @@ def upload_mir_consultant():
 
 @app.route('/UploadConsultantWIR', methods=['POST'])
 def upload_wir_consultant():
+    if current_user.role != 'Consultant':
+        return redirect(url_for('UnAuthorized'))
     db.create_all()
     status="Submitted"
     if 'file' not in request.files:
@@ -852,7 +867,8 @@ def upload_wir_consultant():
 #------------------------------------------------------------------------------vv
 @app.route('/UploadVariationDocumentConsulant', methods=['POST'])
 def UploadVariationDocumentConsulant():
-
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     status="Submitted"
     if 'file' not in request.files:
         flash('No file part')
@@ -881,7 +897,8 @@ def UploadVariationDocumentConsulant():
 #-----------------------------------------------------------------------------------------------------------------------------
 @app.route('/UploadPaymentDocumentConsultant', methods=['POST'])
 def upload_payment_document_consultant():
-    
+    if current_user.role != 'Consultant':
+        return redirect(url_for('UnAuthorized'))
     status="Submitted"
     if 'file' not in request.files:
         flash('No file part')
@@ -941,7 +958,7 @@ def ImageGallery(id):
         page_message="Image Gallery for Task"
         return render_template('ImageGallery.html', taskref=tasks, taskid=ident, page_message=page_message,image=image)
         
-
+#----------------------------------------------------------------------------------
 @app.route("/WIRSubmittedGallery/<string:passed_id>", methods=['GET', 'POST'])
 @login_required
 def wir_submitted_page(passed_id):
@@ -959,7 +976,7 @@ def wir_submitted_page(passed_id):
 
 
 
-
+#----------------------------------------------------------------------------------
 @app.route("/EOTSubmitted/<string:passed_id>", methods=['GET', 'POST'])
 @login_required
 def eot_submitted_page(passed_id):
@@ -979,7 +996,7 @@ def eot_submitted_page(passed_id):
         page_message="EOT's Submitted by the Contractor"
         return render_template('SubmittedEOTGallery.html', submited_eot_refs=submitted_eot, passed_eot_id=str(passed_id),check_if_empty=check_if_empty)
 
-
+#----------------------------------------------------------------------------------
 @app.route("/EOTSubmittedConsultant/<string:passed_id>", methods=['GET', 'POST'])
 @login_required
 def eot_submitted_page_consultant(passed_id):
@@ -998,7 +1015,7 @@ def eot_submitted_page_consultant(passed_id):
         return render_template('SubmittedEOTGalleryConsultant.html', submited_eot_refs=submitted_eot, passed_eot_id=str(passed_id),check_if_empty=check_if_empty)
 
 
-        
+        #----------------------------------------------------------------------------------
 
 @app.route("/ConsultantWIRSubmitted/<string:passed_id>", methods=['GET', 'POST'])
 @login_required
@@ -1017,7 +1034,7 @@ def consultant_Wir_submitted_page(passed_id):
       #  return Response(images=images, mimetype=img.mimetype)
         return render_template('SubmittedWIRGalleryConsultant.html', submitted_Wir_document=submitted_Wir_document, passed_wir_id=str(passed_id),has_wir_id=has_wir_id)
  
-
+#----------------------------------------------------------------------------------
 @app.route("/MIRSubmittedGallery/<string:passed_id>", methods=['GET', 'POST'])
 @login_required
 def mir_submitted_page(passed_id):
@@ -1036,7 +1053,7 @@ def mir_submitted_page(passed_id):
 
         page_message="MIR's submitted by the Contractor"
         return render_template('SubmittedMIRGallery.html', submitted_mir=submitted_mir, passed_mir_id=str(passed_id),mir_list_is_empty=mir_list_is_empty)
-
+#----------------------------------------------------------------------------------
 @app.route("/MIRSubmittedGalleryConsultant/<string:passed_id>", methods=['GET', 'POST'])
 @login_required
 def mir_submitted_page_consultant(passed_id):
@@ -1456,6 +1473,8 @@ def PaymentStatusUpdate(passed_id):
 @app.route("/TaskCreateForm", methods=['GET', 'POST'])
 @login_required
 def TaskCreate():
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     taskform = TaskForm()
     if request.method == "GET":
         
@@ -1509,6 +1528,8 @@ def TaskCreate():
 @app.route("/DelayCreateForm", methods=['GET', 'POST'])
 @login_required
 def DelayCreate():
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     delayForm = DelayForm()
     if request.method == "GET":
         return render_template('DelayCreateForm.html', delayForm=delayForm)
@@ -1539,6 +1560,8 @@ def DelayCreate():
 @app.route("/MIRCreateForm", methods=['GET', 'POST'])
 @login_required
 def MIRCreate():
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     db.create_all()
     MIRForm = MIRSubmitForm()
     if request.method == "GET":
@@ -1571,6 +1594,8 @@ def MIRCreate():
 @app.route("/WIRCreateForm", methods=['GET', 'POST'])
 @login_required
 def WIRCreate():
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     db.create_all()
     WIRForm = WIRSubmitForm()
     if request.method == "GET":
@@ -1606,6 +1631,8 @@ def WIRCreate():
 @app.route("/VariationCreateForm", methods=['GET', 'POST'])
 @login_required
 def VariationCreate():
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     db.create_all()
     print("DB Tables created")
     VarForm = VariationSubmitForm()
@@ -1639,6 +1666,9 @@ def VariationCreate():
 @app.route("/PaymentsCreateForm", methods=['GET', 'POST'])
 @login_required
 def PaymentsCreateForm():
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
+
     db.create_all()
     print("DB Tables created")
     PaymentForm = PaymentSubmitForm()
@@ -1675,7 +1705,8 @@ def PaymentsCreateForm():
 @app.route("/TaskImageUpload", methods=['GET', 'POST'])
 @login_required
 def TaskImageUpload():
-
+     if current_user.role != 'Contractor':
+            return redirect(url_for('UnAuthorized'))
      tasks = Tasks.query.all()
      
 
@@ -1684,7 +1715,8 @@ def TaskImageUpload():
 @app.route("/DelayEOTUploadPage", methods=['GET', 'POST'])
 @login_required
 def delayEOTUploadPage():
-
+     if current_user.role != 'Contractor':
+            return redirect(url_for('UnAuthorized'))
      delays = Delay.query.all()
      
 
@@ -1693,7 +1725,8 @@ def delayEOTUploadPage():
 @app.route("/ConsultantDelayEOTUploadPage", methods=['GET', 'POST'])
 @login_required
 def delayEOTUploadPageConsultant():
-
+     if current_user.role != 'Consultant':
+            return redirect(url_for('UnAuthorized'))
      delays = Delay.query.all()
      
 
@@ -1702,7 +1735,8 @@ def delayEOTUploadPageConsultant():
 @app.route("/MIRDocumentUploadPage", methods=['GET', 'POST'])
 @login_required
 def MIRDocumentUploadPage():
-
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     mir_list = MaterialInspectionRequests.query.all()
 
      
@@ -1713,7 +1747,8 @@ def MIRDocumentUploadPage():
 @app.route("/ConsultantMIRDocumentUploadPage", methods=['GET', 'POST'])
 @login_required
 def ConsultantMIRDocumentUploadPage():
-
+    if current_user.role != 'Consultant':
+        return redirect(url_for('UnAuthorized'))
     mir_list = MaterialInspectionRequests.query.all()
     
      
@@ -1724,7 +1759,8 @@ def ConsultantMIRDocumentUploadPage():
 @app.route("/WIRDocumentUploadPage", methods=['GET', 'POST'])
 @login_required
 def WIRDocumentUploadPage():
-
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     wir_list = WorkInspectionRequests.query.all()
 
      
@@ -1734,7 +1770,8 @@ def WIRDocumentUploadPage():
 @app.route("/ConsultantWIRDocumentUploadPage", methods=['GET', 'POST'])
 @login_required
 def ConsultantWIRDocumentUploadPage():
-
+    if current_user.role != 'Consultant':
+        return redirect(url_for('UnAuthorized'))
     wir_list = WorkInspectionRequests.query.all()
     
      
@@ -1746,6 +1783,8 @@ def ConsultantWIRDocumentUploadPage():
 @app.route("/VariationDocumentUploadPage", methods=['GET', 'POST'])
 @login_required
 def VariationDocumentUploadPage():
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     variation_list = VariationInspectionRequests.query.all()
     return render_template('VariationDocumentUpload.html', variation_list=variation_list)
 
@@ -1754,6 +1793,8 @@ def VariationDocumentUploadPage():
 @app.route("/ConsultantVariationDocumentUploadPage", methods=['GET', 'POST'])
 @login_required
 def ConsultantVariationDocumentUploadPage():
+    if current_user.role != 'Consultant':
+        return redirect(url_for('UnAuthorized'))
     variation_list = VariationInspectionRequests.query.all()
     return render_template('VariationDocumentUploadConsultant.html', variation_list=variation_list)
 
@@ -1761,6 +1802,8 @@ def ConsultantVariationDocumentUploadPage():
 @app.route("/PaymentDocumentUploadPage", methods=['GET', 'POST'])
 @login_required
 def PaymentDocumentUploadPage():
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     payment_list = PaymentRequests.query.all()
     return render_template('PaymentDocumentUpload.html', payment_list=payment_list)
 
@@ -1768,6 +1811,8 @@ def PaymentDocumentUploadPage():
 @app.route("/ConsultantPaymentDocumentUploadPage", methods=['GET', 'POST'])
 @login_required
 def ConsultantPaymentDocumentUploadPage():
+    if current_user.role != 'Consultant':
+        return redirect(url_for('UnAuthorized'))
     payment_list = PaymentRequests.query.all()
     return render_template('PaymentDocumentUploadConsultant.html', payment_list=payment_list)
 
@@ -1793,5 +1838,12 @@ def consultant_chat_page():
 def contractor_chat_page():
     page_message="Contractor's Chat Page"
     return render_template('ContractorChat.html',page_message=page_message)
+
+
+@app.route("/UnAuthorized", methods=['GET', 'POST'])
+@login_required
+def UnAuthorized():
+    page_message="Cannot Access The page"
+    return render_template('UnAuthorizedPage.html',page_message=page_message)
 
 #Chat Boxes for stakeholders end here
