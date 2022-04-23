@@ -44,7 +44,7 @@
       <div class="container">
         <div class="row justify-content-center">
           <div class="col-lg-5 text-center mx-auto">
-            <h1 class="text-white mb-2 mt-5">Create an Account for a Project Stakeholder</h1>
+            <h1 class="text-white mb-2 mt-5">Modify User Records</h1>
             
           </div>
         </div>
@@ -55,7 +55,7 @@
         <div class="col-xl-4 col-lg-5 col-md-7 mx-auto">
           <div class="card z-index-0">
             <div class="card-header text-center pt-4">
-              <h5>Register Here </h5>
+              <h5>Edit Here</h5>
               {% with messages = get_flashed_messages(with_categories=true) %}
               {% if messages %}
                {% for category, message in messages %}
@@ -69,23 +69,24 @@
             <div class="card-body">
               <form role="form"  method="POST" >
                 {{ form.hidden_tag() }}
+                
                 <div class="mb-3">
-                  {{ form.username(class="form-control", placeholder="Enter Your Username") }}
+                  <p>Current Email Address is {{current_email}}</p>
+                  {{ form.email_address(class="form-control", placeholder= "Change if Required") }}
                 </div>
                 <div class="mb-3">
-                  {{ form.email_address(class="form-control", placeholder="Enter Your Email Address") }}
-                </div>
-                <div class="mb-3">
-                  {{ form.password1(class="form-control", placeholder="Enter Your Password") }}
+                  {{ form.password1(class="form-control", placeholder="Change Password If Required") }}
                 </div>
                 <div class="mb-3">
                   {{ form.password2(class="form-control", placeholder="Confirm Password") }}
                 </div>
                 <div class="mb-3">
+                  <p>Current Role is {{current_role}}</p>
                   {{ form.role(class="form-control", placeholder="Select role") }}
                 </div>
                 <div class="mb-3">
-                  {{ form.contact_no(class="form-control", placeholder="Enter Mobile Number (+94#########)")}}
+                  <p>Current Contact Number is {{current_number}}</p>
+                  {{ form.contact_no(class="form-control", placeholder="Change if Required (+94#########)")}}
                 </div>
 
 

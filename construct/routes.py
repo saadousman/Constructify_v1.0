@@ -1,7 +1,7 @@
 from flask import render_template, redirect, url_for, flash, get_flashed_messages, request, make_response, jsonify, Response, send_from_directory
 from construct.models import User, Delay, Tasks,  TaskToImage, WorkInspectionRequests, WIRDocument, MaterialInspectionRequests, MIRDocument, MIRConsultantDocument,WIRConsultantDocument, EOTDocument, EOTConsultantDocument, WorkInspectionRequests,VariationInspectionRequests,VariationDocument,VariationConsultantDocument, PaymentRequests, PaymentConsultantDocument,PaymentDocument
 from construct import app, db, date, timedelta, mail, Message
-from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm,WIRSubmitForm, MIRSubmitForm, VariationSubmitForm, PaymentSubmitForm
+from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm,WIRSubmitForm, MIRSubmitForm, VariationSubmitForm, PaymentSubmitForm, UserEditForm
 from construct.email_send import *
 from flask_login import login_user, logout_user, login_required, current_user
 import time
@@ -13,6 +13,7 @@ from twilio.rest import Client
 import os
 import requests, random
 from sqlalchemy import delete
+from wtforms.validators import ValidationError
 
 
 
@@ -239,11 +240,31 @@ def payment_requests_page():
         payment_list=payment_list,page_message=page_message,joint_review_payment=joint_review_payment )
 ############   Payments Request module ends here ####################
 
+############   User Management module Starts here ####################
+
+@app.route("/UserManagement", methods=['GET', 'POST'])
+@login_required
+def UserManagement():
+    if current_user.role != 'Client':
+        return redirect(url_for('UnAuthorized'))
+    db.create_all()
+    tot_clients= User.query.filter(User.role == "Client").count()
+    tot_consultants= User.query.filter(User.role == "Consultant").count()
+    tot_contractors= User.query.filter(User.role == "Contractor").count()
+    user_list = User.query.all()
+    page_message="Project Stakeholder Management"
+
+#Render the  page if the request is of type GET
+    if request.method == "GET":
+        return render_template('UserManagementPage.html', user_list=user_list,
+        tot_clients=tot_clients, tot_consultants=tot_consultants,tot_contractors=tot_contractors,page_message=page_message  )
 
 ############ All Functions related to Registration and Login ####################
 
 @app.route('/register', methods=['GET', 'POST'])
 def register_page():
+    if current_user.role != 'Client':
+        return redirect(url_for('UnAuthorized'))
     form = RegisterForm()
     if form.validate_on_submit():
         user_to_create = User(username=form.username.data,
@@ -254,12 +275,68 @@ def register_page():
 
         db.session.add(user_to_create)
         db.session.commit()
-        flash(f'Please Sign in')
-        return redirect(url_for('login_page'))
+        flash(f'The user has been created')
+        return redirect(url_for('UserManagement'))
     if form.errors != {}:  # if the errors in the form error dictionary is not empty
         for err_msg in form.errors.values():
             flash(f'There has been an exception thrown ==> {err_msg}  <==')
     return render_template('sign-up.html', form=form)
+#-----------------------------------------------------------------
+def validate_email_address(email_to_check):
+        email_add = User.query.filter_by(
+            email_address=email_to_check).first()
+        if email_add:
+            return True
+
+@app.route('/ModifyUser/<int:passed_id>', methods=['GET', 'POST'])
+def ModifyUser(passed_id):
+    if current_user.role != 'Client':
+        return redirect(url_for('UnAuthorized'))
+    form = UserEditForm()
+    if request.method == "GET":
+     
+     user_to_modify=            User.query.filter_by(id=passed_id).first()
+     current_email=             user_to_modify.email_address
+     current_role=              user_to_modify.role
+     current_number=            user_to_modify.contact_number
+     print("The user to be modified is: "+user_to_modify.username)
+     return render_template('edit-user.html', form=form,user_to_modify=user_to_modify,current_email=current_email,
+     current_role=current_role,current_number=current_number)
+
+    if request.method == "POST":
+        
+            print("Entering query user")
+            user_to_modify=                     User.query.filter_by(id=passed_id).first()
+               
+            
+             
+            if form.password1.data != '':
+                user_to_modify.password=           form.password1.data
+                print("Password has been changed as well")
+            if form.email_address.data != '':
+                if validate_email_address(form.email_address.data):
+                    flash("The Email has already been taken. No Changes were made")
+                    return redirect(url_for('UserManagement')) 
+                user_to_modify.email_address=           form.email_address.data
+                print("Email has been changed as well")
+            if form.contact_no.data != '':
+                user_to_modify.contact_number=           form.contact_no.data
+                print("Number has been changed as well")
+            if form.role.data != '':
+                user_to_modify.role=           form.role.data
+                print("Role has been changed as well")
+
+
+            print("Done with DB object creation")
+            print("Entering Session committing")
+            db.session.commit()
+            print("DB changes are applied")
+            flash(f'The user has been edited!')
+
+            
+                        
+    return redirect(url_for('UserManagement'))
+                              
 
 @app.route('/login', methods=['GET', 'POST'])
 def login_page():
@@ -361,6 +438,17 @@ def deletePayment(passed_id):
     #SendNotificationAsContractor("Material Inspection record Deletion")
     flash(f'Payment Request deleted!')
     return redirect(url_for('payment_requests_page'))
+
+#Delete Variation Item
+@app.route("/deleteUser/<int:passed_id>")
+def deleteUser(passed_id):
+    #Deletes the MIR request
+    user_to_delete = User.query.get_or_404(passed_id)
+    db.session.delete(user_to_delete)
+    db.session.commit()
+    #SendNotificationAsContractor("Material Inspection record Deletion")
+    flash(f'User deleted!')
+    return redirect(url_for('UserManagement'))
 
 
 ################  ALL Delete records Modules END here ####################
@@ -1522,7 +1610,7 @@ def TaskCreate():
             flash(f'There has been an exception thrown ==> {err_msg}  <==')
 
 
-
+#------------------------------------------------------------------
 
 
 @app.route("/DelayCreateForm", methods=['GET', 'POST'])

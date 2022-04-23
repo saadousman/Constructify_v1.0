@@ -8,14 +8,14 @@ class RegisterForm(FlaskForm):
     def validate_username(self, username_to_check):
         user = User.query.filter_by(username=username_to_check.data).first()
         if user:
-            raise ValidationError('The username is taken already. Sorry Son')
+            raise ValidationError('The username is taken already')
 
     def validate_email_address(self, email_to_check):
         email_add = User.query.filter_by(
             email_address=email_to_check.data).first()
         if email_add:
             raise ValidationError(
-                'The email address is taken already. Sorry Son')
+                'The email address is taken already')
 
     username = StringField(label='User Name', validators=[
                            Length(min=2, max=30), DataRequired()])
@@ -28,6 +28,28 @@ class RegisterForm(FlaskForm):
     submit = SubmitField(label='Create Account!')
     role = SelectField(u'Select User Role', choices=[('Client', 'Client'), ('Consultant', 'Consultant'), ('Contractor', 'Contractor')])
     contact_no= StringField(label='Contact Number', validators=[DataRequired()])
+
+ #--------------------------------------------------------------------
+class UserEditForm(FlaskForm):
+
+
+    def validate_email_address(self, email_to_check):
+        email_add = User.query.filter_by(
+            email_address=email_to_check.data).first()
+        if email_add:
+            raise ValidationError(
+                'The email address is taken already')
+
+    
+    email_address = StringField(label='Email Address', validators=[
+                                Email()])
+    password1 = PasswordField(label='Password', validators=[
+                              Length(min=6)])
+    password2 = PasswordField(label='Password Confirmation', validators=[
+                              EqualTo('password1')])
+    submit = SubmitField(label='Submit Changes')
+    role = SelectField(u'Select User Role', choices=[('Client', 'Client'), ('Consultant', 'Consultant'), ('Contractor', 'Contractor')])
+    contact_no= StringField(label='Contact Number')
 #--------------------------------------------------------------------
 class LoginForm(FlaskForm):
     username = StringField(label='User Name', validators=[DataRequired()])
