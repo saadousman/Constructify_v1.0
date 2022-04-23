@@ -47,7 +47,24 @@ def allowed_file(filename):
 def DashBoard():
 
     user_list= User.query.all()
+    user_count=len(user_list)
     pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
+    #data for the payments cards
+    #All Payments
+    payment_list= PaymentRequests.query.all()
+    payment_count=len(payment_list)
+    #Interim Payments
+    pending_interims= PaymentRequests.query.filter(PaymentRequests.status == "Submitted",PaymentRequests.type == "Interim-Payment" ).count()
+    approved_interims= PaymentRequests.query.filter(PaymentRequests.status == "Approved!",PaymentRequests.type == "Interim-Payment" ).count()
+    rejected_interims= PaymentRequests.query.filter(PaymentRequests.status == "Rejected",PaymentRequests.type == "Interim-Payment" ).count()
+    #On-account Payments
+    pending_on_accounts= PaymentRequests.query.filter(PaymentRequests.status == "Submitted",PaymentRequests.type == "On-Account Payment" ).count()
+    approved_on_accounts= PaymentRequests.query.filter(PaymentRequests.status == "Approved!",PaymentRequests.type == "On-Account Payment" ).count()
+    rejected_on_accounts= PaymentRequests.query.filter(PaymentRequests.status == "Rejected",PaymentRequests.type == "On-Account Payment" ).count()
+    #Final Payments
+    pending_finals= PaymentRequests.query.filter(PaymentRequests.status == "Submitted",PaymentRequests.type == "Final Payment" ).count()
+    approved_final= PaymentRequests.query.filter(PaymentRequests.status == "Approved!",PaymentRequests.type == "Final Payment" ).count()
+    rejected_finals= PaymentRequests.query.filter(PaymentRequests.status == "Rejected",PaymentRequests.type == "Final Payment" ).count()
    # assert pending_delays== 3,"test failed"
     tasks = Tasks.query.all()
     wir_count= len(WorkInspectionRequests.query.all())
@@ -77,7 +94,10 @@ def DashBoard():
      pending_tasks=pending_tasks, data=data, tasks=tasks,
      task_count=task_count,mir_wir_pending_inspection=mir_wir_pending_inspection,
      submitted_wir=submitted_wir,submitted_mir=submitted_mir,
-     page_message=page_message,page_name=page_name,user_list=user_list)
+     page_message=page_message,page_name=page_name,user_list=user_list,user_count=user_count,
+     rejected_interims=rejected_interims,approved_interims=approved_interims,pending_interims=pending_interims,rejected_on_accounts=rejected_on_accounts,
+     approved_on_accounts=approved_on_accounts,pending_on_accounts=pending_on_accounts,rejected_finals=rejected_finals,
+     approved_final=approved_final,pending_finals=pending_finals,payment_count=payment_count)
 
 
 
