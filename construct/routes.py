@@ -86,7 +86,7 @@ def DashBoard():
     pending_variations = VariationInspectionRequests.query.filter(VariationInspectionRequests.status == "Submitted").count()
     rejected_variations = VariationInspectionRequests.query.filter(VariationInspectionRequests.status == "Rejected").count()
 
-    
+
     page_message="Project Management DashBoard"
     page_name="Dashboard"
     return render_template('index.html', rejected_delays=rejected_delays,pending_delays=pending_delays, delay_count=delay_count, 
@@ -310,7 +310,7 @@ def validate_email_address(email_to_check):
             email_address=email_to_check).first()
         if email_add:
             return True
-
+#Module for editing user records
 @app.route('/ModifyUser/<int:passed_id>', methods=['GET', 'POST'])
 def ModifyUser(passed_id):
     if current_user.role != 'Client':
@@ -662,6 +662,14 @@ def VariationPdfGeneration():
     
 
         return redirect('/VariationRequests', code=302)
+    #If the email needs to be printed only
+    pdf = pdfkit.from_string(rendered, False)
+    #Builds the response with the pdf attached in the response content
+    response = make_response(pdf)
+    response.headers['Content-Type'] = 'application/pdf'
+    response.headers['Content-Disposition'] = 'inline; filename=VariationReport.pdf'
+    #SendNotificationAsContractor("PDF Report Generation")
+    return response
 #-------------------------------------------------------------------------------------------
 
 @app.route("/PaymentPdfGeneration", methods=['GET', 'POST'])
@@ -1988,6 +1996,7 @@ def TaskPercentageUpdate():
         
         db.session.commit()
         print("The data has been updated... Task percentage updated to: "+ task_percentage)
+        flash("The Completed Percentage has been updated!")
         return redirect(url_for('Taskpage'))
 
 @app.route("/testpage", methods=['GET', 'POST'])

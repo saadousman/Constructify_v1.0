@@ -27,8 +27,8 @@ class RegisterForm(FlaskForm):
                               EqualTo('password1'), DataRequired()])
     submit = SubmitField(label='Create Account!')
     role = SelectField(u'Select User Role', choices=[('Client', 'Client'), ('Consultant', 'Consultant'), ('Contractor', 'Contractor')])
-    contact_no= StringField(label='Contact Number', validators=[DataRequired()])
-
+    contact_no= StringField(label='Contact Number', validators=[DataRequired(),Length(max=12),Length(min=12)])
+validators=[Length(min=2)]
  #--------------------------------------------------------------------
 class UserEditForm(FlaskForm):
 
@@ -49,7 +49,7 @@ class UserEditForm(FlaskForm):
                               EqualTo('password1')])
     submit = SubmitField(label='Submit Changes')
     role = SelectField(u'Select User Role', choices=[('Client', 'Client'), ('Consultant', 'Consultant'), ('Contractor', 'Contractor')])
-    contact_no= StringField(label='Contact Number')
+    contact_no= StringField(label='Contact Number',validators=[DataRequired(),Length(max=12),Length(min=12)])
 #--------------------------------------------------------------------
 class LoginForm(FlaskForm):
     username = StringField(label='User Name', validators=[DataRequired()])
@@ -87,7 +87,7 @@ class TaskForm(FlaskForm):
                              DataRequired()])
 
     submit = SubmitField(label='Submit Task')
-
+    #Function to check if start date is greater than end date
     def validate_on_submit(self):
             
             if (self.start_date.data>self.end_date.data):
