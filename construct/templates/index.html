@@ -120,17 +120,17 @@
             <div class="row">
               <div class="col-8">
                 <div class="numbers">
-                  <p class="text-sm mb-0 text-uppercase font-weight-bold"> Inspection </p>
+                  <p class="text-sm mb-0 text-uppercase font-weight-bold"> Pending Inspection </p>
                   <p class="text-sm mb-0 text-uppercase font-weight-bold"> Requests</p>
                   <h5 class="font-weight-bolder">
-                    {{mir_wir_pending_inspection}}
+                    {{count_pending_inspection_requests}}
                   </h5>
                   <p class="mb-0">
                     <span class="text-info text-sm font-weight-bolder">{{submitted_wir}}</span>
                     Work
                   </p>
                   <p class="mb-0">
-                    <span class="text-info text-sm font-weight-bolder">{{submitted_wir}}</span>
+                    <span class="text-info text-sm font-weight-bolder">{{submitted_mir}}</span>
                     Material
                   </p>
 
@@ -154,14 +154,14 @@
                   <p class="text-sm mb-0 text-uppercase font-weight-bold">Variation </p>
                   <p class="text-sm mb-0 text-uppercase font-weight-bold"> Requests</p>
                   <h5 class="font-weight-bolder">
-                    $103,430
+                    {{variation_count}}
                   </h5>
                   <p class="mb-0">
-                    <span class="text-info text-sm font-weight-bolder">{{submitted_wir}}</span>
+                    <span class="text-info text-sm font-weight-bolder">{{pending_variations}}</span>
                     Pending
                   </p>
                   <p class="mb-0">
-                    <span class="text-danger text-sm font-weight-bolder">{{submitted_wir}}</span>
+                    <span class="text-danger text-sm font-weight-bolder">{{rejected_variations}}</span>
                     Rejected
                   </p>
                 </div>
@@ -181,7 +181,7 @@
 
   </div>
   <div class="row mt-4">
-    <div class="col-lg-11 mb-lg-0 mb-4">
+    <div class="col-lg-10 mb-lg-0 mb-4">
       <div class="card z-index-2 h-100">
         <div class="card-header pb-0 pt-3 bg-transparent">
           <h6 class="text-capitalize">Project Task Progress chart</h6>

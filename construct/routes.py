@@ -45,12 +45,13 @@ def allowed_file(filename):
 @app.route("/dashboard", methods=['GET'])
 @login_required
 def DashBoard():
-
+    #User list
     user_list= User.query.all()
     user_count=len(user_list)
     #Delays data for cards
     pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
     rejected_delays= Delay.query.filter(Delay.status == "Rejected").count()
+    delay_count = len(Delay.query.all())
     #data for the payments cards
     #All Payments
     payment_list= PaymentRequests.query.all()
@@ -67,39 +68,36 @@ def DashBoard():
     pending_finals= PaymentRequests.query.filter(PaymentRequests.status == "Submitted",PaymentRequests.type == "Final Payment" ).count()
     approved_final= PaymentRequests.query.filter(PaymentRequests.status == "Approved!",PaymentRequests.type == "Final Payment" ).count()
     rejected_finals= PaymentRequests.query.filter(PaymentRequests.status == "Rejected",PaymentRequests.type == "Final Payment" ).count()
-   # assert pending_delays== 3,"test failed"
+    #All Tasks
     tasks = Tasks.query.all()
-    wir_count= len(WorkInspectionRequests.query.all())
-    #Pending MIR and WIR
-    submitted_wir= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Submitted").count()
-    submitted_mir= MaterialInspectionRequests.query.filter(WorkInspectionRequests.status == "Submitted").count()
-    mir_wir_pending_inspection = submitted_wir+submitted_mir
-    #Pending ends
-    approved_wir= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Approved").count()
-    approved_wir_as_noted= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Approved-As-Noted").count()
-    approved_wir_as_rejected= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Rejected").count()
-    approved_wir_as_revise= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Revise-and-ReSubmit").count()
-
-    mir_count= len(MaterialInspectionRequests.query.all())
-    approved_delays= Delay.query.filter(Delay.status == "Approved").count()
-    pending_tasks= Tasks.query.filter(Tasks.status == "Pending").count()
+    task_count = len(Tasks.query.all())
     completed_tasks= Tasks.query.filter(Tasks.status == "Completed").count()
     inprogress_tasks= Tasks.query.filter(Tasks.status == "In Progress").count()
-    task_count = pending_tasks + completed_tasks + inprogress_tasks
-    delay_count = pending_delays+approved_delays
-    data = {'Task' : 'Status', 'Pending' : pending_tasks, 'In Progress' : inprogress_tasks, 'Completed' : completed_tasks}
+    #WIR count
+    wir_count= len(WorkInspectionRequests.query.all())
+    #MIR count
+    mir_count= len(MaterialInspectionRequests.query.all())
+    #Pending MIR and WIR
+    submitted_wir= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Submitted").count()
+    submitted_mir= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Submitted").count()
+    count_pending_inspection_requests = submitted_mir+submitted_wir
+    # Pending and Rejected Variations Requests
+    variation_count= len(VariationInspectionRequests.query.all())
+    pending_variations = VariationInspectionRequests.query.filter(VariationInspectionRequests.status == "Submitted").count()
+    rejected_variations = VariationInspectionRequests.query.filter(VariationInspectionRequests.status == "Rejected").count()
+
+    
     page_message="Project Management DashBoard"
     page_name="Dashboard"
-    return render_template('index.html', rejected_delays=rejected_delays,pending_delays=pending_delays,
-     approved_delays=approved_delays, delay_count=delay_count, 
-     inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, 
-     pending_tasks=pending_tasks, data=data, tasks=tasks,
-     task_count=task_count,mir_wir_pending_inspection=mir_wir_pending_inspection,
-     submitted_wir=submitted_wir,submitted_mir=submitted_mir,
+    return render_template('index.html', rejected_delays=rejected_delays,pending_delays=pending_delays, delay_count=delay_count, 
+     inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, tasks=tasks,
+     task_count=task_count,submitted_wir=submitted_wir,submitted_mir=submitted_mir,
      page_message=page_message,page_name=page_name,user_list=user_list,user_count=user_count,
      rejected_interims=rejected_interims,approved_interims=approved_interims,pending_interims=pending_interims,rejected_on_accounts=rejected_on_accounts,
      approved_on_accounts=approved_on_accounts,pending_on_accounts=pending_on_accounts,rejected_finals=rejected_finals,
-     approved_final=approved_final,pending_finals=pending_finals,payment_count=payment_count)
+     approved_final=approved_final,pending_finals=pending_finals,
+     payment_count=payment_count,count_pending_inspection_requests=count_pending_inspection_requests,rejected_variations=rejected_variations,
+     pending_variations=pending_variations,variation_count=variation_count)
 
 
 
