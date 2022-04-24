@@ -18,8 +18,8 @@
 
       {% for task in tasks %}
       
-      data.addRows([['{{task.id}}', '{{task.Name}}', '{{task.phase}}', new Date('{{task.start_date}}'), new Date('{{task.end_date}}'), null,null,  null ]]);
-      
+      data.addRows([['{{task.id}}', '{{task.Name}}', '{{task.phase}}', new Date('{{task.start_date}}'), new Date('{{task.end_date}}'), null,{{task.Percentage}},  null ]]);
+
       
       {% endfor %}
 

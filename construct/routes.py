@@ -40,9 +40,9 @@ def allowed_file(filename):
 ############ The Homepage and Dashboard ####################
 
 #homepage route
-@app.route("/", methods=['GET', 'POST'])
-@app.route("/home", methods=['GET', 'POST'])
-@app.route("/dashboard", methods=['GET', 'POST'])
+@app.route("/", methods=['GET'])
+@app.route("/home", methods=['GET'])
+@app.route("/dashboard", methods=['GET'])
 @login_required
 def DashBoard():
 
@@ -1598,31 +1598,37 @@ def TaskCreate():
     #Grab the form values and perform the relevant DB queries if the request is of type POST
 
 #Creating new Tasks test new gui
-            start_date= taskform.start_date.data      
-            end_date= taskform.end_date.data         
-            total_days= (end_date-start_date).days  
-            print(start_date)
-            print(end_date)
+#Raise execption if the start date is greater than the end date
+        if not taskform.validate_on_submit():
+            flash("Error: The Start date is greater than the End Date")
+            return redirect('/TaskCreateForm')
 
-            task_to_create = Tasks(Name=taskform.Name.data,
+
+        start_date= taskform.start_date.data      
+        end_date= taskform.end_date.data         
+        total_days= (end_date-start_date).days  
+        print(start_date)
+        print(end_date)
+
+        task_to_create = Tasks(Name=taskform.Name.data,
                               description=taskform.Description.data,
                               phase=taskform.phase.data,
-                              Percentage=taskform.percentage.data,
+                              
                               start_date= taskform.start_date.data,
                               end_date= taskform.end_date.data,
                               total_estimated_cost= taskform.total_estimated_cost.data,
                               total_days= total_days )
-            print(start_date)
-            print(end_date)
-            db.session.add(task_to_create)
-            db.session.commit()
-            send_sms("A Task was Updated. Please Check your email man")
+        print(start_date)
+        print(end_date)
+        db.session.add(task_to_create)
+        db.session.commit()
+        send_sms("A Task was Updated. Please Check your email man")
            # SendNotificationAsContractor("Task Record")
-            flash(f'Task Created!')
-            print(start_date)
-            print(end_date)
+        flash(f'Task Created!')
+        print(start_date)
+        print(end_date)
 
-    return redirect(url_for('Taskpage'))
+        return redirect(url_for('Taskpage'))
     #Throw execptions if there are errors in the data entered into he form 
     if form.errors != {}:  
         for err_msg in taskform.errors.values():
@@ -1943,16 +1949,20 @@ def group_chat_page():
 @app.route("/ConsultantChat", methods=['GET', 'POST'])
 @login_required
 def consultant_chat_page():
+    if current_user.role != 'Consultant':
+        return redirect(url_for('UnAuthorized'))
     page_message="Consultant Chat"
     return render_template('ConsultantChat.html',page_message=page_message)
 
 @app.route("/ContractorChat", methods=['GET', 'POST'])
 @login_required
 def contractor_chat_page():
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     page_message="Contractor's Chat Page"
     return render_template('ContractorChat.html',page_message=page_message)
 
-
+#Page to redirect to for unauthorized stuff
 @app.route("/UnAuthorized", methods=['GET', 'POST'])
 @login_required
 def UnAuthorized():
@@ -1960,3 +1970,30 @@ def UnAuthorized():
     return render_template('UnAuthorizedPage.html',page_message=page_message)
 
 #Chat Boxes for stakeholders end here
+
+@app.route("/TaskPercentageUpdate", methods=['GET', 'POST'])
+@login_required
+def TaskPercentageUpdate():
+
+    task_list =  Tasks.query.all()
+
+    if request.method == "GET":
+        return render_template('TaskPercentageUpdate.html',task_list=task_list)
+    if request.method == "POST":
+
+        task_ID= request.form['tasks']
+        task_percentage= request.form['percentage']
+    #    print("Entered ID is: "+task_ID )
+    #    print("Entered percentage is : "+task_percentage )  TESTS!!
+        task_to_update_percentage = Tasks.query.get_or_404(task_ID)
+        task_to_update_percentage.Percentage = int(task_percentage)
+        
+        db.session.commit()
+        print("The data has been updated... Task percentage updated to: "+ task_percentage)
+        return redirect(url_for('Taskpage'))
+
+@app.route("/testpage", methods=['GET', 'POST'])
+@login_required
+def testpage():
+
+    return render_template('testpage.html')

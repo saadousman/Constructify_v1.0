@@ -77,9 +77,8 @@ class TaskForm(FlaskForm):
     Description = StringField(label='Description', validators=[
                                 DataRequired()])
 
-    phase = SelectField(u'Phase', choices=[('Foundation', 'Foundation'), ('Interior', 'Interior'), ('Electrical', 'Electrical'), ('Plumbing', 'Plumbing'), ('Safety', 'Safety')])
-    percentage = IntegerField(label='Percentage in weight', validators=[
-                             DataRequired()])
+    phase = SelectField(u'Type', choices=[('Foundation', 'Foundation'), ('Interior', 'Interior'), ('Electrical', 'Electrical'), ('Plumbing', 'Plumbing'), ('Safety', 'Safety'),('Roofing', 'Roofing'),('Exterior', 'Exterior'),('Paint', 'Paint')])
+    
 
     start_date = DateField('Start Date', format='%Y-%m-%d') 
     end_date = DateField('End Date', format='%Y-%m-%d') 
@@ -89,7 +88,12 @@ class TaskForm(FlaskForm):
 
     submit = SubmitField(label='Submit Task')
 
-
+    def validate_on_submit(self):
+            
+            if (self.start_date.data>self.end_date.data):
+                return False
+            else:
+                return True
     
 #--------------------------------------------------------------------
 
@@ -125,4 +129,10 @@ class PaymentSubmitForm(FlaskForm):
     Type = SelectField(u'Type', choices=[('Interim-Payment', 'Interim-Payment'), ('On-Account Payment', 'On-Account Payment'), ('Final Payment', 'Final Payment')])
     
     submit = SubmitField(label='Submit Payment Request')
+#--------------------------------------------------
+class TaskPercentageForm(FlaskForm):
+    percentage_completed = IntegerField(label='Percentage Completed', validators=[
+                             DataRequired()])
+    
+    submit = SubmitField(label='Submit Task Update')
  
