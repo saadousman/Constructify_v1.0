@@ -14,14 +14,14 @@
 -->
 <!DOCTYPE html>
 <html lang="en">
- 
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
   <link rel="apple-touch-icon" sizes="76x76" href="{{ url_for('static', filename='assets')}}/img/apple-icon.png">
   <link rel="icon" type="image/png" href="{{ url_for('static', filename='assets')}}/img/favicon.png">
   <title>
-    Sign in
+    Update Task Percentage
   </title>
   <!--     Fonts and icons     -->
   <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet" />
@@ -32,12 +32,13 @@
   <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
   <link href="{{ url_for('static', filename='assets')}}/css/nucleo-svg.css" rel="stylesheet" />
   <!-- CSS Files -->
-  <link id="pagestyle" href="{{ url_for('static', filename='assets')}}/css/argon-dashboard.css?v=2.0.2" rel="stylesheet" />
- 
+  <link id="pagestyle" href="{{ url_for('static', filename='assets')}}/css/argon-dashboard.css?v=2.0.2"
+    rel="stylesheet" />
 
+</head>
 
 <body class="">
- 
+
   <main class="main-content  mt-0">
     <section>
       <div class="page-header min-vh-100">
@@ -47,46 +48,63 @@
               <div class="card card-plain">
                 <div class="card-header pb-0 text-start">
                   {% with messages = get_flashed_messages(with_categories=true) %}
-                 {% if messages %}
+                  {% if messages %}
                   {% for category, message in messages %}
-                  <p class="mb-0">{{message}}</p>
+
+                  {{message}}
+
+
+
                   {% endfor %}
                   {% endif %}
                   {% endwith %}
-                  <h3 class="font-weight-bolder">Constructify</h3><br>
-                  <h4 class="font-weight-bolder">Sign In</h4>
-                  <p class="mb-0">Enter your email and password to sign in</p>
+                  <h3 class="font-weight-bolder">Update Task Percentage</h3><br>
+
+                  <p class="mb-0">Choose a Payment Request ID and File</p>
                 </div>
                 <div class="card-body">
-                  <form role="form" method="POST">
-                    {{ form.hidden_tag() }}
-                    <div class="mb-3">
-                      {{ form.username(class="form-control", placeholder="User Name") }}
-                    </div>
-                    <div class="mb-3">
-                      {{ form.login_password(class="form-control", placeholder="Password") }}
-                    </div>
-                    
-                    <div class="text-center">
-                      
-                      {{ form.submit(class="btn btn-lg btn-primary btn-lg w-100 mt-4 mb-0") }}
-                    </div>
+
+                  <form method="post" action="/TaskPercentageUpdate" enctype="multipart/form-data">
+
+
+                    <dl>
+                      <label for="tasks">Choose a Task ID</label>
+
+                      <select name="tasks" id="tasks">
+                        {%for task in task_list %}
+                        <option value="{{task.id}}"> #{{task.id}} ({{task.Name}})</option>
+                        {%endfor%}
+                      </select>
+                    </dl>
+
+                    <dl>
+                      <label for="percentage">Percentage Completed:</label>
+                      <input type="number" id="percentage" name="percentage" min="1" max="100">%
+                    </dl>
+                    <input type="submit" value="Submit" class="btn btn-info">
+                    </p>
+
+
                   </form>
                 </div>
                 <div class="card-footer text-center pt-0 px-lg-2 px-1">
                   <p class="mb-4 text-sm mx-auto">
-                   
-                    <a  class="text-primary text-gradient font-weight-bold"> Don't have an account?</a><br>
-                   <strong>Contact The Adminstrator</strong> 
+                    Go Back to the Payment Requests Page
+                    <a href="{{ url_for('material_inspection_page')}}"
+                      class="text-primary text-gradient font-weight-bold">Payment Requests Page</a>
                   </p>
                 </div>
               </div>
             </div>
-            <div class="col-6 d-lg-flex d-none h-100 my-auto pe-0 position-absolute top-0 end-0 text-center justify-content-center flex-column">
-              <div class="position-relative bg-gradient-primary h-100 m-3 px-7 border-radius-lg d-flex flex-column justify-content-center overflow-hidden" style="background-image: url('https://www.constructionexec.com/assets/site_18/images/article/081219110833.jpg?width=1280');
+            <div
+              class="col-6 d-lg-flex d-none h-100 my-auto pe-0 position-absolute top-0 end-0 text-center justify-content-center flex-column">
+              <div
+                class="position-relative bg-gradient-primary h-100 m-3 px-7 border-radius-lg d-flex flex-column justify-content-center overflow-hidden"
+                style="background-image: url('https://www.constructionexec.com/assets/site_18/images/article/081219110833.jpg?width=1280');
           background-size: cover;">
                 <span class="mask bg-gradient-primary opacity-6"></span>
-                <h4 class="mt-5 text-white font-weight-bolder position-relative">“{{passed_quote}}”</h4>
+                <h4 class="mt-5 text-white font-weight-bolder position-relative">Submission page for Payment Documents
+                </h4>
                 <p class="text-white position-relative">{{passed_quote_author}}</p>
               </div>
             </div>
@@ -96,12 +114,6 @@
     </section>
   </main>
   <!--   Core JS Files   -->
-
-
-
-
-
-  
   <script src="{{ url_for('static', filename='assets')}}/js/core/popper.min.js"></script>
   <script src="{{ url_for('static', filename='assets')}}/js/core/bootstrap.min.js"></script>
   <script src="{{ url_for('static', filename='assets')}}/js/plugins/perfect-scrollbar.min.js"></script>
@@ -128,7 +140,7 @@
 
   <!-- Argon JS -->
   <script src="{{ url_for('static', filename='assets')}}/js/argon-design-system.js"></script>
- 
+
 </body>
 
 </html>

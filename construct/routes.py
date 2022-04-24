@@ -1,7 +1,7 @@
 from flask import render_template, redirect, url_for, flash, get_flashed_messages, request, make_response, jsonify, Response, send_from_directory
 from construct.models import User, Delay, Tasks,  TaskToImage, WorkInspectionRequests, WIRDocument, MaterialInspectionRequests, MIRDocument, MIRConsultantDocument,WIRConsultantDocument, EOTDocument, EOTConsultantDocument, WorkInspectionRequests,VariationInspectionRequests,VariationDocument,VariationConsultantDocument, PaymentRequests, PaymentConsultantDocument,PaymentDocument
 from construct import app, db, date, timedelta, mail, Message
-from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm,WIRSubmitForm, MIRSubmitForm, VariationSubmitForm, PaymentSubmitForm
+from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm,WIRSubmitForm, MIRSubmitForm, VariationSubmitForm, PaymentSubmitForm, UserEditForm
 from construct.email_send import *
 from flask_login import login_user, logout_user, login_required, current_user
 import time
@@ -13,6 +13,7 @@ from twilio.rest import Client
 import os
 import requests, random
 from sqlalchemy import delete
+from wtforms.validators import ValidationError
 
 
 
@@ -39,41 +40,64 @@ def allowed_file(filename):
 ############ The Homepage and Dashboard ####################
 
 #homepage route
-@app.route("/", methods=['GET', 'POST'])
-@app.route("/home", methods=['GET', 'POST'])
-@app.route("/dashboard", methods=['GET', 'POST'])
+@app.route("/", methods=['GET'])
+@app.route("/home", methods=['GET'])
+@app.route("/dashboard", methods=['GET'])
 @login_required
 def DashBoard():
+    #User list
+    user_list= User.query.all()
+    user_count=len(user_list)
+    #Delays data for cards
     pending_delays= Delay.query.filter(Delay.status == "Submitted").count()
-   # assert pending_delays== 3,"test failed"
+    rejected_delays= Delay.query.filter(Delay.status == "Rejected").count()
+    delay_count = len(Delay.query.all())
+    #data for the payments cards
+    #All Payments
+    payment_list= PaymentRequests.query.all()
+    payment_count=len(payment_list)
+    #Interim Payments
+    pending_interims= PaymentRequests.query.filter(PaymentRequests.status == "Submitted",PaymentRequests.type == "Interim-Payment" ).count()
+    approved_interims= PaymentRequests.query.filter(PaymentRequests.status == "Approved!",PaymentRequests.type == "Interim-Payment" ).count()
+    rejected_interims= PaymentRequests.query.filter(PaymentRequests.status == "Rejected",PaymentRequests.type == "Interim-Payment" ).count()
+    #On-account Payments
+    pending_on_accounts= PaymentRequests.query.filter(PaymentRequests.status == "Submitted",PaymentRequests.type == "On-Account Payment" ).count()
+    approved_on_accounts= PaymentRequests.query.filter(PaymentRequests.status == "Approved!",PaymentRequests.type == "On-Account Payment" ).count()
+    rejected_on_accounts= PaymentRequests.query.filter(PaymentRequests.status == "Rejected",PaymentRequests.type == "On-Account Payment" ).count()
+    #Final Payments
+    pending_finals= PaymentRequests.query.filter(PaymentRequests.status == "Submitted",PaymentRequests.type == "Final Payment" ).count()
+    approved_final= PaymentRequests.query.filter(PaymentRequests.status == "Approved!",PaymentRequests.type == "Final Payment" ).count()
+    rejected_finals= PaymentRequests.query.filter(PaymentRequests.status == "Rejected",PaymentRequests.type == "Final Payment" ).count()
+    #All Tasks
     tasks = Tasks.query.all()
-    wir_count= len(WorkInspectionRequests.query.all())
-    #Pending MIR and WIR
-    submitted_wir= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Submitted").count()
-    submitted_mir= MaterialInspectionRequests.query.filter(WorkInspectionRequests.status == "Submitted").count()
-    mir_wir_pending_inspection = submitted_wir+submitted_mir
-    #Pending ends
-    approved_wir= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Approved").count()
-    approved_wir_as_noted= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Approved-As-Noted").count()
-    approved_wir_as_rejected= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Rejected").count()
-    approved_wir_as_revise= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Revise-and-ReSubmit").count()
-
-    mir_count= len(MaterialInspectionRequests.query.all())
-    approved_delays= Delay.query.filter(Delay.status == "Approved").count()
-    pending_tasks= Tasks.query.filter(Tasks.status == "Pending").count()
+    task_count = len(Tasks.query.all())
     completed_tasks= Tasks.query.filter(Tasks.status == "Completed").count()
     inprogress_tasks= Tasks.query.filter(Tasks.status == "In Progress").count()
-    task_count = pending_tasks + completed_tasks + inprogress_tasks
-    delay_count = pending_delays+approved_delays
-    data = {'Task' : 'Status', 'Pending' : pending_tasks, 'In Progress' : inprogress_tasks, 'Completed' : completed_tasks}
+    #WIR count
+    wir_count= len(WorkInspectionRequests.query.all())
+    #MIR count
+    mir_count= len(MaterialInspectionRequests.query.all())
+    #Pending MIR and WIR
+    submitted_wir= WorkInspectionRequests.query.filter(WorkInspectionRequests.status == "Submitted").count()
+    submitted_mir= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Submitted").count()
+    count_pending_inspection_requests = submitted_mir+submitted_wir
+    # Pending and Rejected Variations Requests
+    variation_count= len(VariationInspectionRequests.query.all())
+    pending_variations = VariationInspectionRequests.query.filter(VariationInspectionRequests.status == "Submitted").count()
+    rejected_variations = VariationInspectionRequests.query.filter(VariationInspectionRequests.status == "Rejected").count()
+
+    
     page_message="Project Management DashBoard"
     page_name="Dashboard"
-    return render_template('index.html', pending_delays=pending_delays,
-     approved_delays=approved_delays, delay_count=delay_count, 
-     inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, 
-     pending_tasks=pending_tasks, data=data, tasks=tasks,
-     task_count=task_count,mir_wir_pending_inspection=mir_wir_pending_inspection,
-     submitted_wir=submitted_wir,submitted_mir=submitted_mir,page_message=page_message,page_name=page_name)
+    return render_template('index.html', rejected_delays=rejected_delays,pending_delays=pending_delays, delay_count=delay_count, 
+     inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, tasks=tasks,
+     task_count=task_count,submitted_wir=submitted_wir,submitted_mir=submitted_mir,
+     page_message=page_message,page_name=page_name,user_list=user_list,user_count=user_count,
+     rejected_interims=rejected_interims,approved_interims=approved_interims,pending_interims=pending_interims,rejected_on_accounts=rejected_on_accounts,
+     approved_on_accounts=approved_on_accounts,pending_on_accounts=pending_on_accounts,rejected_finals=rejected_finals,
+     approved_final=approved_final,pending_finals=pending_finals,
+     payment_count=payment_count,count_pending_inspection_requests=count_pending_inspection_requests,rejected_variations=rejected_variations,
+     pending_variations=pending_variations,variation_count=variation_count)
 
 
 
@@ -239,11 +263,31 @@ def payment_requests_page():
         payment_list=payment_list,page_message=page_message,joint_review_payment=joint_review_payment )
 ############   Payments Request module ends here ####################
 
+############   User Management module Starts here ####################
+
+@app.route("/UserManagement", methods=['GET', 'POST'])
+@login_required
+def UserManagement():
+    if current_user.role != 'Client':
+        return redirect(url_for('UnAuthorized'))
+    db.create_all()
+    tot_clients= User.query.filter(User.role == "Client").count()
+    tot_consultants= User.query.filter(User.role == "Consultant").count()
+    tot_contractors= User.query.filter(User.role == "Contractor").count()
+    user_list = User.query.all()
+    page_message="Project Stakeholder Management"
+
+#Render the  page if the request is of type GET
+    if request.method == "GET":
+        return render_template('UserManagementPage.html', user_list=user_list,
+        tot_clients=tot_clients, tot_consultants=tot_consultants,tot_contractors=tot_contractors,page_message=page_message  )
 
 ############ All Functions related to Registration and Login ####################
 
 @app.route('/register', methods=['GET', 'POST'])
 def register_page():
+    if current_user.role != 'Client':
+        return redirect(url_for('UnAuthorized'))
     form = RegisterForm()
     if form.validate_on_submit():
         user_to_create = User(username=form.username.data,
@@ -254,12 +298,68 @@ def register_page():
 
         db.session.add(user_to_create)
         db.session.commit()
-        flash(f'Please Sign in')
-        return redirect(url_for('login_page'))
+        flash(f'The user has been created')
+        return redirect(url_for('UserManagement'))
     if form.errors != {}:  # if the errors in the form error dictionary is not empty
         for err_msg in form.errors.values():
             flash(f'There has been an exception thrown ==> {err_msg}  <==')
     return render_template('sign-up.html', form=form)
+#-----------------------------------------------------------------
+def validate_email_address(email_to_check):
+        email_add = User.query.filter_by(
+            email_address=email_to_check).first()
+        if email_add:
+            return True
+
+@app.route('/ModifyUser/<int:passed_id>', methods=['GET', 'POST'])
+def ModifyUser(passed_id):
+    if current_user.role != 'Client':
+        return redirect(url_for('UnAuthorized'))
+    form = UserEditForm()
+    if request.method == "GET":
+     
+     user_to_modify=            User.query.filter_by(id=passed_id).first()
+     current_email=             user_to_modify.email_address
+     current_role=              user_to_modify.role
+     current_number=            user_to_modify.contact_number
+     print("The user to be modified is: "+user_to_modify.username)
+     return render_template('edit-user.html', form=form,user_to_modify=user_to_modify,current_email=current_email,
+     current_role=current_role,current_number=current_number)
+
+    if request.method == "POST":
+        
+            print("Entering query user")
+            user_to_modify=                     User.query.filter_by(id=passed_id).first()
+               
+            
+             
+            if form.password1.data != '':
+                user_to_modify.password=           form.password1.data
+                print("Password has been changed as well")
+            if form.email_address.data != '':
+                if validate_email_address(form.email_address.data):
+                    flash("The Email has already been taken. No Changes were made")
+                    return redirect(url_for('UserManagement')) 
+                user_to_modify.email_address=           form.email_address.data
+                print("Email has been changed as well")
+            if form.contact_no.data != '':
+                user_to_modify.contact_number=           form.contact_no.data
+                print("Number has been changed as well")
+            if form.role.data != '':
+                user_to_modify.role=           form.role.data
+                print("Role has been changed as well")
+
+
+            print("Done with DB object creation")
+            print("Entering Session committing")
+            db.session.commit()
+            print("DB changes are applied")
+            flash(f'The user has been edited!')
+
+            
+                        
+    return redirect(url_for('UserManagement'))
+                              
 
 @app.route('/login', methods=['GET', 'POST'])
 def login_page():
@@ -361,6 +461,17 @@ def deletePayment(passed_id):
     #SendNotificationAsContractor("Material Inspection record Deletion")
     flash(f'Payment Request deleted!')
     return redirect(url_for('payment_requests_page'))
+
+#Delete Variation Item
+@app.route("/deleteUser/<int:passed_id>")
+def deleteUser(passed_id):
+    #Deletes the MIR request
+    user_to_delete = User.query.get_or_404(passed_id)
+    db.session.delete(user_to_delete)
+    db.session.commit()
+    #SendNotificationAsContractor("Material Inspection record Deletion")
+    flash(f'User deleted!')
+    return redirect(url_for('UserManagement'))
 
 
 ################  ALL Delete records Modules END here ####################
@@ -604,7 +715,8 @@ def PaymentPdfGeneration():
 
 @app.route('/UploadImage', methods=['POST'])
 def upload_image():
-
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     if 'file' not in request.files:
         flash('No file part')
         return redirect(request.url)
@@ -634,6 +746,8 @@ def upload_image():
 
 @app.route('/UploadWIR', methods=['POST'])
 def upload_wir():
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     status="Submitted"
     if 'file' not in request.files:
         flash('No file part')
@@ -663,7 +777,8 @@ def upload_wir():
 
 @app.route('/UploadMIR', methods=['POST'])
 def upload_mir():
-
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     status="Submitted"
     if 'file' not in request.files:
         flash('No file part')
@@ -692,6 +807,10 @@ def upload_mir():
 
 @app.route('/UploadEOT', methods=['POST'])
 def upload_eot():
+
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
+
     status="Submitted"
     db.create_all()
     if 'file' not in request.files:
@@ -723,6 +842,8 @@ def upload_eot():
 
 @app.route('/UploadVariationDocument', methods=['POST'])
 def upload_var_document():
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
 
     status="Submitted"
     if 'file' not in request.files:
@@ -752,7 +873,9 @@ def upload_var_document():
 #------------------------------------------------------------------------------------------------------
 @app.route('/UploadPaymentDocument', methods=['POST'])
 def upload_payment_document():
-    
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
+
     status="Submitted"
     if 'file' not in request.files:
         flash('No file part')
@@ -787,7 +910,8 @@ def upload_payment_document():
 
 @app.route('/UploadMIRConsultant', methods=['POST'])
 def upload_mir_consultant():
-
+    if current_user.role != 'Consultant':
+        return redirect(url_for('UnAuthorized'))
     status="Submitted"
     if 'file' not in request.files:
         flash('No file part')
@@ -817,6 +941,8 @@ def upload_mir_consultant():
 
 @app.route('/UploadConsultantWIR', methods=['POST'])
 def upload_wir_consultant():
+    if current_user.role != 'Consultant':
+        return redirect(url_for('UnAuthorized'))
     db.create_all()
     status="Submitted"
     if 'file' not in request.files:
@@ -852,7 +978,8 @@ def upload_wir_consultant():
 #------------------------------------------------------------------------------vv
 @app.route('/UploadVariationDocumentConsulant', methods=['POST'])
 def UploadVariationDocumentConsulant():
-
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     status="Submitted"
     if 'file' not in request.files:
         flash('No file part')
@@ -881,7 +1008,8 @@ def UploadVariationDocumentConsulant():
 #-----------------------------------------------------------------------------------------------------------------------------
 @app.route('/UploadPaymentDocumentConsultant', methods=['POST'])
 def upload_payment_document_consultant():
-    
+    if current_user.role != 'Consultant':
+        return redirect(url_for('UnAuthorized'))
     status="Submitted"
     if 'file' not in request.files:
         flash('No file part')
@@ -941,7 +1069,7 @@ def ImageGallery(id):
         page_message="Image Gallery for Task"
         return render_template('ImageGallery.html', taskref=tasks, taskid=ident, page_message=page_message,image=image)
         
-
+#----------------------------------------------------------------------------------
 @app.route("/WIRSubmittedGallery/<string:passed_id>", methods=['GET', 'POST'])
 @login_required
 def wir_submitted_page(passed_id):
@@ -959,7 +1087,7 @@ def wir_submitted_page(passed_id):
 
 
 
-
+#----------------------------------------------------------------------------------
 @app.route("/EOTSubmitted/<string:passed_id>", methods=['GET', 'POST'])
 @login_required
 def eot_submitted_page(passed_id):
@@ -979,7 +1107,7 @@ def eot_submitted_page(passed_id):
         page_message="EOT's Submitted by the Contractor"
         return render_template('SubmittedEOTGallery.html', submited_eot_refs=submitted_eot, passed_eot_id=str(passed_id),check_if_empty=check_if_empty)
 
-
+#----------------------------------------------------------------------------------
 @app.route("/EOTSubmittedConsultant/<string:passed_id>", methods=['GET', 'POST'])
 @login_required
 def eot_submitted_page_consultant(passed_id):
@@ -998,7 +1126,7 @@ def eot_submitted_page_consultant(passed_id):
         return render_template('SubmittedEOTGalleryConsultant.html', submited_eot_refs=submitted_eot, passed_eot_id=str(passed_id),check_if_empty=check_if_empty)
 
 
-        
+        #----------------------------------------------------------------------------------
 
 @app.route("/ConsultantWIRSubmitted/<string:passed_id>", methods=['GET', 'POST'])
 @login_required
@@ -1017,7 +1145,7 @@ def consultant_Wir_submitted_page(passed_id):
       #  return Response(images=images, mimetype=img.mimetype)
         return render_template('SubmittedWIRGalleryConsultant.html', submitted_Wir_document=submitted_Wir_document, passed_wir_id=str(passed_id),has_wir_id=has_wir_id)
  
-
+#----------------------------------------------------------------------------------
 @app.route("/MIRSubmittedGallery/<string:passed_id>", methods=['GET', 'POST'])
 @login_required
 def mir_submitted_page(passed_id):
@@ -1036,7 +1164,7 @@ def mir_submitted_page(passed_id):
 
         page_message="MIR's submitted by the Contractor"
         return render_template('SubmittedMIRGallery.html', submitted_mir=submitted_mir, passed_mir_id=str(passed_id),mir_list_is_empty=mir_list_is_empty)
-
+#----------------------------------------------------------------------------------
 @app.route("/MIRSubmittedGalleryConsultant/<string:passed_id>", methods=['GET', 'POST'])
 @login_required
 def mir_submitted_page_consultant(passed_id):
@@ -1456,6 +1584,8 @@ def PaymentStatusUpdate(passed_id):
 @app.route("/TaskCreateForm", methods=['GET', 'POST'])
 @login_required
 def TaskCreate():
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     taskform = TaskForm()
     if request.method == "GET":
         
@@ -1466,31 +1596,37 @@ def TaskCreate():
     #Grab the form values and perform the relevant DB queries if the request is of type POST
 
 #Creating new Tasks test new gui
-            start_date= taskform.start_date.data      
-            end_date= taskform.end_date.data         
-            total_days= (end_date-start_date).days  
-            print(start_date)
-            print(end_date)
+#Raise execption if the start date is greater than the end date
+        if not taskform.validate_on_submit():
+            flash("Error: The Start date is greater than the End Date")
+            return redirect('/TaskCreateForm')
 
-            task_to_create = Tasks(Name=taskform.Name.data,
+
+        start_date= taskform.start_date.data      
+        end_date= taskform.end_date.data         
+        total_days= (end_date-start_date).days  
+        print(start_date)
+        print(end_date)
+
+        task_to_create = Tasks(Name=taskform.Name.data,
                               description=taskform.Description.data,
                               phase=taskform.phase.data,
-                              Percentage=taskform.percentage.data,
+                              
                               start_date= taskform.start_date.data,
                               end_date= taskform.end_date.data,
                               total_estimated_cost= taskform.total_estimated_cost.data,
                               total_days= total_days )
-            print(start_date)
-            print(end_date)
-            db.session.add(task_to_create)
-            db.session.commit()
-            send_sms("A Task was Updated. Please Check your email man")
+        print(start_date)
+        print(end_date)
+        db.session.add(task_to_create)
+        db.session.commit()
+        send_sms("A Task was Updated. Please Check your email man")
            # SendNotificationAsContractor("Task Record")
-            flash(f'Task Created!')
-            print(start_date)
-            print(end_date)
+        flash(f'Task Created!')
+        print(start_date)
+        print(end_date)
 
-    return redirect(url_for('Taskpage'))
+        return redirect(url_for('Taskpage'))
     #Throw execptions if there are errors in the data entered into he form 
     if form.errors != {}:  
         for err_msg in taskform.errors.values():
@@ -1503,12 +1639,14 @@ def TaskCreate():
             flash(f'There has been an exception thrown ==> {err_msg}  <==')
 
 
-
+#------------------------------------------------------------------
 
 
 @app.route("/DelayCreateForm", methods=['GET', 'POST'])
 @login_required
 def DelayCreate():
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     delayForm = DelayForm()
     if request.method == "GET":
         return render_template('DelayCreateForm.html', delayForm=delayForm)
@@ -1539,6 +1677,8 @@ def DelayCreate():
 @app.route("/MIRCreateForm", methods=['GET', 'POST'])
 @login_required
 def MIRCreate():
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     db.create_all()
     MIRForm = MIRSubmitForm()
     if request.method == "GET":
@@ -1571,6 +1711,8 @@ def MIRCreate():
 @app.route("/WIRCreateForm", methods=['GET', 'POST'])
 @login_required
 def WIRCreate():
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     db.create_all()
     WIRForm = WIRSubmitForm()
     if request.method == "GET":
@@ -1606,6 +1748,8 @@ def WIRCreate():
 @app.route("/VariationCreateForm", methods=['GET', 'POST'])
 @login_required
 def VariationCreate():
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     db.create_all()
     print("DB Tables created")
     VarForm = VariationSubmitForm()
@@ -1639,6 +1783,9 @@ def VariationCreate():
 @app.route("/PaymentsCreateForm", methods=['GET', 'POST'])
 @login_required
 def PaymentsCreateForm():
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
+
     db.create_all()
     print("DB Tables created")
     PaymentForm = PaymentSubmitForm()
@@ -1675,7 +1822,8 @@ def PaymentsCreateForm():
 @app.route("/TaskImageUpload", methods=['GET', 'POST'])
 @login_required
 def TaskImageUpload():
-
+     if current_user.role != 'Contractor':
+            return redirect(url_for('UnAuthorized'))
      tasks = Tasks.query.all()
      
 
@@ -1684,7 +1832,8 @@ def TaskImageUpload():
 @app.route("/DelayEOTUploadPage", methods=['GET', 'POST'])
 @login_required
 def delayEOTUploadPage():
-
+     if current_user.role != 'Contractor':
+            return redirect(url_for('UnAuthorized'))
      delays = Delay.query.all()
      
 
@@ -1693,7 +1842,8 @@ def delayEOTUploadPage():
 @app.route("/ConsultantDelayEOTUploadPage", methods=['GET', 'POST'])
 @login_required
 def delayEOTUploadPageConsultant():
-
+     if current_user.role != 'Consultant':
+            return redirect(url_for('UnAuthorized'))
      delays = Delay.query.all()
      
 
@@ -1702,7 +1852,8 @@ def delayEOTUploadPageConsultant():
 @app.route("/MIRDocumentUploadPage", methods=['GET', 'POST'])
 @login_required
 def MIRDocumentUploadPage():
-
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     mir_list = MaterialInspectionRequests.query.all()
 
      
@@ -1713,7 +1864,8 @@ def MIRDocumentUploadPage():
 @app.route("/ConsultantMIRDocumentUploadPage", methods=['GET', 'POST'])
 @login_required
 def ConsultantMIRDocumentUploadPage():
-
+    if current_user.role != 'Consultant':
+        return redirect(url_for('UnAuthorized'))
     mir_list = MaterialInspectionRequests.query.all()
     
      
@@ -1724,7 +1876,8 @@ def ConsultantMIRDocumentUploadPage():
 @app.route("/WIRDocumentUploadPage", methods=['GET', 'POST'])
 @login_required
 def WIRDocumentUploadPage():
-
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     wir_list = WorkInspectionRequests.query.all()
 
      
@@ -1734,7 +1887,8 @@ def WIRDocumentUploadPage():
 @app.route("/ConsultantWIRDocumentUploadPage", methods=['GET', 'POST'])
 @login_required
 def ConsultantWIRDocumentUploadPage():
-
+    if current_user.role != 'Consultant':
+        return redirect(url_for('UnAuthorized'))
     wir_list = WorkInspectionRequests.query.all()
     
      
@@ -1746,6 +1900,8 @@ def ConsultantWIRDocumentUploadPage():
 @app.route("/VariationDocumentUploadPage", methods=['GET', 'POST'])
 @login_required
 def VariationDocumentUploadPage():
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     variation_list = VariationInspectionRequests.query.all()
     return render_template('VariationDocumentUpload.html', variation_list=variation_list)
 
@@ -1754,6 +1910,8 @@ def VariationDocumentUploadPage():
 @app.route("/ConsultantVariationDocumentUploadPage", methods=['GET', 'POST'])
 @login_required
 def ConsultantVariationDocumentUploadPage():
+    if current_user.role != 'Consultant':
+        return redirect(url_for('UnAuthorized'))
     variation_list = VariationInspectionRequests.query.all()
     return render_template('VariationDocumentUploadConsultant.html', variation_list=variation_list)
 
@@ -1761,6 +1919,8 @@ def ConsultantVariationDocumentUploadPage():
 @app.route("/PaymentDocumentUploadPage", methods=['GET', 'POST'])
 @login_required
 def PaymentDocumentUploadPage():
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     payment_list = PaymentRequests.query.all()
     return render_template('PaymentDocumentUpload.html', payment_list=payment_list)
 
@@ -1768,6 +1928,8 @@ def PaymentDocumentUploadPage():
 @app.route("/ConsultantPaymentDocumentUploadPage", methods=['GET', 'POST'])
 @login_required
 def ConsultantPaymentDocumentUploadPage():
+    if current_user.role != 'Consultant':
+        return redirect(url_for('UnAuthorized'))
     payment_list = PaymentRequests.query.all()
     return render_template('PaymentDocumentUploadConsultant.html', payment_list=payment_list)
 
@@ -1785,13 +1947,51 @@ def group_chat_page():
 @app.route("/ConsultantChat", methods=['GET', 'POST'])
 @login_required
 def consultant_chat_page():
+    if current_user.role != 'Consultant':
+        return redirect(url_for('UnAuthorized'))
     page_message="Consultant Chat"
     return render_template('ConsultantChat.html',page_message=page_message)
 
 @app.route("/ContractorChat", methods=['GET', 'POST'])
 @login_required
 def contractor_chat_page():
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
     page_message="Contractor's Chat Page"
     return render_template('ContractorChat.html',page_message=page_message)
 
+#Page to redirect to for unauthorized stuff
+@app.route("/UnAuthorized", methods=['GET', 'POST'])
+@login_required
+def UnAuthorized():
+    page_message="Cannot Access The page"
+    return render_template('UnAuthorizedPage.html',page_message=page_message)
+
 #Chat Boxes for stakeholders end here
+
+@app.route("/TaskPercentageUpdate", methods=['GET', 'POST'])
+@login_required
+def TaskPercentageUpdate():
+
+    task_list =  Tasks.query.all()
+
+    if request.method == "GET":
+        return render_template('TaskPercentageUpdate.html',task_list=task_list)
+    if request.method == "POST":
+
+        task_ID= request.form['tasks']
+        task_percentage= request.form['percentage']
+    #    print("Entered ID is: "+task_ID )
+    #    print("Entered percentage is : "+task_percentage )  TESTS!!
+        task_to_update_percentage = Tasks.query.get_or_404(task_ID)
+        task_to_update_percentage.Percentage = int(task_percentage)
+        
+        db.session.commit()
+        print("The data has been updated... Task percentage updated to: "+ task_percentage)
+        return redirect(url_for('Taskpage'))
+
+@app.route("/testpage", methods=['GET', 'POST'])
+@login_required
+def testpage():
+
+    return render_template('testpage.html')

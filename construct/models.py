@@ -72,7 +72,7 @@ class Tasks(db.Model):
     Name = db.Column(db.String(length=30), nullable=False)
     description = db.Column(db.String(length=30), nullable=False)
     phase = db.Column(db.String(length=30), nullable=False)
-    Percentage = db.Column(db.Integer(), nullable=False)
+    Percentage = db.Column(db.Integer(), nullable=False,default=0)
     start_date = db.Column(db.String(length=30), nullable=False)
     end_date = db.Column(db.String(length=30), nullable=False)
     status = db.Column(db.String(length=30), nullable=True, default="Pending")
