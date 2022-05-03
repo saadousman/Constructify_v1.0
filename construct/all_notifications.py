@@ -9,7 +9,7 @@ def SendNotificationAsContractor(Type):
     contact_list = []
     
     for user in Users:
-        if user.role == "Client" or user.role == "Consultant":
+        if user.role == "Client" or user.role == "Consultant"or user.role == "Contractor":
             contact_list.append(user.email_address)
     
     msg = Message('Project Delay Alert', sender = 'sdousmanflask@gmail.com', recipients = contact_list)

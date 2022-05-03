@@ -28,7 +28,7 @@ class RegisterForm(FlaskForm):
     submit = SubmitField(label='Create Account!')
     role = SelectField(u'Select User Role', choices=[('Client', 'Client'), ('Consultant', 'Consultant'), ('Contractor', 'Contractor')])
     contact_no= StringField(label='Contact Number', validators=[DataRequired(),Length(max=12),Length(min=12)])
-validators=[Length(min=2)]
+
  #--------------------------------------------------------------------
 class UserEditForm(FlaskForm):
 
@@ -49,7 +49,7 @@ class UserEditForm(FlaskForm):
                               EqualTo('password1')])
     submit = SubmitField(label='Submit Changes')
     role = SelectField(u'Select User Role', choices=[('Client', 'Client'), ('Consultant', 'Consultant'), ('Contractor', 'Contractor')])
-    contact_no= StringField(label='Contact Number',validators=[DataRequired(),Length(max=12),Length(min=12)])
+    contact_no= StringField(label='Contact Number',validators=[Length(max=12),Length(min=12)])
 #--------------------------------------------------------------------
 class LoginForm(FlaskForm):
     username = StringField(label='User Name', validators=[DataRequired()])
@@ -99,6 +99,8 @@ class TaskForm(FlaskForm):
 
 class WIRSubmitForm(FlaskForm):
     Name = StringField(label='Name', validators=[
+                                DataRequired()])
+    Name_2 = StringField(label='Name # 2', validators=[
                                 DataRequired()])
     Description = StringField(label='Description', validators=[
                                 DataRequired()])

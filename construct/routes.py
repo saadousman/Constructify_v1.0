@@ -1,19 +1,14 @@
-from flask import render_template, redirect, url_for, flash, get_flashed_messages, request, make_response, jsonify, Response, send_from_directory
+from flask import render_template, redirect, url_for, flash, get_flashed_messages, request, make_response, Response, send_from_directory
+from flask_login import login_user, logout_user, login_required, current_user
 from construct.models import User, Delay, Tasks,  TaskToImage, WorkInspectionRequests, WIRDocument, MaterialInspectionRequests, MIRDocument, MIRConsultantDocument,WIRConsultantDocument, EOTDocument, EOTConsultantDocument, WorkInspectionRequests,VariationInspectionRequests,VariationDocument,VariationConsultantDocument, PaymentRequests, PaymentConsultantDocument,PaymentDocument
 from construct import app, db, date, timedelta, mail, Message
 from construct.forms import RegisterForm, LoginForm,  DelayForm, TaskForm,WIRSubmitForm, MIRSubmitForm, VariationSubmitForm, PaymentSubmitForm, UserEditForm
-from construct.email_send import *
-from flask_login import login_user, logout_user, login_required, current_user
-import time
-import pytest
+from construct.all_notifications import *
 import pdfkit as pdfkit
 from werkzeug.utils import secure_filename
-import base64
-from twilio.rest import Client
-import os
-import requests, random
 from sqlalchemy import delete
 from wtforms.validators import ValidationError
+import time, requests, random, os, base64
 
 
 
@@ -87,7 +82,7 @@ def DashBoard():
     rejected_variations = VariationInspectionRequests.query.filter(VariationInspectionRequests.status == "Rejected").count()
 
 
-    page_message="Project Management DashBoard"
+    page_message="Project Management Dashboard"
     page_name="Dashboard"
     return render_template('index.html', rejected_delays=rejected_delays,pending_delays=pending_delays, delay_count=delay_count, 
      inprogress_tasks=inprogress_tasks,completed_tasks=completed_tasks, tasks=tasks,
@@ -186,11 +181,11 @@ def material_inspection_page():
     Rejected_mirs= MaterialInspectionRequests.query.filter(MaterialInspectionRequests.status == "Rejected").count()
     mir_list = MaterialInspectionRequests.query.all()
     page_message="Material Inspection Request Management"
-    for mir in mir_list:
-        print(mir.id)
-        print(mir.name)
-        print(mir.description)
-        print(mir.status)
+   # for mir in mir_list:
+   #     print(mir.id)
+   #     print(mir.name)
+   #     print(mir.description)
+   #     print(mir.status)
     
 #Render the MIR page if the request is of type GET
     if request.method == "GET":
@@ -280,7 +275,8 @@ def UserManagement():
 #Render the  page if the request is of type GET
     if request.method == "GET":
         return render_template('UserManagementPage.html', user_list=user_list,
-        tot_clients=tot_clients, tot_consultants=tot_consultants,tot_contractors=tot_contractors,page_message=page_message  )
+        tot_clients=tot_clients, tot_consultants=tot_consultants,
+        tot_contractors=tot_contractors,page_message=page_message  )
 
 ############ All Functions related to Registration and Login ####################
 
@@ -305,6 +301,7 @@ def register_page():
             flash(f'There has been an exception thrown ==> {err_msg}  <==')
     return render_template('sign-up.html', form=form)
 #-----------------------------------------------------------------
+#Check if an email address already exists in the DB
 def validate_email_address(email_to_check):
         email_add = User.query.filter_by(
             email_address=email_to_check).first()
@@ -313,8 +310,8 @@ def validate_email_address(email_to_check):
 #Module for editing user records
 @app.route('/ModifyUser/<int:passed_id>', methods=['GET', 'POST'])
 def ModifyUser(passed_id):
-    if current_user.role != 'Client':
-        return redirect(url_for('UnAuthorized'))
+  #  if current_user.role != 'Client':
+  #      return redirect(url_for('UnAuthorized'))
     form = UserEditForm()
     if request.method == "GET":
      
@@ -323,16 +320,17 @@ def ModifyUser(passed_id):
      current_role=              user_to_modify.role
      current_number=            user_to_modify.contact_number
      print("The user to be modified is: "+user_to_modify.username)
+
      return render_template('edit-user.html', form=form,user_to_modify=user_to_modify,current_email=current_email,
      current_role=current_role,current_number=current_number)
 
     if request.method == "POST":
         
-            print("Entering query user")
-            user_to_modify=                     User.query.filter_by(id=passed_id).first()
+            print("Entering query user.....")
+            user_to_modify=       User.query.filter_by(id=passed_id).first()
                
             
-             
+            print("Checking for if conditions.....")
             if form.password1.data != '':
                 user_to_modify.password=           form.password1.data
                 print("Password has been changed as well")
@@ -377,6 +375,8 @@ def login_page():
         else:
             flash(f'Wrong Credentials. Re-enter the correct stuff',
                   category='danger')
+#Some quotes on construction to displayed on the login screen
+#                   
     random_quote_number = random.randint(0,3)
     construction_author= ["– Winston Churchill","– Jeremy Renner","– Louis Kahn","– Charles Dickens"]
     construction_quotes = ["We shape our buildings- thereafter, they shape us.","Building is about getting around the obstacles that are presented to you.","A great building must begin with the immeasurable, must go through measurable means when it is being designed, and in the end must be unmeasured.","The whole difference between construction and creation is exactly this. That a thing constructed can only be loved after it is constructed- but a thing created is loved before it exists."]
@@ -451,7 +451,7 @@ def deleteVariation(passed_id):
     flash(f'Variation Request deleted!')
     return redirect(url_for('variation_requests_page'))
 
-#Delete Variation Item
+#Delete Payment Item
 @app.route("/deletePayment/<int:passed_id>")
 def deletePayment(passed_id):
     #Deletes the MIR request
@@ -462,7 +462,7 @@ def deletePayment(passed_id):
     flash(f'Payment Request deleted!')
     return redirect(url_for('payment_requests_page'))
 
-#Delete Variation Item
+#Delete User 
 @app.route("/deleteUser/<int:passed_id>")
 def deleteUser(passed_id):
     #Deletes the MIR request
@@ -543,7 +543,7 @@ def TaskPDFPage():
             return redirect('/Tasks', code=302)
 
 
-    #Converts the saved HTML as a pdf document. Saved in memory
+    #Converts the saved HTML into a pdf document. Saved in memory
     pdf = pdfkit.from_string(rendered, False)
     #Builds the response with the pdf attached in the response content
     response = make_response(pdf)
@@ -725,6 +725,7 @@ def PaymentPdfGeneration():
 def upload_image():
     if current_user.role != 'Contractor':
         return redirect(url_for('UnAuthorized'))
+
     if 'file' not in request.files:
         flash('No file part')
         return redirect(request.url)
@@ -751,7 +752,7 @@ def upload_image():
         flash('Allowed image types are - png, jpg, jpeg, gif')
         return redirect(request.url)
 
-
+#------------------------------------------------
 @app.route('/UploadWIR', methods=['POST'])
 def upload_wir():
     if current_user.role != 'Contractor':
@@ -779,10 +780,10 @@ def upload_wir():
 
         return redirect('/WorkInspectionReqs', code=302)
     else:
-        print("sum shit wrong with the file extensions")
+        print("Unsupported file extensions")
         flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
         return redirect(request.url)
-
+#------------------------------------------------
 @app.route('/UploadMIR', methods=['POST'])
 def upload_mir():
     if current_user.role != 'Contractor':
@@ -809,10 +810,10 @@ def upload_mir():
         flash('The document has been  successfully uploaded!!!   ')
         return redirect('/MaterialInspectReqs', code=302)
     else:
-        print("sum shit wrong with the file extensions")
+        print("Unsupported file extensions")
         flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
         return redirect(request.url)
-
+#------------------------------------------------
 @app.route('/UploadEOT', methods=['POST'])
 def upload_eot():
 
@@ -842,7 +843,7 @@ def upload_eot():
         flash('The document has been  successfully uploaded!!!! ')
         return redirect('/delays', code=302)
     else:
-        print("sum shit wrong with the file extensions")
+        print("Unsupported file extensions")
         flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
         return redirect(request.url)
 
@@ -875,7 +876,7 @@ def upload_var_document():
         flash('The Variation request Document has been  successfully uploaded!!!   ')
         return redirect('/VariationRequests', code=302)
     else:
-        print("Something wrong with the file extensions")
+        print("Unsupported file extensions")
         flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
         return redirect(request.url)
 #------------------------------------------------------------------------------------------------------
@@ -906,13 +907,13 @@ def upload_payment_document():
         flash('The Payment request Document has been successfully uploaded!!!')
         return redirect('/PaymentRequests', code=302)
     else:
-        print("Something wrong with the file extensions")
+        print("Unsupported file extensions")
         flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
         return redirect(request.url)
 
 
 
-
+#------------------------------------------------
 
 #ALL UPLOADS AS CONSULTANT START HERE
 
@@ -942,11 +943,11 @@ def upload_mir_consultant():
         flash('The document has been  successfully uploaded!!!   ')
         return redirect('/MaterialInspectReqs', code=302)
     else:
-        print("sum shit wrong with the file extensions")
+        print("Unsupported file extensions")
         flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
         return redirect(request.url)
 
-
+#------------------------------------------------
 @app.route('/UploadConsultantWIR', methods=['POST'])
 def upload_wir_consultant():
     if current_user.role != 'Consultant':
@@ -977,7 +978,7 @@ def upload_wir_consultant():
 
         return redirect('/WorkInspectionReqs', code=302)
     else:
-        print("sum shit wrong with the file extensions")
+        print("Unsupported file extensions")
         flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
         return redirect(request.url)
 
@@ -1010,7 +1011,7 @@ def UploadVariationDocumentConsulant():
         flash('The Consultant Variation request Document has been  successfully uploaded!!!   ')
         return redirect('/VariationRequests', code=302)
     else:
-        print("Something wrong with the file extensions")
+        print("Unsupported file extensions")
         flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
         return redirect(request.url)
 #-----------------------------------------------------------------------------------------------------------------------------
@@ -1043,7 +1044,7 @@ def upload_payment_document_consultant():
         print("Something wrong with the file extensions")
         flash("Allowed file types are 'png', 'jpg', 'jpeg', 'gif', 'pdf', 'doc', 'docx', 'xls', 'xlsx', 'txt', 'zip' ")
         return redirect(request.url)
-
+#------------------------------------------------
 
 
 
@@ -1476,6 +1477,7 @@ def MIRStatusUpdate(passed_id):
 
     return redirect(url_for('material_inspection_page'))
 
+
 #Updating Delay Request Records
 @app.route("/DelayStatusUpdate/<string:passed_id>")
 def EOTStatusUpdate(passed_id):
@@ -1730,7 +1732,7 @@ def WIRCreate():
 
             today = date.today()
             wir_to_create = WorkInspectionRequests(type=WIRForm.Type.data,
-            name=WIRForm.Name.data, description=WIRForm.Description .data, submitted_date=today)
+            name=WIRForm.Name.data, name_2=WIRForm.Name_2.data, description=WIRForm.Description .data, submitted_date=today)
            
             db.session.add(wir_to_create)
             db.session.commit()
@@ -1803,7 +1805,8 @@ def PaymentsCreateForm():
     if request.method == "POST":
 
             today = date.today()
-            payment_request_to_create = PaymentRequests(name=PaymentForm.Name.data, description=PaymentForm.Description.data,type=PaymentForm.Type.data,submitted_date=today)
+            payment_request_to_create = PaymentRequests(name=PaymentForm.Name.data, 
+            description=PaymentForm.Description.data,type=PaymentForm.Type.data,submitted_date=today)
            
             db.session.add(payment_request_to_create)
             db.session.commit()
@@ -1980,11 +1983,15 @@ def UnAuthorized():
 @app.route("/TaskPercentageUpdate", methods=['GET', 'POST'])
 @login_required
 def TaskPercentageUpdate():
+    if current_user.role != 'Contractor':
+        return redirect(url_for('UnAuthorized'))
 
     task_list =  Tasks.query.all()
 
     if request.method == "GET":
         return render_template('TaskPercentageUpdate.html',task_list=task_list)
+
+
     if request.method == "POST":
 
         task_ID= request.form['tasks']
@@ -1999,6 +2006,8 @@ def TaskPercentageUpdate():
         flash("The Completed Percentage has been updated!")
         return redirect(url_for('Taskpage'))
 
+
+#test page for testing purposes. must delete later
 @app.route("/testpage", methods=['GET', 'POST'])
 @login_required
 def testpage():
