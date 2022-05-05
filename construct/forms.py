@@ -33,12 +33,6 @@ class RegisterForm(FlaskForm):
 class UserEditForm(FlaskForm):
 
 
-    def validate_email_address(self, email_to_check):
-        email_add = User.query.filter_by(
-            email_address=email_to_check.data).first()
-        if email_add:
-            raise ValidationError(
-                'The email address is taken already')
 
     
     email_address = StringField(label='Email Address', validators=[
@@ -100,8 +94,7 @@ class TaskForm(FlaskForm):
 class WIRSubmitForm(FlaskForm):
     Name = StringField(label='Name', validators=[
                                 DataRequired()])
-    Name_2 = StringField(label='Name # 2', validators=[
-                                DataRequired()])
+    
     Description = StringField(label='Description', validators=[
                                 DataRequired()])
     Type = SelectField(u'Type', choices=[('Plumbing', 'Plumbing'), ('Electrical', 'Electrical'), ('Roofing', 'Roofing'),('Flooring', 'Flooring'),('Interior', 'Interior')])
