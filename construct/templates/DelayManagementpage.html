@@ -61,7 +61,8 @@
             <div class="row">
               <div class="col-8">
                 <div class="numbers">
-                  <p class="text-sm mb-0 text-uppercase font-weight-bold">Pending EOTs</p>
+                  <p class="text-sm mb-0 text-uppercase font-weight-bold">Pending </p>
+                  <p class="text-sm mb-0 text-uppercase font-weight-bold"> EOTs</p>
                   <h5 class="font-weight-bolder">
                     {{pending_delays}}
                   </h5>
@@ -83,7 +84,8 @@
             <div class="row">
               <div class="col-8">
                 <div class="numbers">
-                  <p class="text-sm mb-0 text-uppercase font-weight-bold">Approved EOTs</p>
+                  <p class="text-sm mb-0 text-uppercase font-weight-bold">Approved </p>
+                  <p class="text-sm mb-0 text-uppercase font-weight-bold"> EOTs</p>
                   <h5 class="font-weight-bolder">
                     {{approved_delays}}
                   </h5>
@@ -149,7 +151,8 @@
             <div class="row">
               <div class="col-8">
                 <div class="numbers">
-                  <p class="text-sm mb-0 text-uppercase font-weight-bold">Rejected EOTs</p>
+                  <p class="text-sm mb-0 text-uppercase font-weight-bold">Rejected </p>
+                  <p class="text-sm mb-0 text-uppercase font-weight-bold"> EOTs</p>
                   <h5 class="font-weight-bolder">
                     {{Rejected_delays}}
                   </h5>
@@ -331,9 +334,9 @@
                           <div class="dropdown-divider"></div>
                           {% endif %}
                           
-                          <p><strong><center> Submitted EOT   </center></strong></p>
-                          <a class="dropdown-item" href="{{url_for('eot_submitted_page',passed_id=delay.id)}}">By The Contractor               </a>
-                          <a class="dropdown-item" href="{{url_for('eot_submitted_page_consultant',passed_id=delay.id)}}">By The Consultant              </a>
+                         
+                          <a class="dropdown-item" href="{{url_for('eot_submitted_page',passed_id=delay.id)}}">Contractor EOT Uploads               </a>
+                          <a class="dropdown-item" href="{{url_for('eot_submitted_page_consultant',passed_id=delay.id)}}">Consultant EOT Uploads              </a>
                           {% if current_user.role == 'Contractor' %}
                           <div class="dropdown-divider"></div>
                           <a class="dropdown-item" href="{{url_for('deleteDelay',passed_id=delay.id)}}"><strong>Delete Delay</strong></a>

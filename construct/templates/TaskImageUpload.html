@@ -14,17 +14,7 @@
 -->
 <!DOCTYPE html>
 <html lang="en">
-  {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-  {% for category, message in messages %}
-  
- {{message}}
-
-
-
-{% endfor %}
-{% endif %}
-{% endwith %}
+ 
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
@@ -56,6 +46,13 @@
             <div class="col-xl-4 col-lg-5 col-md-7 d-flex flex-column mx-lg-0 mx-auto">
               <div class="card card-plain">
                 <div class="card-header pb-0 text-start">
+                  {% with messages = get_flashed_messages(with_categories=true) %}
+                 {% if messages %}
+                  {% for category, message in messages %}
+                  <p class="mb-0">{{message}}</p>
+                  {% endfor %}
+                  {% endif %}
+                  {% endwith %}
                   <h3 class="font-weight-bolder">Upload Task Photos</h3><br>
                   
                   <p class="mb-0">Choose a Task ID and File</p>
