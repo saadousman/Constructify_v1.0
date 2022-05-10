@@ -271,10 +271,10 @@ def UserManagement():
 ############ All Functions related to Registration and Login ####################
 
 @app.route('/register', methods=['GET', 'POST'])
-#@login_required
+@login_required
 def register_page():
-    #if current_user.role != 'Client':
-    #    return redirect(url_for('UnAuthorized'))
+    if current_user.role != 'Client':
+        return redirect(url_for('UnAuthorized'))
 
     form = RegisterForm()
     if form.validate_on_submit():
@@ -1518,7 +1518,7 @@ def TaskStatusUpdate(passed_id):
         task_to_complete.status = "Completed"
         db.session.commit()
         send_sms("Task ID number: "+passed_id+" Has been marked as completed by "+current_user.username)
-        SendNotificationAsContrator("Project Task Completion")
+        SendNotificationAsContractor("Project Task Completion")
         print("Task Status set as completed in the DB")
         flash(f'Task Completed!')
 
